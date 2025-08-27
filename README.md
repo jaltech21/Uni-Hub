@@ -11,9 +11,6 @@
 For **students**, UniHub acts as a personal academic hub. They can **create and manage schedules**, receive automated **reminders for classes and deadlines**, and **submit assignments digitally**. The platform also features a robust suite of study tools, including a dedicated **note-taking module** with a **text summarization tool** to help them digest information more efficiently. Looking ahead, UniHub will offer **AI-powered assistance for exam preparation**, providing students with possible exam questions and study support.
 
 For **teachers**, UniHub simplifies administrative tasks. They can easily **upload and manage assignments** and create **digital attendance lists** for students to fill in. This single point of entry for all academic tasks fosters better collaboration and reduces the administrative burden on both students and educators.
-
-By bringing together core academic functions—from scheduling and assignments to study aids and communication—UniHub aims to be an indispensable tool for the modern educational environment.
-
 ---
 
 ### **Core Functionalities**
