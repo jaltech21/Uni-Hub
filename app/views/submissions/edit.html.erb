@@ -1,0 +1,417 @@
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Grade Submission</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Assignment: <%= link_to @assignment.title, assignment_path(@assignment), class: "text-blue-600 hover:text-blue-800" %>
+        </p>
+      </div>
+      <%= link_to assignment_submissions_path(@assignment), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Submissions
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Grading Form -->
+    <div class="lg:col-span-2">
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Grading</h2>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+          <div class="flex">
+            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-green-800" id="success-text">Grade saved successfully!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <div class="flex">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-red-800" id="error-text"></p>
+            </div>
+          </div>
+        </div>
+
+        <%= form_with model: @submission, url: assignment_submission_path(@assignment, @submission), method: :patch, id: "grading-form", data: { remote: true } do |form| %>
+          <!-- Grade Input -->
+          <div class="mb-6">
+            <label for="grade" class="block text-sm font-medium text-gray-700 mb-2">
+              Grade (0 - <%= @assignment.points %> points) <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <%= form.number_field :grade, 
+                  id: "grade-input",
+                  min: 0, 
+                  max: @assignment.points,
+                  step: 1,
+                  class: "w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "Enter grade (0-#{@assignment.points})" %>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">/ <%= @assignment.points %></span>
+              </div>
+            </div>
+            
+            <!-- Grade Preview -->
+            <div id="grade-preview" class="mt-2 text-sm text-gray-600">
+              <% if @submission.grade.present? %>
+                Current: <span class="font-semibold"><%= @submission.percentage_grade.round(1) %>%</span> 
+                (<%= @submission.letter_grade %>)
+              <% end %>
+            </div>
+            <div id="live-grade-preview" class="mt-1 text-sm font-medium"></div>
+          </div>
+
+          <!-- Feedback Textarea -->
+          <div class="mb-6">
+            <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">
+              Feedback
+            </label>
+            <%= form.text_area :feedback, 
+                id: "feedback-input",
+                rows: 8,
+                class: "w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "Provide detailed feedback for the student..." %>
+            <div class="mt-2 flex items-center justify-between">
+              <span class="text-xs text-gray-500">
+                Character count: <span id="char-count">0</span>
+              </span>
+              <span class="text-xs text-gray-500">
+                Auto-saves as you type
+              </span>
+            </div>
+          </div>
+
+          <!-- Grading Criteria (if available) -->
+          <% if @assignment.grading_criteria.present? %>
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <h3 class="text-sm font-medium text-blue-900 mb-2">Grading Criteria</h3>
+              <div class="text-sm text-blue-800 whitespace-pre-wrap"><%= @assignment.grading_criteria %></div>
+            </div>
+          <% end %>
+
+          <!-- Submit Buttons -->
+          <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+            <%= link_to assignment_submissions_path(@assignment), class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+              Cancel
+            <% end %>
+            
+            <%= form.submit "Save Grade & Feedback", 
+                id: "submit-btn",
+                class: "inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Sidebar - Student & Submission Info -->
+    <div class="lg:col-span-1">
+      <!-- Student Info -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Student Information</h3>
+        <div class="flex items-center mb-4">
+          <div class="flex-shrink-0 h-12 w-12">
+            <div class="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+              <span class="text-white font-medium text-lg">
+                <%= @submission.user.full_name.split.map(&:first).join.upcase %>
+              </span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-medium text-gray-900">
+              <%= @submission.user.full_name %>
+            </div>
+            <div class="text-sm text-gray-500">
+              <%= @submission.user.email %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submission Details -->
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Submission Details</h3>
+        
+        <div class="space-y-3">
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase">Status</span>
+            <div class="mt-1">
+              <% if @submission.status == 'graded' %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Graded
+                </span>
+              <% elsif @submission.status == 'submitted' %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Submitted
+                </span>
+              <% end %>
+              <% if @submission.late_submission? %>
+                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Late
+                </span>
+              <% end %>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase">Submitted At</span>
+            <div class="mt-1 text-sm text-gray-900">
+              <%= @submission.submitted_at.strftime("%B %d, %Y") %>
+              <div class="text-xs text-gray-500"><%= @submission.submitted_at.strftime("%I:%M %p") %></div>
+            </div>
+          </div>
+
+          <% if @submission.graded_at.present? %>
+            <div>
+              <span class="text-xs font-medium text-gray-500 uppercase">Previously Graded</span>
+              <div class="mt-1 text-sm text-gray-900">
+                <%= @submission.graded_at.strftime("%B %d, %Y") %>
+                <div class="text-xs text-gray-500">
+                  by <%= @submission.graded_by&.full_name || 'Unknown' %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Submitted Files -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Submitted Files</h3>
+        
+        <% if @submission.documents.attached? %>
+          <ul class="space-y-2">
+            <% @submission.documents.each do |document| %>
+              <li class="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                <div class="flex items-center min-w-0 flex-1">
+                  <svg class="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-gray-900 truncate"><%= document.filename %></p>
+                    <p class="text-xs text-gray-500"><%= number_to_human_size(document.byte_size) %></p>
+                  </div>
+                </div>
+                <%= link_to rails_blob_path(document, disposition: "attachment"), class: "ml-2 inline-flex items-center p-1 border border-transparent rounded text-blue-600 hover:bg-blue-50" do %>
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm text-gray-500">No files submitted</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-save JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('grading-form');
+    const gradeInput = document.getElementById('grade-input');
+    const feedbackInput = document.getElementById('feedback-input');
+    const charCount = document.getElementById('char-count');
+    const livePreview = document.getElementById('live-grade-preview');
+    const successMessage = document.getElementById('success-message');
+    const errorMessage = document.getElementById('error-message');
+    const successText = document.getElementById('success-text');
+    const errorText = document.getElementById('error-text');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    const maxPoints = <%= @assignment.points %>;
+    let autoSaveTimeout = null;
+    let lastSavedGrade = '<%= @submission.grade %>';
+    let lastSavedFeedback = '<%= @submission.feedback&.gsub("'", "\\'") %>';
+
+    // Update character count
+    function updateCharCount() {
+      const count = feedbackInput.value.length;
+      charCount.textContent = count;
+    }
+
+    // Calculate and display live grade preview
+    function updateLivePreview() {
+      const grade = parseFloat(gradeInput.value);
+      
+      if (isNaN(grade) || grade < 0) {
+        livePreview.textContent = '';
+        return;
+      }
+
+      if (grade > maxPoints) {
+        livePreview.innerHTML = '<span class="text-red-600">⚠️ Grade cannot exceed ' + maxPoints + ' points</span>';
+        return;
+      }
+
+      const percentage = (grade / maxPoints) * 100;
+      let letterGrade = 'F';
+      
+      if (percentage >= 90) letterGrade = 'A';
+      else if (percentage >= 80) letterGrade = 'B';
+      else if (percentage >= 70) letterGrade = 'C';
+      else if (percentage >= 60) letterGrade = 'D';
+
+      livePreview.innerHTML = '<span class="text-blue-600">Preview: ' + percentage.toFixed(1) + '% (' + letterGrade + ')</span>';
+    }
+
+    // Show message
+    function showMessage(type, message) {
+      if (type === 'success') {
+        successText.textContent = message;
+        successMessage.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        
+        setTimeout(() => {
+          successMessage.classList.add('hidden');
+        }, 3000);
+      } else {
+        errorText.textContent = message;
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+      }
+    }
+
+    // Auto-save function
+    function autoSave() {
+      const currentGrade = gradeInput.value;
+      const currentFeedback = feedbackInput.value;
+
+      // Only save if something changed
+      if (currentGrade === lastSavedGrade && currentFeedback === lastSavedFeedback) {
+        return;
+      }
+
+      // Validate grade
+      if (currentGrade !== '' && (parseFloat(currentGrade) < 0 || parseFloat(currentGrade) > maxPoints)) {
+        showMessage('error', 'Grade must be between 0 and ' + maxPoints);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('submission[grade]', currentGrade);
+      formData.append('submission[feedback]', currentFeedback);
+      formData.append('authenticity_token', document.querySelector('[name="csrf-token"]').content);
+
+      fetch(form.action, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          lastSavedGrade = currentGrade;
+          lastSavedFeedback = currentFeedback;
+          showMessage('success', data.message || 'Grade saved successfully!');
+          
+          // Update grade preview with saved data
+          if (data.submission && data.submission.percentage_grade) {
+            const gradePreview = document.getElementById('grade-preview');
+            gradePreview.innerHTML = 'Current: <span class="font-semibold">' + 
+              data.submission.percentage_grade + '%</span> (' + 
+              data.submission.letter_grade + ')';
+          }
+        } else {
+          showMessage('error', data.errors ? data.errors.join(', ') : 'Failed to save grade');
+        }
+      })
+      .catch(error => {
+        console.error('Auto-save error:', error);
+        showMessage('error', 'Network error. Please try again.');
+      });
+    }
+
+    // Trigger auto-save on input
+    function scheduleAutoSave() {
+      clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = setTimeout(autoSave, 1500); // Save 1.5 seconds after last keystroke
+    }
+
+    // Event listeners
+    if (gradeInput) {
+      gradeInput.addEventListener('input', function() {
+        updateLivePreview();
+        scheduleAutoSave();
+      });
+    }
+
+    if (feedbackInput) {
+      feedbackInput.addEventListener('input', function() {
+        updateCharCount();
+        scheduleAutoSave();
+      });
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validate grade
+      const grade = parseFloat(gradeInput.value);
+      if (isNaN(grade) || grade < 0 || grade > maxPoints) {
+        showMessage('error', 'Please enter a valid grade between 0 and ' + maxPoints);
+        return;
+      }
+
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      // Submit via fetch
+      const formData = new FormData(form);
+      
+      fetch(form.action, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showMessage('success', 'Grade and feedback saved successfully!');
+          setTimeout(() => {
+            window.location.href = '<%= assignment_submissions_path(@assignment) %>';
+          }, 1500);
+        } else {
+          showMessage('error', data.errors ? data.errors.join(', ') : 'Failed to save');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Grade & Feedback';
+        }
+      })
+      .catch(error => {
+        console.error('Submit error:', error);
+        showMessage('error', 'Network error. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Grade & Feedback';
+      });
+    });
+
+    // Initialize
+    updateCharCount();
+    updateLivePreview();
+  });
+</script>

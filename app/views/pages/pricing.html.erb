@@ -1,0 +1,490 @@
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 overflow-hidden py-24">
+  <div class="absolute inset-0 opacity-10">
+    <svg class="absolute left-0 top-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-pricing" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid-pricing)" />
+    </svg>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h1 class="text-5xl lg:text-6xl font-extrabold text-white mb-6">Simple, Transparent Pricing</h1>
+    <p class="text-xl lg:text-2xl text-blue-100 max-w-3xl mx-auto mb-8">
+      Choose the perfect plan for your academic needs. No hidden fees.
+    </p>
+    
+    <!-- Billing Toggle -->
+    <div class="flex items-center justify-center space-x-4 mb-8">
+      <span class="text-white font-medium" id="monthly-label">Monthly</span>
+      <button type="button" id="billing-toggle" class="relative inline-flex h-8 w-16 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-white/20 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2">
+        <span class="pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0" id="toggle-indicator"></span>
+      </button>
+      <span class="text-white font-medium" id="annual-label">Annual <span class="text-yellow-300 text-sm">(Save 20%)</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing Cards -->
+<div class="py-20 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Free Tier -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+        <div class="p-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+          <p class="text-gray-600 mb-6">Perfect for students getting started</p>
+          
+          <div class="mb-6">
+            <span class="text-5xl font-extrabold text-gray-900">$0</span>
+            <span class="text-gray-600">/forever</span>
+          </div>
+
+          <%= link_to "Get Started", new_user_registration_path, class: "block w-full text-center bg-gray-100 text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-gray-200 transition duration-300 mb-8" %>
+
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Up to 10 assignments</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Basic note-taking</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">5 AI summaries/month</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">5GB storage</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Schedule management</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Email support</span>
+            </li>
+            <li class="flex items-start text-gray-400">
+              <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <span>No AI quiz generation</span>
+            </li>
+            <li class="flex items-start text-gray-400">
+              <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <span>No advanced analytics</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Pro Tier (Most Popular) -->
+      <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-2xl overflow-hidden transform scale-105 relative">
+        <div class="absolute top-0 right-0 bg-yellow-400 text-gray-900 text-xs font-bold px-4 py-1 rounded-bl-lg">
+          MOST POPULAR
+        </div>
+        <div class="p-8">
+          <h3 class="text-2xl font-bold text-white mb-2">Pro</h3>
+          <p class="text-blue-100 mb-6">For educators and power users</p>
+          
+          <div class="mb-6">
+            <span class="text-5xl font-extrabold text-white">
+              <span id="pro-price">$9.99</span>
+            </span>
+            <span class="text-blue-100">/<span id="pro-period">month</span></span>
+            <div class="text-sm text-blue-200 mt-1" id="pro-annual-note" style="display: none;">
+              Billed $95.90 annually
+            </div>
+          </div>
+
+          <%= link_to "Start Free Trial", new_user_registration_path, class: "block w-full text-center bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition duration-300 mb-8 shadow-lg" %>
+
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white font-medium">Everything in Free, plus:</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">Unlimited assignments</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">Unlimited AI features</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">AI quiz generation</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">50GB storage</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">Advanced analytics</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">Priority support</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-yellow-300 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-white">Export to PDF/Markdown</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Institution Tier -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+        <div class="p-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Institution</h3>
+          <p class="text-gray-600 mb-6">For schools and universities</p>
+          
+          <div class="mb-6">
+            <span class="text-5xl font-extrabold text-gray-900">
+              <span id="institution-price">$49.99</span>
+            </span>
+            <span class="text-gray-600">/<span id="institution-period">month</span></span>
+            <div class="text-sm text-gray-500 mt-1" id="institution-annual-note" style="display: none;">
+              Billed $479.90 annually
+            </div>
+          </div>
+
+          <%= link_to "Contact Sales", "#", class: "block w-full text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 mb-8 shadow-lg" %>
+
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700 font-medium">Everything in Pro, plus:</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Unlimited users</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Custom branding</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">500GB storage</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">SSO integration</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Advanced reporting</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">Dedicated support</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-gray-700">SLA guarantee</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust Badges -->
+    <div class="mt-16 text-center">
+      <div class="flex flex-wrap justify-center items-center gap-8 text-gray-600">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span class="font-medium">30-day money-back guarantee</span>
+        </div>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span class="font-medium">Secure payments</span>
+        </div>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span class="font-medium">Cancel anytime</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Comparison Table -->
+<div class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Compare Plans</h2>
+      <p class="text-xl text-gray-600">See which plan is right for you</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b-2 border-gray-200">
+            <th class="text-left py-4 px-6 font-bold text-gray-900">Features</th>
+            <th class="text-center py-4 px-6 font-bold text-gray-900">Free</th>
+            <th class="text-center py-4 px-6 font-bold text-blue-600 bg-blue-50">Pro</th>
+            <th class="text-center py-4 px-6 font-bold text-gray-900">Institution</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">Assignments</td>
+            <td class="text-center py-4 px-6 text-gray-600">Up to 10</td>
+            <td class="text-center py-4 px-6 bg-blue-50 text-blue-600 font-semibold">Unlimited</td>
+            <td class="text-center py-4 px-6 text-gray-600">Unlimited</td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">Storage</td>
+            <td class="text-center py-4 px-6 text-gray-600">5GB</td>
+            <td class="text-center py-4 px-6 bg-blue-50 text-blue-600 font-semibold">50GB</td>
+            <td class="text-center py-4 px-6 text-gray-600">500GB</td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">AI Summaries</td>
+            <td class="text-center py-4 px-6 text-gray-600">5/month</td>
+            <td class="text-center py-4 px-6 bg-blue-50 text-blue-600 font-semibold">Unlimited</td>
+            <td class="text-center py-4 px-6 text-gray-600">Unlimited</td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">AI Quiz Generation</td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6 bg-blue-50">
+              <svg class="w-5 h-5 text-blue-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">Advanced Analytics</td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6 bg-blue-50">
+              <svg class="w-5 h-5 text-blue-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">Custom Branding</td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6 bg-blue-50">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">SSO Integration</td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6 bg-blue-50">
+              <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </td>
+            <td class="text-center py-4 px-6">
+              <svg class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="py-4 px-6 font-medium text-gray-900">Support</td>
+            <td class="text-center py-4 px-6 text-gray-600">Email</td>
+            <td class="text-center py-4 px-6 bg-blue-50 text-blue-600 font-semibold">Priority</td>
+            <td class="text-center py-4 px-6 text-gray-600">Dedicated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FAQs -->
+<div class="py-20 bg-gray-50">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Frequently Asked Questions</h2>
+      <p class="text-xl text-gray-600">Everything you need to know about Uni-Hub pricing</p>
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Can I switch plans later?</h3>
+        <p class="text-gray-600">Yes! You can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Is there a free trial for Pro?</h3>
+        <p class="text-gray-600">Yes, we offer a 14-day free trial for the Pro plan. No credit card required to start.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">What payment methods do you accept?</h3>
+        <p class="text-gray-600">We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for institutional accounts.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Can I cancel anytime?</h3>
+        <p class="text-gray-600">Absolutely! You can cancel your subscription at any time. Your access will continue until the end of your current billing period.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Do you offer student discounts?</h3>
+        <p class="text-gray-600">The Free plan is perfect for students! Educational institutions can also contact us for volume discounts on the Institution plan.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">What happens to my data if I cancel?</h3>
+        <p class="text-gray-600">Your data remains accessible for 30 days after cancellation. You can export all your data before it's permanently deleted.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
+  <div class="max-w-4xl mx-auto text-center px-4">
+    <h2 class="text-4xl font-extrabold text-white mb-4">Ready to Get Started?</h2>
+    <p class="text-xl text-blue-100 mb-8">Join thousands of students and educators using Uni-Hub today</p>
+    
+    <%= link_to "Start Free Today", new_user_registration_path, class: "inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-blue-600 bg-white rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition duration-300 transform" %>
+    
+    <p class="mt-6 text-sm text-blue-100">No credit card required • 14-day free trial • Cancel anytime</p>
+  </div>
+</div>
+
+<script>
+  // Billing toggle functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const billingToggle = document.getElementById('billing-toggle');
+    const toggleIndicator = document.getElementById('toggle-indicator');
+    const proPrice = document.getElementById('pro-price');
+    const proPeriod = document.getElementById('pro-period');
+    const proAnnualNote = document.getElementById('pro-annual-note');
+    const institutionPrice = document.getElementById('institution-price');
+    const institutionPeriod = document.getElementById('institution-period');
+    const institutionAnnualNote = document.getElementById('institution-annual-note');
+    
+    let isAnnual = false;
+    
+    if (billingToggle) {
+      billingToggle.addEventListener('click', function() {
+        isAnnual = !isAnnual;
+        
+        if (isAnnual) {
+          // Switch to annual
+          toggleIndicator.classList.remove('translate-x-0');
+          toggleIndicator.classList.add('translate-x-8');
+          proPrice.textContent = '$7.99';
+          proPeriod.textContent = 'month';
+          proAnnualNote.style.display = 'block';
+          institutionPrice.textContent = '$39.99';
+          institutionPeriod.textContent = 'month';
+          institutionAnnualNote.style.display = 'block';
+        } else {
+          // Switch to monthly
+          toggleIndicator.classList.remove('translate-x-8');
+          toggleIndicator.classList.add('translate-x-0');
+          proPrice.textContent = '$9.99';
+          proPeriod.textContent = 'month';
+          proAnnualNote.style.display = 'none';
+          institutionPrice.textContent = '$49.99';
+          institutionPeriod.textContent = 'month';
+          institutionAnnualNote.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>

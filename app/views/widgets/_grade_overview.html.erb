@@ -1,0 +1,149 @@
+<div class="grade-overview-widget">
+  <% if data && data[:students] %>
+    <div class="grade-summary mb-3">
+      <div class="row text-center">
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-primary h4">
+              <%= number_with_precision(data[:average_grade], precision: 1) %>%
+            </div>
+            <div class="metric-label text-muted small">Average Grade</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-success h4">
+              <%= data[:high_performers] %>
+            </div>
+            <div class="metric-label text-muted small">High Performers</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-warning h4">
+              <%= data[:at_risk] %>
+            </div>
+            <div class="metric-label text-muted small">At Risk</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="grade-chart">
+      <canvas id="gradeChart-<%= widget[:id] %>" height="150"></canvas>
+    </div>
+    
+    <div class="grade-distribution mt-3">
+      <div class="distribution-bar">
+        <% data[:distribution].each do |grade, count| %>
+          <div class="grade-segment grade-<%= grade.downcase %>" 
+               style="width: <%= (count.to_f / data[:total_students] * 100).round(1) %>%"
+               title="<%= grade %>: <%= count %> students">
+          </div>
+        <% end %>
+      </div>
+      <div class="distribution-labels d-flex justify-content-between mt-2">
+        <% data[:distribution].each do |grade, count| %>
+          <small class="text-muted">
+            <span class="grade-color grade-<%= grade.downcase %>"></span>
+            <%= grade %>: <%= count %>
+          </small>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="text-center py-4">
+      <i class="fas fa-graduation-cap fa-2x text-muted mb-2"></i>
+      <p class="text-muted">No grade data available</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.grade-overview-widget .metric {
+  padding: 0.5rem 0;
+}
+
+.grade-overview-widget .metric-value {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.grade-overview-widget .distribution-bar {
+  height: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  display: flex;
+  overflow: hidden;
+}
+
+.grade-overview-widget .grade-segment {
+  height: 100%;
+  transition: opacity 0.2s ease;
+}
+
+.grade-overview-widget .grade-segment:hover {
+  opacity: 0.8;
+}
+
+.grade-overview-widget .grade-a { background-color: #28a745; }
+.grade-overview-widget .grade-b { background-color: #17a2b8; }
+.grade-overview-widget .grade-c { background-color: #ffc107; }
+.grade-overview-widget .grade-d { background-color: #fd7e14; }
+.grade-overview-widget .grade-f { background-color: #dc3545; }
+
+.grade-overview-widget .grade-color {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.25rem;
+}
+
+.grade-overview-widget .distribution-labels {
+  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const chartId = 'gradeChart-<%= widget[:id] %>';
+  const canvas = document.getElementById(chartId);
+  
+  if (canvas && window.Chart) {
+    const ctx = canvas.getContext('2d');
+    
+    const chartData = {
+      labels: [<%= data[:distribution].keys.map { |k| "'#{k}'" }.join(', ') if data %>],
+      datasets: [{
+        data: [<%= data[:distribution].values.join(', ') if data %>],
+        backgroundColor: [
+          '#28a745', // A
+          '#17a2b8', // B  
+          '#ffc107', // C
+          '#fd7e14', // D
+          '#dc3545'  // F
+        ],
+        borderWidth: 0
+      }]
+    };
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        cutout: '60%'
+      }
+    });
+  }
+});
+</script>

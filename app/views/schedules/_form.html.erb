@@ -1,0 +1,345 @@
+<%# Schedule Form Partial %>
+<%= form_with(model: schedule, local: true, html: { id: 'schedule-form', class: "space-y-6" }) do |form| %>
+  <% if schedule.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= pluralize(schedule.errors.count, "error") %> prevented this schedule from being saved:
+          </h3>
+          <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+            <% schedule.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Conflict Warning (Hidden by default, shown via JS) -->
+  <div id="conflict-warning" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-yellow-800">Schedule Conflict Detected</h3>
+        <div id="conflict-details" class="mt-2 text-sm text-yellow-700"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Title -->
+    <div class="md:col-span-2">
+      <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.text_field :title, 
+          placeholder: "e.g., CS101 Lecture",
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <!-- Course -->
+    <div class="md:col-span-2">
+      <%= form.label :course, class: "block text-sm font-medium text-gray-700 mb-2" do %>
+        Course <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.text_field :course, 
+          placeholder: "e.g., Computer Science 101",
+          required: true,
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <!-- Day of Week -->
+    <div>
+      <%= form.label :day_of_week, class: "block text-sm font-medium text-gray-700 mb-2" do %>
+        Day of Week <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.select :day_of_week,
+          options_for_select([
+            ['Monday', 1],
+            ['Tuesday', 2],
+            ['Wednesday', 3],
+            ['Thursday', 4],
+            ['Friday', 5],
+            ['Saturday', 6],
+            ['Sunday', 0]
+          ], schedule.day_of_week),
+          { prompt: 'Select a day' },
+          { required: true, id: 'day-of-week-select', class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+    </div>
+
+    <!-- Room -->
+    <div>
+      <%= form.label :room, class: "block text-sm font-medium text-gray-700 mb-2" do %>
+        Room/Location <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.text_field :room, 
+          placeholder: "e.g., Room 205",
+          required: true,
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <!-- Start Time -->
+    <div>
+      <%= form.label :start_time, "Start Time", class: "block text-sm font-medium text-gray-700 mb-2" do %>
+        Start Time <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.time_field :start_time, 
+          required: true,
+          id: 'start-time-input',
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <!-- End Time -->
+    <div>
+      <%= form.label :end_time, "End Time", class: "block text-sm font-medium text-gray-700 mb-2" do %>
+        End Time <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.time_field :end_time, 
+          required: true,
+          id: 'end-time-input',
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      <p id="duration-display" class="mt-1 text-sm text-gray-500"></p>
+    </div>
+
+    <!-- Description -->
+    <div class="md:col-span-2">
+      <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.text_area :description, 
+          rows: 3,
+          placeholder: "Add any additional details about this class...",
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" %>
+    </div>
+
+    <!-- Color Picker -->
+    <div>
+      <%= form.label :color, "Calendar Color", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="flex items-center gap-3">
+        <%= form.color_field :color, 
+            value: schedule.color || '#3B82F6',
+            class: "h-10 w-20 border border-gray-300 rounded cursor-pointer" %>
+        <span class="text-sm text-gray-600">Choose a color for calendar display</span>
+      </div>
+    </div>
+
+    <!-- Recurring -->
+    <div class="flex items-center">
+      <label class="flex items-center cursor-pointer">
+        <%= form.check_box :recurring, 
+            checked: schedule.recurring.nil? ? true : schedule.recurring,
+            class: "h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" %>
+        <span class="ml-2 text-sm font-medium text-gray-700">Recurring Weekly</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Student Selection -->
+  <div class="mt-8 border-t border-gray-200 pt-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Enroll Students</h3>
+    
+    <!-- Search Bar -->
+    <div class="mb-4">
+      <input type="text" 
+             id="student-search" 
+             placeholder="Search students by email..."
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <!-- Select All / Deselect All -->
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm font-medium text-gray-700">
+        <span id="selected-count">0</span> student(s) selected
+      </span>
+      <div class="space-x-2">
+        <button type="button" id="select-all-btn" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          Select All
+        </button>
+        <span class="text-gray-400">|</span>
+        <button type="button" id="deselect-all-btn" class="text-sm text-gray-600 hover:text-gray-800 font-medium">
+          Deselect All
+        </button>
+      </div>
+    </div>
+
+    <!-- Student List -->
+    <div id="student-list" class="border border-gray-200 rounded-lg max-h-96 overflow-y-auto bg-white">
+      <% if defined?(@all_students) && @all_students.any? %>
+        <% @all_students.each do |student| %>
+          <label class="student-item flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                 data-email="<%= student.email.downcase %>">
+            <%= check_box_tag 'student_ids[]', student.id, 
+                (defined?(@enrolled_student_ids) && @enrolled_student_ids.include?(student.id)),
+                class: "student-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500",
+                id: "student_#{student.id}" %>
+            <div class="ml-3 flex-1">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-900"><%= student.full_name %></span>
+                <span class="text-xs text-gray-500"><%= student.email %></span>
+              </div>
+            </div>
+          </label>
+        <% end %>
+      <% else %>
+        <div class="p-8 text-center text-gray-500">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <p class="mt-2 text-sm">No students available</p>
+        </div>
+      <% end %>
+    </div>
+
+    <p id="no-results-message" class="hidden mt-3 text-sm text-gray-500 text-center">
+      No students match your search
+    </p>
+  </div>
+
+  <!-- Submit Buttons -->
+  <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+    <%= link_to "Cancel", schedules_path, 
+        class: "px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium" %>
+    
+    <%= form.submit (schedule.new_record? ? "Create Schedule" : "Update Schedule"),
+        id: "submit-button",
+        class: "px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" %>
+  </div>
+<% end %>
+
+<!-- Vanilla JavaScript for Form Interactions -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startTimeInput = document.getElementById('start-time-input');
+    const endTimeInput = document.getElementById('end-time-input');
+    const durationDisplay = document.getElementById('duration-display');
+    const dayOfWeekSelect = document.getElementById('day-of-week-select');
+    const conflictWarning = document.getElementById('conflict-warning');
+    const conflictDetails = document.getElementById('conflict-details');
+    
+    // Student search and selection
+    const studentSearch = document.getElementById('student-search');
+    const studentItems = document.querySelectorAll('.student-item');
+    const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const deselectAllBtn = document.getElementById('deselect-all-btn');
+    const selectedCount = document.getElementById('selected-count');
+    const noResultsMessage = document.getElementById('no-results-message');
+
+    // Calculate and display duration
+    function updateDuration() {
+      if (startTimeInput.value && endTimeInput.value) {
+        const start = new Date('2000-01-01 ' + startTimeInput.value);
+        const end = new Date('2000-01-01 ' + endTimeInput.value);
+        
+        if (end > start) {
+          const diffMinutes = (end - start) / 1000 / 60;
+          const hours = Math.floor(diffMinutes / 60);
+          const minutes = diffMinutes % 60;
+          
+          let durationText = 'Duration: ';
+          if (hours > 0) durationText += hours + ' hour' + (hours !== 1 ? 's' : '');
+          if (hours > 0 && minutes > 0) durationText += ' ';
+          if (minutes > 0) durationText += minutes + ' minute' + (minutes !== 1 ? 's' : '');
+          
+          durationDisplay.textContent = durationText;
+          durationDisplay.classList.remove('text-red-500');
+          durationDisplay.classList.add('text-gray-500');
+        } else {
+          durationDisplay.textContent = 'End time must be after start time';
+          durationDisplay.classList.remove('text-gray-500');
+          durationDisplay.classList.add('text-red-500');
+        }
+      } else {
+        durationDisplay.textContent = '';
+      }
+    }
+
+    startTimeInput.addEventListener('change', updateDuration);
+    endTimeInput.addEventListener('change', updateDuration);
+    
+    // Check for conflicts when time or day changes
+    function checkConflicts() {
+      if (!startTimeInput.value || !endTimeInput.value || !dayOfWeekSelect.value) {
+        conflictWarning.classList.add('hidden');
+        return;
+      }
+
+      // Note: Conflict checking would require AJAX call to server
+      // For now, we'll rely on server-side validation
+    }
+
+    startTimeInput.addEventListener('change', checkConflicts);
+    endTimeInput.addEventListener('change', checkConflicts);
+    dayOfWeekSelect.addEventListener('change', checkConflicts);
+
+    // Student search functionality
+    if (studentSearch) {
+      studentSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        let visibleCount = 0;
+
+        studentItems.forEach(function(item) {
+          const email = item.dataset.email;
+          if (email.includes(searchTerm)) {
+            item.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+
+        if (visibleCount === 0 && noResultsMessage) {
+          noResultsMessage.classList.remove('hidden');
+        } else if (noResultsMessage) {
+          noResultsMessage.classList.add('hidden');
+        }
+      });
+    }
+
+    // Update selected count
+    function updateSelectedCount() {
+      const checked = document.querySelectorAll('.student-checkbox:checked').length;
+      if (selectedCount) {
+        selectedCount.textContent = checked;
+      }
+    }
+
+    studentCheckboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', updateSelectedCount);
+    });
+
+    // Select all visible students
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', function() {
+        studentItems.forEach(function(item) {
+          if (!item.classList.contains('hidden')) {
+            const checkbox = item.querySelector('.student-checkbox');
+            checkbox.checked = true;
+          }
+        });
+        updateSelectedCount();
+      });
+    }
+
+    // Deselect all students
+    if (deselectAllBtn) {
+      deselectAllBtn.addEventListener('click', function() {
+        studentCheckboxes.forEach(function(checkbox) {
+          checkbox.checked = false;
+        });
+        updateSelectedCount();
+      });
+    }
+
+    // Initialize duration and count on page load
+    updateDuration();
+    updateSelectedCount();
+  });
+</script>

@@ -1,0 +1,207 @@
+<% content_for :title, "Conversation with #{@conversation_partner.full_name}" %>
+
+<!-- Back to Conversations -->
+<div class="mb-4">
+  <%= link_to conversations_messages_path, class: "inline-flex items-center text-blue-600 hover:text-blue-800" do %>
+    <i class="fas fa-arrow-left mr-2"></i>Back to Conversations
+  <% end %>
+</div>
+
+<!-- Conversation Header -->
+<div class="bg-white rounded-lg shadow-sm mb-4">
+  <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+        <%= @conversation_partner.full_name.first.upcase %>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900"><%= @conversation_partner.full_name %></h2>
+        <p class="text-sm text-gray-500">
+          <i class="fas fa-envelope mr-1"></i><%= @conversation_partner.email %>
+        </p>
+        <% if @conversation_partner.department %>
+          <p class="text-sm text-gray-500">
+            <i class="fas fa-building mr-1"></i><%= @conversation_partner.department.name %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Container -->
+  <div id="messagesContainer" class="p-4 h-96 overflow-y-auto bg-gray-50">
+    <% if @messages.any? %>
+      <div class="space-y-4">
+        <% @messages.each do |message| %>
+          <div class="flex <%= message.sender == current_user ? 'justify-end' : 'justify-start' %>">
+            <div class="max-w-xs lg:max-w-md">
+              <% if message.sender != current_user %>
+                <div class="text-xs text-gray-500 mb-1">
+                  <%= message.sender.full_name %>
+                </div>
+              <% end %>
+              <div class="<%= message.sender == current_user ? 'bg-blue-600 text-white' : 'bg-white text-gray-900' %> rounded-lg px-4 py-2 shadow-sm">
+                <p class="text-sm whitespace-pre-wrap break-words"><%= message.content %></p>
+              </div>
+              <div class="text-xs text-gray-500 mt-1 <%= message.sender == current_user ? 'text-right' : 'text-left' %>">
+                <%= time_ago_in_words(message.created_at) %> ago
+                <% if message.sender == current_user %>
+                  <span class="ml-1">
+                    <% if message.read? %>
+                      <i class="fas fa-check-double text-blue-500" title="Read"></i>
+                    <% else %>
+                      <i class="fas fa-check text-gray-400" title="Sent"></i>
+                    <% end %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <div class="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+          <i class="fas fa-comments text-2xl text-gray-400"></i>
+        </div>
+        <p class="text-gray-600">No messages yet. Start the conversation!</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Message Input Form -->
+  <div class="p-4 border-t border-gray-200 bg-white">
+    <%= form_with model: @new_message, url: messages_path(user_id: @conversation_partner.id), method: :post, id: "messageForm", class: "flex items-end space-x-2" do |f| %>
+      <div class="flex-1">
+        <%= f.text_area :content, 
+            rows: 2, 
+            class: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none", 
+            placeholder: "Type your message...",
+            required: true,
+            maxlength: 1000 %>
+        <%= f.hidden_field :message_type, value: 'text' %>
+      </div>
+      <div>
+        <%= f.submit "Send", 
+            class: "bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+            data: { disable_with: "Sending..." } %>
+      </div>
+    <% end %>
+    <div id="messageError" class="text-red-600 text-sm mt-2 hidden"></div>
+  </div>
+</div>
+
+<script>
+// Auto-scroll to bottom of messages
+const messagesContainer = document.getElementById('messagesContainer');
+if (messagesContainer) {
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Handle form submission with AJAX
+document.getElementById('messageForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const form = this;
+  const formData = new FormData(form);
+  const submitButton = form.querySelector('[type="submit"]');
+  const errorDiv = document.getElementById('messageError');
+  const textarea = form.querySelector('textarea');
+  
+  // Disable submit button
+  submitButton.disabled = true;
+  errorDiv.classList.add('hidden');
+  
+  fetch(form.action, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.errors ? data.errors.join(', ') : 'Network response was not ok');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      // Add message to UI
+      const messageHtml = `
+        <div class="flex justify-end">
+          <div class="max-w-xs lg:max-w-md">
+            <div class="bg-blue-600 text-white rounded-lg px-4 py-2 shadow-sm">
+              <p class="text-sm whitespace-pre-wrap break-words">${escapeHtml(data.message.content)}</p>
+            </div>
+            <div class="text-xs text-gray-500 mt-1 text-right">
+              just now
+              <span class="ml-1">
+                <i class="fas fa-check text-gray-400" title="Sent"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const container = document.getElementById('messagesContainer');
+      const spaceDiv = container.querySelector('.space-y-4') || createSpaceDiv(container);
+      spaceDiv.insertAdjacentHTML('beforeend', messageHtml);
+      
+      // Clear form and scroll to bottom
+      textarea.value = '';
+      container.scrollTop = container.scrollHeight;
+      errorDiv.classList.add('hidden');
+    } else {
+      errorDiv.textContent = data.errors ? data.errors.join(', ') : 'Failed to send message';
+      errorDiv.classList.remove('hidden');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    errorDiv.textContent = 'An error occurred while sending the message';
+    errorDiv.classList.remove('hidden');
+  })
+  .finally(() => {
+    submitButton.disabled = false;
+  });
+});
+
+function createSpaceDiv(container) {
+  const emptyState = container.querySelector('.text-center');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  const spaceDiv = document.createElement('div');
+  spaceDiv.className = 'space-y-4';
+  container.appendChild(spaceDiv);
+  return spaceDiv;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Auto-resize textarea
+const textarea = document.querySelector('#messageForm textarea');
+if (textarea) {
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+  });
+  
+  // Submit on Ctrl+Enter
+  textarea.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('messageForm').dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+  });
+}
+</script>

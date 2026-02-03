@@ -1,0 +1,157 @@
+<div class="widget-body">
+  <% config = widget.configuration_with_defaults %>
+  <% show_icons = config['show_icons'] != false %>
+  <% layout = config['layout'] || 'grid' %>
+  <% actions = config['actions'] || ['new_note', 'new_assignment', 'calendar', 'messages'] %>
+  
+  <div class="quick-actions <%= layout %>-layout">
+    <% if actions.include?('new_note') %>
+      <%= link_to new_note_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-sticky-note fa-2x text-warning"></i>
+          </div>
+        <% end %>
+        <div class="action-label">New Note</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('new_assignment') && current_user.teacher? %>
+      <%= link_to new_assignment_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-file-alt fa-2x text-primary"></i>
+          </div>
+        <% end %>
+        <div class="action-label">New Assignment</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('calendar') %>
+      <%= link_to calendar_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-calendar-alt fa-2x text-success"></i>
+          </div>
+        <% end %>
+        <div class="action-label">Calendar</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('messages') %>
+      <%= link_to messages_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-envelope fa-2x text-info"></i>
+          </div>
+        <% end %>
+        <div class="action-label">Messages</div>
+        <% if data[:unread_messages] && data[:unread_messages] > 0 %>
+          <span class="badge bg-danger"><%= data[:unread_messages] %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('discussions') %>
+      <%= link_to discussions_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-comments fa-2x text-secondary"></i>
+          </div>
+        <% end %>
+        <div class="action-label">Discussions</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('resources') %>
+      <%= link_to resources_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-book fa-2x text-purple"></i>
+          </div>
+        <% end %>
+        <div class="action-label">Resources</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('grades') && current_user.student? %>
+      <%= link_to grades_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-chart-bar fa-2x text-danger"></i>
+          </div>
+        <% end %>
+        <div class="action-label">My Grades</div>
+      <% end %>
+    <% end %>
+    
+    <% if actions.include?('settings') %>
+      <%= link_to settings_path, class: 'action-btn' do %>
+        <% if show_icons %>
+          <div class="action-icon">
+            <i class="fas fa-cog fa-2x text-muted"></i>
+          </div>
+        <% end %>
+        <div class="action-label">Settings</div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .quick-actions {
+    display: grid;
+    gap: 1rem;
+  }
+  .quick-actions.grid-layout {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+  .quick-actions.list-layout {
+    grid-template-columns: 1fr;
+  }
+  .quick-actions .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: #212529;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .quick-actions .action-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+  .quick-actions.list-layout .action-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .quick-actions .action-icon {
+    margin-bottom: 0.5rem;
+  }
+  .quick-actions.list-layout .action-icon {
+    margin-bottom: 0;
+  }
+  .quick-actions .action-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+  .quick-actions.list-layout .action-label {
+    text-align: left;
+  }
+  .quick-actions .action-btn .badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  .text-purple {
+    color: #6f42c1;
+  }
+</style>

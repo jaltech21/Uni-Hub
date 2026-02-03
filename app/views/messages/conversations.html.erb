@@ -1,0 +1,482 @@
+<% content_for :title, "Messages" %>
+
+<!-- Page Header -->
+<div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-6 mb-6 shadow-lg">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-2">
+        <i class="fas fa-comments mr-2"></i>Messages
+      </h1>
+      <p class="text-blue-100">Stay connected with your classmates and instructors</p>
+    </div>
+    <div>
+      <button type="button" 
+              class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+              onclick="openNewMessageModal()">
+        <i class="fas fa-plus mr-2"></i>New Message
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center border-l-4 border-blue-500">
+    <div class="text-2xl font-bold text-gray-900 mb-1"><%= current_user.unread_messages_count %></div>
+    <div class="text-sm text-gray-600">Unread Messages</div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center border-l-4 border-green-500">
+    <div class="text-2xl font-bold text-gray-900 mb-1"><%= @conversation_threads.length %></div>
+    <div class="text-sm text-gray-600">Active Conversations</div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center border-l-4 border-purple-500">
+    <div class="text-2xl font-bold text-gray-900 mb-1"><%= current_user.sent_messages.where('created_at >= ?', Date.current).count %></div>
+    <div class="text-sm text-gray-600">Messages Sent Today</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Conversations List -->
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg shadow-sm">
+      <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Recent Conversations</h3>
+      </div>
+      
+      <% if @conversation_threads.any? %>
+        <div class="divide-y divide-gray-200">
+          <% @conversation_threads.each do |thread| %>
+            <div class="p-4 hover:bg-gray-50 transition-colors cursor-pointer" 
+                 data-conversation-key="<%= [current_user.id, thread[:partner].id].sort.join('_') %>"
+                 data-user-id="<%= thread[:partner].id %>"
+                 onclick="openConversation(<%= thread[:partner].id %>, '<%= thread[:partner].name %>')">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="flex-shrink-0 relative">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      <%= thread[:partner].full_name.first.upcase %>
+                    </div>
+                    <!-- Real-time presence indicator -->
+                    <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white presence-indicator"
+                         title="Offline"></div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2">
+                        <p class="text-sm font-semibold text-gray-900 truncate">
+                          <%= thread[:partner].full_name %>
+                        </p>
+                        <span class="presence-text text-xs text-gray-500">Offline</span>
+                      </div>
+                      <p class="text-xs text-gray-500 last-message-time">
+                        <%= time_ago_in_words(thread[:updated_at]) %> ago
+                      </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                      <p class="text-sm text-gray-600 truncate last-message">
+                        <% if thread[:last_message] %>
+                          <% if thread[:last_message].sender == current_user %>
+                            <span class="text-gray-500">You:</span>
+                          <% end %>
+                          <%= truncate(thread[:last_message].content, length: 50) %>
+                        <% else %>
+                          <span class="text-gray-400 italic">No messages yet</span>
+                        <% end %>
+                      </p>
+                      <% if thread[:unread_count] > 0 %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2 unread-count">
+                          <%= thread[:unread_count] %>
+                        </span>
+                      <% else %>
+                        <span class="hidden inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2 unread-count">
+                          0
+                        </span>
+                      <% end %>
+                    </div>
+                    <% if thread[:partner].department %>
+                      <p class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-building mr-1"></i><%= thread[:partner].department.name %>
+                      </p>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="flex-shrink-0">
+                  <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="p-8 text-center">
+          <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-comments text-2xl text-gray-400"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No conversations yet</h3>
+          <p class="text-gray-600 mb-4">Start a conversation with your classmates or instructors</p>
+          <button type="button" 
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onclick="openNewMessageModal()">
+            <i class="fas fa-plus mr-2"></i>Start New Conversation
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Quick Actions & Users -->
+  <div>
+    <!-- Quick Start Conversation -->
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Quick Start</h4>
+      
+      <div class="space-y-3">
+        <button type="button" 
+                class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center"
+                onclick="openNewMessageModal()">
+          <i class="fas fa-search text-blue-500 mr-3"></i>
+          <div>
+            <div class="font-medium text-gray-900">Find People</div>
+            <div class="text-sm text-gray-600">Search for users to message</div>
+          </div>
+        </button>
+        
+        <button type="button" 
+                class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors flex items-center"
+                onclick="location.href='<%= discussions_path %>'">
+          <i class="fas fa-users text-green-500 mr-3"></i>
+          <div>
+            <div class="font-medium text-gray-900">Join Discussions</div>
+            <div class="text-sm text-gray-600">Participate in forum discussions</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="bg-white rounded-lg p-6 shadow-sm">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">People You Can Message</h4>
+      
+      <% if @users.any? %>
+        <div class="space-y-3">
+          <% @users.first(5).each do |user| %>
+            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                 onclick="startConversationWith(<%= user.id %>)">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-gray-600 text-sm"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900"><%= user.name %></p>
+                  <% if user.department %>
+                    <p class="text-xs text-gray-500"><%= user.department.name %></p>
+                  <% end %>
+                </div>
+              </div>
+              <button type="button" 
+                      class="text-blue-600 hover:text-blue-800"
+                      onclick="event.stopPropagation(); startConversationWith(<%= user.id %>)">
+                <i class="fas fa-paper-plane text-sm"></i>
+              </button>
+            </div>
+          <% end %>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <button type="button" 
+                  class="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  onclick="openNewMessageModal()">
+            View All Users
+          </button>
+        </div>
+      <% else %>
+        <p class="text-gray-600 text-sm">No other users available</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- New Message Modal -->
+<div id="newMessageModal" 
+     class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">New Message</h3>
+        <button type="button" 
+                class="text-gray-400 hover:text-gray-600"
+                onclick="closeNewMessageModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Search for people</label>
+        <input type="text" 
+               id="userSearch" 
+               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               placeholder="Type name or email..."
+               onkeyup="searchUsers(this.value)">
+      </div>
+      
+      <div id="searchResults" class="max-h-60 overflow-y-auto">
+        <!-- Search results will be populated here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openNewMessageModal() {
+  document.getElementById('newMessageModal').classList.remove('hidden');
+  document.getElementById('userSearch').focus();
+}
+
+function closeNewMessageModal() {
+  document.getElementById('newMessageModal').classList.add('hidden');
+  document.getElementById('userSearch').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+}
+
+function searchUsers(query) {
+  if (query.length < 2) {
+    document.getElementById('searchResults').innerHTML = '';
+    return;
+  }
+  
+  fetch(`/messages/search_users?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(users => {
+      const resultsHtml = users.map(user => `
+        <div class="p-3 hover:bg-gray-50 cursor-pointer rounded-md flex items-center justify-between"
+             onclick="startConversationWith(${user.id})">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <i class="fas fa-user text-gray-600 text-sm"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">${user.name}</p>
+              <p class="text-xs text-gray-500">${user.email}</p>
+              ${user.department ? `<p class="text-xs text-gray-500">${user.department}</p>` : ''}
+            </div>
+          </div>
+          <i class="fas fa-paper-plane text-blue-600"></i>
+        </div>
+      `).join('');
+      
+      document.getElementById('searchResults').innerHTML = resultsHtml || 
+        '<p class="text-gray-500 text-sm p-3">No users found</p>';
+    })
+    .catch(error => {
+      console.error('Error searching users:', error);
+      document.getElementById('searchResults').innerHTML = 
+        '<p class="text-red-500 text-sm p-3">Error searching users</p>';
+    });
+}
+
+function startConversationWith(userId) {
+  closeNewMessageModal();
+  window.location.href = `/messages/${userId}`;
+}
+
+// Close modal when clicking outside
+document.getElementById('newMessageModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeNewMessageModal();
+  }
+});
+
+// Real-time conversation functionality
+let currentConversationModal = null;
+let currentRecipientId = null;
+let typingTimer = null;
+
+function openConversation(recipientId, recipientName) {
+  currentRecipientId = recipientId;
+  
+  // Subscribe to conversation
+  if (window.chatChannel) {
+    window.chatChannel.subscribeToConversation(recipientId);
+  }
+  
+  // Create conversation modal
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+  modal.id = 'conversationModal';
+  
+  modal.innerHTML = `
+    <div class="relative top-20 mx-auto w-full max-w-2xl bg-white rounded-lg shadow-lg">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-gray-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+            ${recipientName.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">${recipientName}</h3>
+            <div class="flex items-center space-x-2">
+              <div class="w-2 h-2 bg-gray-400 rounded-full presence-indicator" data-user-id="${recipientId}"></div>
+              <span class="text-sm text-gray-500 presence-text" data-user-id="${recipientId}">Offline</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="closeConversation()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Messages Container -->
+      <div id="messages-container" class="h-96 overflow-y-auto p-4 bg-gray-50">
+        <div class="flex justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+      
+      <!-- Typing Indicator -->
+      <div id="typing-indicator" class="hidden px-4 py-2 text-sm text-gray-500 italic"></div>
+      
+      <!-- Message Input -->
+      <div class="p-4 border-t border-gray-200">
+        <div class="flex items-center space-x-2">
+          <div class="flex-1">
+            <textarea 
+              id="message-input"
+              placeholder="Type your message..."
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              onkeydown="handleMessageKeydown(event)"
+              onkeyup="handleTyping()"
+            ></textarea>
+          </div>
+          <button 
+            onclick="sendMessage()"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            id="send-button"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  currentConversationModal = modal;
+  
+  // Load existing messages
+  loadConversationMessages(recipientId);
+  
+  // Focus message input
+  setTimeout(() => {
+    document.getElementById('message-input').focus();
+  }, 100);
+}
+
+function closeConversation() {
+  if (currentConversationModal) {
+    document.body.removeChild(currentConversationModal);
+    currentConversationModal = null;
+    currentRecipientId = null;
+  }
+}
+
+function loadConversationMessages(recipientId) {
+  fetch(`/messages/${recipientId}`)
+    .then(response => response.text())
+    .then(html => {
+      // Extract messages from the response (this is a simple approach)
+      const messagesContainer = document.getElementById('messages-container');
+      if (messagesContainer) {
+        // For now, show a placeholder - in a full implementation, you'd parse the HTML
+        // or create a JSON API endpoint
+        messagesContainer.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <p>Conversation loaded. Real-time messages will appear here.</p>
+            <p class="text-sm mt-2">Visit the full conversation page for message history.</p>
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Error loading messages:', error);
+      const messagesContainer = document.getElementById('messages-container');
+      if (messagesContainer) {
+        messagesContainer.innerHTML = `
+          <div class="text-center py-8 text-red-500">
+            <p>Error loading conversation</p>
+          </div>
+        `;
+      }
+    });
+}
+
+function handleMessageKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+function handleTyping() {
+  if (!currentRecipientId || !window.chatChannel) return;
+  
+  // Clear existing timer
+  if (typingTimer) {
+    clearTimeout(typingTimer);
+  }
+  
+  // Send typing start
+  window.chatChannel.sendTypingStatus(currentRecipientId, true);
+  
+  // Set timer to send typing stop
+  typingTimer = setTimeout(() => {
+    window.chatChannel.sendTypingStatus(currentRecipientId, false);
+  }, 2000);
+}
+
+function sendMessage() {
+  const messageInput = document.getElementById('message-input');
+  const message = messageInput.value.trim();
+  
+  if (!message || !currentRecipientId || !window.chatChannel) return;
+  
+  // Send via ActionCable
+  window.chatChannel.sendMessage(currentRecipientId, message);
+  
+  // Clear input
+  messageInput.value = '';
+  
+  // Stop typing indicator
+  if (typingTimer) {
+    clearTimeout(typingTimer);
+    window.chatChannel.sendTypingStatus(currentRecipientId, false);
+  }
+  
+  // Focus input
+  messageInput.focus();
+}
+
+// Set current user ID for ActionCable
+window.currentUserId = <%= current_user.id %>;
+
+// Initialize real-time features when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Update presence for all visible users
+  if (window.presenceChannel) {
+    setTimeout(() => {
+      window.presenceChannel.updateAllPresenceIndicators();
+    }, 1000);
+  }
+});
+
+// Handle page visibility for presence updates
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && window.presenceChannel) {
+    window.presenceChannel.requestOnlineUsers();
+  }
+});
+</script>

@@ -1,0 +1,184 @@
+<div class="widget-body">
+  <% config = widget.configuration_with_defaults %>
+  <% show_recommendations = config['show_recommendations'] != false %>
+  <% limit = config['limit'] || 5 %>
+  
+  <div class="learning-insights">
+    <!-- Learning Stats -->
+    <div class="insights-stats mb-4">
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="stat-card text-center p-3">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-book-reader fa-2x text-primary"></i>
+            </div>
+            <div class="stat-value h4 mb-0"><%= data[:study_hours] || 0 %></div>
+            <small class="text-muted">Study Hours</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="stat-card text-center p-3">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-chart-line fa-2x text-success"></i>
+            </div>
+            <div class="stat-value h4 mb-0"><%= data[:completion_rate] || 0 %>%</div>
+            <small class="text-muted">Completion Rate</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Learning Patterns -->
+    <div class="learning-patterns mb-4">
+      <h6 class="mb-3">
+        <i class="fas fa-brain text-info me-2"></i>Learning Patterns
+      </h6>
+      <% if data[:patterns]&.any? %>
+        <div class="patterns-list">
+          <% data[:patterns].each do |pattern| %>
+            <div class="pattern-item mb-2">
+              <div class="d-flex align-items-center">
+                <div class="pattern-indicator <%= pattern[:trend] %> me-2"></div>
+                <div class="flex-grow-1">
+                  <div class="pattern-text"><%= pattern[:text] %></div>
+                  <small class="text-muted"><%= pattern[:detail] %></small>
+                </div>
+                <% if pattern[:score] %>
+                  <span class="badge bg-light text-dark"><%= pattern[:score] %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-sm">Not enough data yet. Keep learning!</p>
+      <% end %>
+    </div>
+    
+    <!-- Strengths & Weaknesses -->
+    <div class="strengths-weaknesses mb-4">
+      <div class="row">
+        <div class="col-6">
+          <h6 class="text-success mb-2">
+            <i class="fas fa-star me-1"></i>Strengths
+          </h6>
+          <% if data[:strengths]&.any? %>
+            <ul class="list-unstyled mb-0">
+              <% data[:strengths].first(3).each do |strength| %>
+                <li class="mb-1">
+                  <i class="fas fa-check-circle text-success me-1"></i>
+                  <small><%= strength %></small>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <small class="text-muted">Building data...</small>
+          <% end %>
+        </div>
+        <div class="col-6">
+          <h6 class="text-warning mb-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>Focus Areas
+          </h6>
+          <% if data[:focus_areas]&.any? %>
+            <ul class="list-unstyled mb-0">
+              <% data[:focus_areas].first(3).each do |area| %>
+                <li class="mb-1">
+                  <i class="fas fa-arrow-up text-warning me-1"></i>
+                  <small><%= area %></small>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <small class="text-muted">Building data...</small>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recommendations -->
+    <% if show_recommendations && data[:recommendations]&.any? %>
+      <div class="recommendations">
+        <h6 class="mb-3">
+          <i class="fas fa-lightbulb text-warning me-2"></i>Recommendations
+        </h6>
+        <div class="recommendations-list">
+          <% data[:recommendations].first(limit).each do |rec| %>
+            <div class="recommendation-item mb-3 p-3">
+              <div class="d-flex align-items-start">
+                <div class="rec-icon me-2">
+                  <i class="<%= rec[:icon] %> fa-lg text-primary"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="rec-title fw-semibold"><%= rec[:title] %></div>
+                  <div class="rec-description text-muted text-sm">
+                    <%= rec[:description] %>
+                  </div>
+                  <% if rec[:action_url] %>
+                    <%= link_to rec[:action_url], class: 'btn btn-sm btn-outline-primary mt-2' do %>
+                      <%= rec[:action_text] || 'Learn More' %>
+                      <i class="fas fa-arrow-right ms-1"></i>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .learning-insights {
+    font-size: 0.9rem;
+  }
+  .learning-insights .stat-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 0.5rem;
+  }
+  .learning-insights .stat-value {
+    font-weight: bold;
+    color: #212529;
+  }
+  .learning-insights .pattern-item {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #f8f9fa;
+  }
+  .learning-insights .pattern-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .learning-insights .pattern-indicator.positive {
+    background-color: #28a745;
+  }
+  .learning-insights .pattern-indicator.negative {
+    background-color: #dc3545;
+  }
+  .learning-insights .pattern-indicator.neutral {
+    background-color: #6c757d;
+  }
+  .learning-insights .pattern-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .learning-insights .recommendation-item {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 0.25rem;
+  }
+  .learning-insights .rec-title {
+    font-size: 0.95rem;
+    color: #212529;
+  }
+  .learning-insights .rec-description {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+  .text-sm {
+    font-size: 0.875rem;
+  }
+</style>

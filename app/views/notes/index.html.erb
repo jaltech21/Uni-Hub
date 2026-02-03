@@ -1,0 +1,49 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+      Your Notes
+      <% if @filter_department %>
+        <span class="px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded-full"><%= @filter_department.code %></span>
+      <% end %>
+    </h1>
+    <div class="flex items-center gap-3">
+      <!-- Department Filter -->
+      <%= form_with url: notes_path, method: :get, local: true, class: "flex items-center gap-2" do |form| %>
+        <%= form.label :department_id, "Department:", class: "text-sm font-medium text-gray-700" %>
+        <%= form.select :department_id, 
+            options_from_collection_for_select(Department.active.ordered, :id, :name, @filter_department&.id),
+            { include_blank: "All Departments" },
+            { class: "rounded-lg border-gray-300 text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500", onchange: "this.form.submit();" } %>
+        <%= hidden_field_tag :folder_id, params[:folder_id] if params[:folder_id].present? %>
+        <%= hidden_field_tag :tag, params[:tag] if params[:tag].present? %>
+        <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
+      <% end %>
+      
+      <%= link_to 'New Note', new_note_path, class: 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300' %>
+    </div>
+  </div>
+
+  <% if @notes.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @notes.each do |note| %>
+        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+          <h2 class="text-xl font-semibold mb-2"><%= link_to note.title, note, class: "text-blue-600 hover:text-blue-800" %></h2>
+          <div class="text-gray-600 mb-4">
+            <p>Last updated: <%= time_ago_in_words(note.updated_at) %> ago</p>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <%= link_to 'Edit', edit_note_path(note), class: 'text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-1 px-3 rounded-lg transition duration-300' %>
+            <%= link_to 'Delete', note, data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' }, class: 'text-sm bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg transition duration-300' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-16">
+      <p class="text-gray-500 text-lg">You don't have any notes yet.</p>
+      <p class="mt-2">
+        <%= link_to 'Create your first note!', new_note_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+      </p>
+    </div>
+  <% end %>
+</div>

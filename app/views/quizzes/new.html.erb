@@ -1,0 +1,348 @@
+<!-- Page Header -->
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </span>
+        Create New Quiz
+        <span class="ml-2 px-3 py-1 text-sm font-medium bg-pink-100 text-pink-700 rounded-full">AI Powered</span>
+      </h1>
+      <p class="text-gray-600 mt-2">Generate AI-powered quiz questions from your notes or create manually</p>
+    </div>
+    <%= link_to quizzes_path, class: "inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Back to Quizzes
+    <% end %>
+  </div>
+</div>
+
+<!-- Creation Methods -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  <!-- AI Generation Method -->
+  <div class="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 border-2 border-pink-200 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+    <div class="flex items-start gap-4 mb-6">
+      <div class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">AI Generation</h2>
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium bg-pink-600 text-white rounded-full">
+          Recommended
+        </span>
+      </div>
+    </div>
+    
+    <p class="text-gray-700 mb-6">
+      Let AI automatically generate quiz questions from your notes. Fast, smart, and tailored to your content.
+    </p>
+    
+    <div class="space-y-3 mb-6">
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Generate 3-20 questions instantly</span>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Multiple question types supported</span>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Review and edit before publishing</span>
+      </div>
+    </div>
+    
+    <button onclick="document.getElementById('ai-generation-section').scrollIntoView({behavior: 'smooth'})" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+      </svg>
+      Generate with AI
+    </button>
+  </div>
+  
+  <!-- Manual Creation Method -->
+  <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-lg transition-shadow">
+    <div class="flex items-start gap-4 mb-6">
+      <div class="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Manual Creation</h2>
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+          Traditional
+        </span>
+      </div>
+    </div>
+    
+    <p class="text-gray-700 mb-6">
+      Create quiz questions manually with full control over content, format, and difficulty.
+    </p>
+    
+    <div class="space-y-3 mb-6">
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Full control over questions</span>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Create custom answer formats</span>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Perfect for specific content</span>
+      </div>
+    </div>
+    
+    <button onclick="document.getElementById('manual-creation-section').scrollIntoView({behavior: 'smooth'})" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+      </svg>
+      Create Manually
+    </button>
+  </div>
+</div>
+
+<!-- AI Generation Section -->
+<div id="ai-generation-section" class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8">
+  <div class="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-8 py-6 rounded-t-2xl">
+    <h2 class="text-2xl font-bold flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+      AI-Powered Quiz Generation
+    </h2>
+    <p class="text-pink-100 mt-2">Select a note and customize your quiz parameters</p>
+  </div>
+  
+  <div class="p-8">
+    <%= form_with url: generate_from_note_quizzes_path, method: :post, class: "space-y-6" do |f| %>
+      <!-- Note Selection -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-3">
+          Select Note
+          <span class="text-red-500">*</span>
+        </label>
+        <% if @notes.any? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
+            <% @notes.each do |note| %>
+              <label class="relative flex items-start p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-all group">
+                <input type="radio" name="note_id" value="<%= note.id %>" class="mt-1 h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300" required>
+                <div class="ml-3 flex-1">
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <p class="font-semibold text-gray-900 group-hover:text-pink-700"><%= note.title %></p>
+                      <p class="text-xs text-gray-500 mt-1">
+                        <% word_count = note.plain_text_content.split.size %>
+                        <%= word_count %> words • Updated <%= time_ago_in_words(note.updated_at) %> ago
+                      </p>
+                    </div>
+                    <% if note.sufficient_for_quiz? %>
+                      <span class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                        Ready
+                      </span>
+                    <% else %>
+                      <span class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                        Too Short
+                      </span>
+                    <% end %>
+                  </div>
+                  <% if note.tags.any? %>
+                    <div class="flex gap-1 mt-2 flex-wrap">
+                      <% note.tags.first(3).each do |tag| %>
+                        <span class="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                          <%= tag.name %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-gray-600 font-medium">No notes available</p>
+            <p class="text-gray-500 text-sm mt-1">Create some notes first to generate quizzes</p>
+            <%= link_to "Create Note", new_note_path, class: "inline-flex items-center gap-2 mt-4 px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700" %>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @notes.any? %>
+        <!-- Quiz Configuration Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
+          <!-- Number of Questions -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">
+              Number of Questions
+            </label>
+            <select name="question_count" class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white">
+              <option value="5" selected>5 Questions</option>
+              <option value="10">10 Questions</option>
+              <option value="15">15 Questions</option>
+              <option value="20">20 Questions</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">More questions = longer quiz</p>
+          </div>
+
+          <!-- Question Type -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">
+              Question Type
+            </label>
+            <select name="question_type" class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white">
+              <option value="mixed" selected>Mixed (Recommended)</option>
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True/False</option>
+              <option value="short_answer">Short Answer</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Variety keeps it interesting</p>
+          </div>
+
+          <!-- Difficulty Level -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">
+              Difficulty Level
+            </label>
+            <select name="difficulty" class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Adjust challenge level</p>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+          <div class="flex items-start gap-3 text-sm text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <div>
+              <p class="font-medium">AI will generate questions based on your note content</p>
+              <p class="text-xs text-gray-500 mt-1">You can review and edit all questions before publishing</p>
+            </div>
+          </div>
+          
+          <button type="submit" class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+            Generate Quiz
+          </button>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Manual Creation Section -->
+<div id="manual-creation-section" class="bg-white rounded-2xl shadow-lg border border-gray-200">
+  <div class="bg-gray-700 text-white px-8 py-6 rounded-t-2xl">
+    <h2 class="text-2xl font-bold flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      </svg>
+      Manual Quiz Creation
+    </h2>
+    <p class="text-gray-300 mt-2">Create a quiz from scratch with custom questions</p>
+  </div>
+  
+  <div class="p-8">
+    <%= form_with model: @quiz, class: "space-y-6" do |f| %>
+      <!-- Quiz Title -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Quiz Title
+          <span class="text-red-500">*</span>
+        </label>
+        <%= f.text_field :title, class: "block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500", placeholder: "e.g., Chapter 3: Photosynthesis Quiz", required: true %>
+      </div>
+
+      <!-- Quiz Description -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Description
+        </label>
+        <%= f.text_area :description, rows: 3, class: "block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500", placeholder: "Brief description of what this quiz covers..." %>
+      </div>
+
+      <!-- Settings Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Associated Note -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">
+            Link to Note (Optional)
+          </label>
+          <%= f.select :note_id, 
+              [["None", nil]] + @notes.map { |n| [n.title, n.id] }, 
+              {}, 
+              class: "block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white" %>
+        </div>
+
+        <!-- Difficulty -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">
+            Difficulty
+          </label>
+          <%= f.select :difficulty, 
+              [["Easy", "easy"], ["Medium", "medium"], ["Hard", "hard"]], 
+              { selected: "medium" }, 
+              class: "block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white" %>
+        </div>
+
+        <!-- Time Limit -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">
+            Time Limit (minutes)
+          </label>
+          <%= f.number_field :time_limit, min: 0, placeholder: "Optional", class: "block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500" %>
+        </div>
+      </div>
+
+      <!-- Info Box -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="flex gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+          <div class="text-sm text-blue-900">
+            <p class="font-medium">After creating the quiz</p>
+            <p class="text-blue-700 mt-1">You'll be able to add questions one by one with full customization options</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-4 pt-4">
+        <%= f.submit "Create Quiz", class: "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors cursor-pointer" %>
+        <%= link_to "Cancel", quizzes_path, class: "px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors" %>
+      </div>
+    <% end %>
+  </div>
+</div>

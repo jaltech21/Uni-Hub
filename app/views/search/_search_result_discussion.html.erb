@@ -1,0 +1,76 @@
+<div class="flex items-start justify-between">
+  <div class="flex-1">
+    <div class="flex items-center gap-3 mb-2">
+      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-900">
+        <%= link_to item.title, 
+            discussion_path(item), 
+            class: "hover:text-blue-600 transition-colors" %>
+      </h3>
+      
+      <% if item.respond_to?(:status) && item.status.present? %>
+        <% status_class = case item.status
+                         when 'active' then "bg-green-100 text-green-800"
+                         when 'closed' then "bg-gray-100 text-gray-800"
+                         when 'pinned' then "bg-blue-100 text-blue-800"
+                         else "bg-gray-100 text-gray-800"
+                         end %>
+        <span class="px-2 py-1 text-xs font-medium rounded-full <%= status_class %>">
+          <%= item.status.humanize %>
+        </span>
+      <% end %>
+    </div>
+    
+    <% if item.description.present? %>
+      <p class="text-gray-700 mb-3 line-clamp-3">
+        <%= highlight(truncate(strip_tags(item.description), length: 200), query, 
+            highlighter: '<mark class="bg-yellow-200 px-1 rounded">\1</mark>') %>
+      </p>
+    <% end %>
+    
+    <div class="flex items-center gap-4 text-sm text-gray-500">
+      <div class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <%= item.user.name if item.respond_to?(:user) && item.user %>
+      </div>
+      
+      <% if item.respond_to?(:category) && item.category.present? %>
+        <div class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+          <%= item.category.humanize %>
+        </div>
+      <% end %>
+      
+      <% if item.respond_to?(:discussion_posts) %>
+        <div class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h2m2-4h4a2 2 0 012 2v6a2 2 0 01-2 2h-4m-4-6v6m4-6v6"></path>
+          </svg>
+          <%= pluralize(item.discussion_posts.count, 'reply') %>
+        </div>
+      <% end %>
+      
+      <div class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <%= time_ago_in_words(item.updated_at) %> ago
+      </div>
+    </div>
+  </div>
+  
+  <div class="ml-4 flex-shrink-0">
+    <div class="flex items-center gap-2">
+      <%= link_to discussion_path(item), 
+          class: "text-blue-600 hover:text-blue-800 text-sm font-medium" do %>
+        View →
+      <% end %>
+    </div>
+  </div>
+</div>

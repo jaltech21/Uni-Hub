@@ -1,0 +1,171 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header with Back Button -->
+    <div class="mb-6">
+      <%= link_to admin_panel_courses_path, class: "inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 mb-4" do %>
+        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Courses
+      <% end %>
+      <h1 class="text-3xl font-bold text-gray-900">Create New Course</h1>
+      <p class="mt-2 text-sm text-gray-600">Add a new course to the university catalog</p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+      <%= form_with model: @course, url: admin_panel_courses_path, class: "divide-y divide-gray-200" do |f| %>
+        <!-- Error Messages -->
+        <% if @course.errors.any? %>
+          <div class="px-6 py-4 bg-red-50 border-l-4 border-red-500">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  <%= pluralize(@course.errors.count, "error") %> prevented this course from being saved
+                </h3>
+                <ul class="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
+                  <% @course.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Form Fields -->
+        <div class="px-6 py-6 space-y-6">
+          <!-- Basic Information Section -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <!-- Course Code -->
+              <div>
+                <%= f.label :code, "Course Code", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.text_field :code, 
+                    placeholder: "e.g., CS-101", 
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+                <p class="mt-1 text-xs text-gray-500">Unique identifier for the course</p>
+              </div>
+
+              <!-- Department -->
+              <div>
+                <%= f.label :department_id, "Department", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.collection_select :department_id, 
+                    @departments, :id, :name, 
+                    { prompt: "Select department" }, 
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+            </div>
+
+            <!-- Course Name -->
+            <div class="mt-6">
+              <%= f.label :name, "Course Name", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= f.text_field :name, 
+                  placeholder: "e.g., Introduction to Computer Science", 
+                  class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-6">
+              <%= f.label :description, "Course Description", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= f.text_area :description, 
+                  rows: 4, 
+                  placeholder: "Provide a detailed description of the course content, objectives, and learning outcomes...", 
+                  class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm resize-none" %>
+              <p class="mt-1 text-xs text-gray-500">This will be visible to students browsing courses</p>
+            </div>
+          </div>
+
+          <!-- Course Details Section -->
+          <div class="pt-6 border-t border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Course Details</h3>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <!-- Credits -->
+              <div>
+                <%= f.label :credits, "Credit Hours", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.number_field :credits, 
+                    placeholder: "3", 
+                    min: 1, 
+                    max: 10,
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+
+              <!-- Duration -->
+              <div>
+                <%= f.label :duration_weeks, "Duration (weeks)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.number_field :duration_weeks, 
+                    placeholder: "15", 
+                    min: 1,
+                    max: 52,
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+
+              <!-- Level -->
+              <div>
+                <%= f.label :level, "Course Level", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.select :level, 
+                    options_for_select([
+                      ['Freshman (First Year)', 'freshman'], 
+                      ['Sophomore (Second Year)', 'sophomore'], 
+                      ['Junior (Third Year)', 'junior'], 
+                      ['Senior (Fourth Year)', 'senior'],
+                      ['Graduate', 'graduate']
+                    ], @course.level), 
+                    { prompt: "Select level" }, 
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+
+              <!-- Delivery Method -->
+              <div>
+                <%= f.label :delivery_method, "Delivery Method", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= f.select :delivery_method, 
+                    options_for_select([
+                      ['In Person', 'in_person'], 
+                      ['Online', 'online'], 
+                      ['Hybrid', 'hybrid']
+                    ], @course.delivery_method || 'in_person'), 
+                    {}, 
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Section -->
+          <div class="pt-6 border-t border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Status</h3>
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <%= f.check_box :active, 
+                    checked: true,
+                    class: "h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer transition duration-150 ease-in-out" %>
+              </div>
+              <div class="ml-3">
+                <%= f.label :active, class: "font-medium text-gray-900 cursor-pointer" do %>
+                  <span class="block text-sm">Active Course</span>
+                  <span class="block text-xs text-gray-500 font-normal mt-1">Make this course visible and available to students for enrollment</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+          <%= link_to admin_panel_courses_path, class: "inline-flex items-center px-5 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" do %>
+            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          <% end %>
+          <%= f.submit "Create Course", class: "inline-flex items-center px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

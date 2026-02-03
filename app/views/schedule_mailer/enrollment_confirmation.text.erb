@@ -1,0 +1,21 @@
+Hi <%= @student.full_name %>,
+
+✅ ENROLLMENT CONFIRMED
+
+You have been successfully enrolled in the following class:
+
+Class: <%= @schedule.title %>
+Course: <%= @schedule.course %>
+Day: <%= @schedule.day_name %>
+Time: <%= @schedule.formatted_time_range %>
+Room: <%= @schedule.room %>
+Instructor: <%= @instructor_name %>
+<% if @schedule.recurring? %>Recurring: Weekly<% end %>
+
+This class has been added to your schedule. You'll receive reminders 30 minutes before each class session.
+
+View class details: <%= schedule_url(@schedule) %>
+
+---
+This is an automated confirmation from Uni-Hub.
+© <%= Time.current.year %> Uni-Hub. All rights reserved.

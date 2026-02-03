@@ -1,0 +1,107 @@
+<% content_for :title, "Edit Note - #{@note.title}" %>
+
+<div class="min-h-screen bg-gray-50 py-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Edit Note</h1>
+          <p class="mt-1 text-gray-600">Collaborative editing enabled - changes are synced in real-time</p>
+        </div>
+        <%= link_to "← Back to Notes", notes_path, 
+                    class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+      </div>
+    </div>
+
+    <!-- Collaboration Status Banner -->
+    <div id="collaboration-banner" class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div class="flex items-center">
+        <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M9 20h8v-2a3 3 0 00-5.196-2.121M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        <div class="flex-1">
+          <p class="text-blue-800 font-medium">Live Collaboration Active</p>
+          <p class="text-blue-600 text-sm">Changes are automatically saved and synced with other collaborators</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button onclick="collaborationManager.saveDocument()" 
+                  class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+            Save Now
+          </button>
+          <button onclick="toggleCollaborationInfo()" 
+                  class="text-blue-600 hover:text-blue-800">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collaboration Info (Hidden by default) -->
+    <div id="collaboration-info" class="hidden mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <h3 class="font-medium text-gray-900 mb-2">How Live Collaboration Works:</h3>
+      <ul class="text-sm text-gray-600 space-y-1">
+        <li>• Changes are synced in real-time with other users editing this note</li>
+        <li>• You can see who else is online and editing (shown above the editor)</li>
+        <li>• Document is auto-saved every few seconds</li>
+        <li>• Use Ctrl+S (Cmd+S) or click "Save Now" for immediate save</li>
+        <li>• All collaborators will see typing indicators and live cursors</li>
+      </ul>
+    </div>
+
+    <!-- Note Form with Collaboration -->
+    <%= render 'collaborative_form', note: @note %>
+  </div>
+</div>
+
+<!-- Initialize Collaboration -->
+<script>
+  let collaborationManager;
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Wait for the editor element to be available
+    const editorElement = document.getElementById('note-content');
+    if (editorElement && window.currentUserId) {
+      // Initialize collaborative editing
+      collaborationManager = window.initializeCollaboration('note', <%= @note.id %>, 'note-content');
+      
+      // Set up save shortcuts
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+          e.preventDefault();
+          collaborationManager.saveDocument();
+        }
+      });
+      
+      // Warn user before leaving with unsaved changes
+      let hasUnsavedChanges = false;
+      editorElement.addEventListener('input', function() {
+        hasUnsavedChanges = true;
+      });
+      
+      // Clear flag when document is saved
+      window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+          e.preventDefault();
+          e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        }
+      });
+      
+      // Listen for successful saves to clear unsaved changes flag
+      if (window.addEventListener) {
+        window.addEventListener('message', function(e) {
+          if (e.data && e.data.type === 'document_saved') {
+            hasUnsavedChanges = false;
+          }
+        });
+      }
+    }
+  });
+  
+  function toggleCollaborationInfo() {
+    const info = document.getElementById('collaboration-info');
+    info.classList.toggle('hidden');
+  }
+</script>

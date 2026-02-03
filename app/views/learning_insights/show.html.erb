@@ -1,0 +1,556 @@
+<% content_for :title, @learning_insight.title %>
+
+
+
+<div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 mb-6 shadow-lg <% case @learning_insight.priority
+  when 'critical' then %>border-l-4 border-l-red-500<%
+  when 'high' then %>border-l-4 border-l-orange-500<%
+  when 'medium' then %>border-l-4 border-l-yellow-500<%
+  when 'low' then %>border-l-4 border-l-green-500<%
+end %>">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex-1">
+      <div class="flex items-center mb-3">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0 <% case @learning_insight.insight_type
+          when 'performance_decline' then %>bg-red-100 text-red-600<%
+          when 'at_risk_student' then %>bg-orange-100 text-orange-600<%
+          when 'engagement_drop' then %>bg-yellow-100 text-yellow-600<%
+          when 'learning_difficulty' then %>bg-purple-100 text-purple-600<%
+          when 'content_gap' then %>bg-blue-100 text-blue-600<%
+          when 'study_pattern' then %>bg-green-100 text-green-600<%
+          when 'peer_comparison' then %>bg-indigo-100 text-indigo-600<%
+          when 'time_management' then %>bg-pink-100 text-pink-600<%
+          when 'skill_development' then %>bg-teal-100 text-teal-600<%
+          else %>bg-white text-indigo-600<%
+        end %>">
+          <i class="fas fa-<%= insight_type_icon(@learning_insight.insight_type) %> text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white mb-1"><%= @learning_insight.title %></h1>
+          <p class="text-indigo-100 flex items-center flex-wrap gap-4">
+            <span class="flex items-center">
+              <i class="fas fa-user mr-2"></i><%= @learning_insight.user.name %>
+            </span>
+            <% if @learning_insight.department %>
+              <span class="flex items-center">
+                <i class="fas fa-building mr-2"></i><%= @learning_insight.department.name %>
+              </span>
+            <% end %>
+            <% if @learning_insight.schedule %>
+              <span class="flex items-center">
+                <i class="fas fa-calendar mr-2"></i><%= @learning_insight.schedule.title %>
+              </span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-col items-start lg:items-end gap-2 mt-4 lg:mt-0">
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <% case @learning_insight.priority
+        when 'critical' then %>bg-red-100 text-red-800<%
+        when 'high' then %>bg-orange-100 text-orange-800<%
+        when 'medium' then %>bg-yellow-100 text-yellow-800<%
+        when 'low' then %>bg-green-100 text-green-800<%
+      end %>">
+        <%= @learning_insight.priority.upcase %> PRIORITY
+      </span>
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-800">
+        <%= @learning_insight.insight_type.humanize %>
+      </span>
+      <span class="text-indigo-200 text-sm">
+        Generated <%= time_ago_in_words(@learning_insight.created_at) %> ago
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <!-- Main Insight Details -->
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+        <i class="fas fa-info-circle text-blue-500 mr-2"></i>Insight Description
+      </h3>
+      <p class="text-gray-600 text-lg leading-relaxed mb-6"><%= @learning_insight.description %></p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h5 class="text-sm font-semibold text-gray-900 mb-3">Confidence Level</h5>
+          <div class="bg-gray-200 rounded-full h-2 mb-2 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-300" 
+                 style="width: <%= @learning_insight.confidence_percentage %>%"></div>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">0%</span>
+            <span class="font-semibold text-blue-600"><%= @learning_insight.confidence_percentage %>% Confident</span>
+            <span class="text-gray-500">100%</span>
+          </div>
+        </div>
+        <div>
+          <h5 class="text-sm font-semibold text-gray-900 mb-3">Current Status</h5>
+          <div class="flex items-center">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 <% case @learning_insight.status
+              when 'active' then %>bg-yellow-100 text-yellow-800<%
+              when 'implemented' then %>bg-green-100 text-green-800<%
+              when 'dismissed' then %>bg-gray-100 text-gray-800<%
+              when 'archived' then %>bg-gray-100 text-gray-800<%
+              else %>bg-gray-100 text-gray-800<%
+            end %>">
+              <%= @learning_insight.status.humanize %>
+            </span>
+            <% if @learning_insight.status == 'active' %>
+              <span class="text-sm text-gray-500">Requires action</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supporting Evidence -->
+    <% if @learning_insight.supporting_evidence.any? %>
+      <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-search text-green-500 mr-2"></i>Supporting Evidence
+        </h3>
+        <div class="space-y-3">
+          <% @learning_insight.supporting_evidence.each do |evidence| %>
+            <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400 flex items-start">
+              <i class="fas fa-check-circle text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
+              <div class="text-gray-700"><%= evidence %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Recommendations -->
+    <% if @learning_insight.recommendation_actions.any? %>
+      <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Recommended Actions
+        </h3>
+        <div class="space-y-4">
+          <% @learning_insight.recommendation_actions.each_with_index do |recommendation, index| %>
+            <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-l-4 border-green-400">
+              <div class="font-semibold text-green-800 mb-2 flex items-center">
+                <i class="fas fa-arrow-right mr-2"></i>
+                Action <%= index + 1 %>
+              </div>
+              <p class="text-gray-700 mb-0"><%= recommendation %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Action Plan -->
+    <% if @action_plan.any? %>
+      <div class="detail-card">
+        <h3 class="mb-4"><i class="fas fa-tasks me-2 text-info"></i>Action Plan</h3>
+        <% @action_plan.each do |action| %>
+          <div class="action-plan-item action-priority-<%= action[:priority] %>">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="mb-1">Step <%= action[:id] %></h5>
+              <span class="action-status status-<%= action[:status] %>">
+                <%= action[:status].humanize %>
+              </span>
+            </div>
+            <p class="mb-2"><%= action[:action] %></p>
+            <div class="row">
+              <div class="col-md-4">
+                <small class="text-muted">
+                  <strong>Priority:</strong> <%= action[:priority].humanize %>
+                </small>
+              </div>
+              <div class="col-md-4">
+                <small class="text-muted">
+                  <strong>Effort:</strong> <%= action[:estimated_effort].humanize %>
+                </small>
+              </div>
+              <div class="col-md-4">
+                <small class="text-muted">
+                  <strong>Impact:</strong> <%= action[:expected_outcome].humanize.gsub('_', ' ') %>
+                </small>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Progress Tracking -->
+    <div class="detail-card">
+      <h3 class="mb-4"><i class="fas fa-chart-line me-2 text-primary"></i>Progress Tracking</h3>
+      <div class="progress-timeline">
+        <div class="timeline-item">
+          <strong>Insight Generated</strong>
+          <div class="text-muted">
+            <%= @learning_insight.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+          </div>
+        </div>
+        
+        <% if @progress_tracking[:first_viewed] %>
+          <div class="timeline-item">
+            <strong>First Viewed</strong>
+            <div class="text-muted">
+              <%= Time.parse(@progress_tracking[:first_viewed]).strftime("%B %d, %Y at %I:%M %p") %>
+            </div>
+          </div>
+        <% end %>
+        
+        <% @progress_tracking[:actions_taken].each do |action| %>
+          <div class="timeline-item">
+            <strong><%= action['action'].humanize %></strong>
+            <div class="text-muted">
+              <%= Time.parse(action['timestamp']).strftime("%B %d, %Y at %I:%M %p") %>
+              by <%= action['user'] %>
+            </div>
+          </div>
+        <% end %>
+        
+        <% if @progress_tracking[:follow_up_needed] %>
+          <div class="timeline-item">
+            <strong class="text-warning">Follow-up Needed</strong>
+            <div class="text-muted">
+              This insight has been active for over a week
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Related Insights -->
+    <% if @related_insights.any? %>
+      <div class="detail-card">
+        <h3 class="mb-4"><i class="fas fa-link me-2 text-secondary"></i>Related Insights</h3>
+        <div class="related-insights">
+          <% @related_insights.each do |related| %>
+            <div class="related-insight-card">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1"><%= link_to related.title, learning_insight_path(related), class: "text-decoration-none" %></h6>
+                  <p class="mb-2 text-muted small"><%= truncate(related.description, length: 100) %></p>
+                  <small class="text-muted">
+                    <%= related.insight_type.humanize %> • 
+                    <%= related.priority.humanize %> priority •
+                    <%= time_ago_in_words(related.created_at) %> ago
+                  </small>
+                </div>
+                <span class="badge bg-<%= status_color(related.status) %>">
+                  <%= related.status.humanize %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-sm sticky top-6">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-bolt text-yellow-500 mr-2"></i>Quick Actions
+      </h4>
+      
+      <% if @learning_insight.status == 'active' %>
+        <div class="space-y-3 mb-6">
+          <%= button_to implement_learning_insight_path(@learning_insight), method: :patch,
+              class: "w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+              data: { confirm: "Mark this insight as implemented?" } do %>
+            <i class="fas fa-check mr-2"></i>Mark as Implemented
+          <% end %>
+          
+          <%= button_to dismiss_learning_insight_path(@learning_insight), method: :patch,
+              class: "w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+              data: { confirm: "Dismiss this insight?" } do %>
+            <i class="fas fa-times mr-2"></i>Dismiss
+          <% end %>
+        </div>
+        
+        <div class="border-t border-gray-200 pt-4 mb-6">
+          <!-- Priority Update -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Update Priority</label>
+            <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" id="prioritySelect" onchange="updatePriority()">
+              <option value="low" <%= 'selected' if @learning_insight.priority == 'low' %>>Low</option>
+              <option value="medium" <%= 'selected' if @learning_insight.priority == 'medium' %>>Medium</option>
+              <option value="high" <%= 'selected' if @learning_insight.priority == 'high' %>>High</option>
+              <option value="critical" <%= 'selected' if @learning_insight.priority == 'critical' %>>Critical</option>
+            </select>
+          </div>
+        </div>
+      <% else %>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div class="flex">
+            <i class="fas fa-info-circle text-blue-500 mr-2 mt-0.5"></i>
+            <div class="text-sm">
+              This insight is marked as <span class="font-semibold"><%= @learning_insight.status.humanize %></span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <div class="space-y-2">
+        <%= button_to refresh_insight_learning_insight_path(@learning_insight), method: :post,
+            class: "w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+            id: "refreshBtn" do %>
+          <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+        <% end %>
+        
+        <%= button_to archive_learning_insight_path(@learning_insight), method: :patch,
+            class: "w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+            data: { confirm: "Archive this insight?" } do %>
+          <i class="fas fa-archive mr-2"></i>Archive
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="detail-card">
+      <h4 class="mb-4"><i class="fas fa-chart-bar me-2 text-info"></i>Metrics</h4>
+      
+      <div class="metric-card">
+        <div class="metric-value text-primary">
+          <%= @progress_tracking[:effectiveness_score].round(1) %>
+        </div>
+        <div class="metric-label">Effectiveness Score</div>
+      </div>
+      
+      <% if @learning_insight.related_metrics.any? %>
+        <% @learning_insight.related_metrics.each do |metric, value| %>
+          <div class="metric-card">
+            <div class="metric-value text-secondary">
+              <%= value %>
+            </div>
+            <div class="metric-label"><%= metric.humanize %></div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="detail-card">
+      <h4 class="mb-3"><i class="fas fa-sticky-note me-2 text-warning"></i>Notes</h4>
+      
+      <!-- Add Note Form -->
+      <div class="mb-3">
+        <textarea class="form-control" id="noteContent" rows="3" 
+                  placeholder="Add a note about this insight..."></textarea>
+        <button class="btn btn-sm btn-primary mt-2" onclick="addNote()">
+          <i class="fas fa-plus me-1"></i>Add Note
+        </button>
+      </div>
+      
+      <!-- Existing Notes -->
+      <div class="notes-section" id="notesList">
+        <% if @learning_insight.metadata['notes']&.any? %>
+          <% @learning_insight.metadata['notes'].reverse.each do |note| %>
+            <div class="note-item">
+              <div class="note-author"><%= note['author'] %></div>
+              <div class="note-timestamp mb-2">
+                <%= Time.parse(note['timestamp']).strftime("%b %d, %Y at %I:%M %p") %>
+              </div>
+              <div><%= note['content'] %></div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted text-center py-3">No notes yet</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Back Navigation -->
+<div class="mt-6">
+  <%= link_to learning_insights_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+    <i class="fas fa-arrow-left mr-2"></i>Back to Insights
+  <% end %>
+</div>
+
+<script>
+// Update priority
+function updatePriority() {
+  const select = document.getElementById('prioritySelect');
+  const newPriority = select.value;
+  
+  fetch('<%= update_priority_learning_insight_path(@learning_insight) %>', {
+    method: 'PATCH',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ priority: newPriority })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('Priority updated successfully', 'success');
+      // Update visual indicators
+      updatePriorityDisplay(newPriority);
+    } else {
+      showNotification(data.message || 'Failed to update priority', 'error');
+      select.value = '<%= @learning_insight.priority %>'; // Reset
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('An error occurred', 'error');
+    select.value = '<%= @learning_insight.priority %>'; // Reset
+  });
+}
+
+// Add note
+function addNote() {
+  const noteContent = document.getElementById('noteContent').value.trim();
+  
+  if (!noteContent) {
+    showNotification('Please enter a note', 'error');
+    return;
+  }
+  
+  fetch('<%= add_note_learning_insight_path(@learning_insight) %>', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ note: noteContent })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('Note added successfully', 'success');
+      document.getElementById('noteContent').value = '';
+      updateNotesList(data.notes);
+    } else {
+      showNotification(data.message || 'Failed to add note', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('An error occurred', 'error');
+  });
+}
+
+// Refresh insight data
+document.getElementById('refreshBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  
+  const btn = this;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Refreshing...';
+  btn.disabled = true;
+  
+  fetch('<%= refresh_insight_learning_insight_path(@learning_insight) %>', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('Insight data refreshed', 'success');
+      // You could update parts of the page with new data here
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showNotification(data.message || 'Failed to refresh', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('An error occurred', 'error');
+  })
+  .finally(() => {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  });
+});
+
+// Helper functions
+function updatePriorityDisplay(newPriority) {
+  // Update priority badges and colors
+  const priorityBadges = document.querySelectorAll('.priority-badge');
+  priorityBadges.forEach(badge => {
+    badge.className = `priority-badge priority-${newPriority} fs-6`;
+    badge.textContent = newPriority.toUpperCase() + ' PRIORITY';
+  });
+  
+  // Update card border
+  const header = document.querySelector('.insight-detail-header');
+  header.className = header.className.replace(/insight-priority-\w+/, `insight-priority-${newPriority}`);
+}
+
+function updateNotesList(notes) {
+  const notesList = document.getElementById('notesList');
+  
+  if (notes && notes.length > 0) {
+    const notesHtml = notes.reverse().map(note => `
+      <div class="note-item">
+        <div class="note-author">${note.author}</div>
+        <div class="note-timestamp mb-2">
+          ${new Date(note.timestamp).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: '2-digit'
+          })}
+        </div>
+        <div>${note.content}</div>
+      </div>
+    `).join('');
+    
+    notesList.innerHTML = notesHtml;
+  }
+}
+
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 3000);
+}
+
+// Mark insight as viewed when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Track that this insight was viewed
+  const viewedInsights = JSON.parse(localStorage.getItem('viewedInsights') || '[]');
+  const insightId = '<%= @learning_insight.id %>';
+  
+  if (!viewedInsights.includes(insightId)) {
+    viewedInsights.push(insightId);
+    localStorage.setItem('viewedInsights', JSON.stringify(viewedInsights));
+  }
+});
+</script>
+
+<% content_for :page_js do %>
+<script>
+// Status color helper (to be defined in application helper if needed)
+function statusColor(status) {
+  const colors = {
+    'active': 'warning',
+    'implemented': 'success', 
+    'dismissed': 'secondary',
+    'archived': 'dark'
+  };
+  return colors[status] || 'secondary';
+}
+</script>
+<% end %>

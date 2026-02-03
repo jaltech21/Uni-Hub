@@ -1,0 +1,56 @@
+wb = xlsx_package.workbook
+
+# Content Report Sheet
+wb.add_worksheet(name: "Content Report") do |sheet|
+  # Header
+  sheet.add_row ["Department: #{@department.name}", "", "", "Date: #{@date_range}"]
+  sheet.add_row []
+  
+  # Summary Stats  
+  sheet.add_row ["Content Summary", "", "", ""]
+  sheet.add_row ["Total Shared Content", @total_content, "", ""]
+  sheet.add_row ["Recent Content (30 days)", @recent_content.count, "", ""]
+  sheet.add_row []
+  
+  # Content by Type
+  if @content_by_type.any?
+    sheet.add_row ["Content by Type", "", "", ""]
+    sheet.add_row ["Type", "Count", "Percentage", ""]
+    @content_by_type.each do |type, count|
+      percentage = @total_content > 0 ? (count.to_f / @total_content * 100).round(1) : 0
+      sheet.add_row [type, count, "#{percentage}%", ""]
+    end
+    sheet.add_row []
+  end
+  
+  # Top Sharers
+  if @top_sharers.any?
+    sheet.add_row ["Top Content Sharers", "", "", ""]
+    sheet.add_row ["Rank", "Name", "Shares", "Percentage"]
+    total_shares = @top_sharers.sum { |_, count| count }
+    @top_sharers.each_with_index do |(name, count), index|
+      percentage = total_shares > 0 ? (count.to_f / total_shares * 100).round(1) : 0
+      sheet.add_row [
+        "##{index + 1}",
+        name,
+        count,
+        "#{percentage}%"
+      ]
+    end
+    sheet.add_row []
+  end
+  
+  # Recent Content Details
+  if @recent_content.any?
+    sheet.add_row ["Recent Shared Content Details", "", "", ""]
+    sheet.add_row ["Content Type", "Title", "Shared By", "Share Date"]
+    @recent_content.each do |content|
+      sheet.add_row [
+        content.shareable_type,
+        content.shareable.try(:title) || content.shareable.try(:name) || "Content ##{content.shareable_id}",
+        "#{content.shared_by.first_name} #{content.shared_by.last_name}",
+        content.created_at.strftime('%Y-%m-%d %H:%M')
+      ]
+    end
+  end
+end

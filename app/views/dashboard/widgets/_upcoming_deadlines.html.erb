@@ -1,0 +1,39 @@
+<div>
+  <% if data && data[:deadlines] %>
+    <div class="space-y-3">
+      <% data[:deadlines].each do |deadline| %>
+        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+          <div>
+            <div class="font-medium text-gray-800">
+              <%= deadline[:title] %>
+            </div>
+            <div class="text-gray-500 text-sm">
+              <%= deadline[:course] %>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-medium <%= deadline[:urgency] == 'danger' ? 'text-red-600' : deadline[:urgency] == 'warning' ? 'text-yellow-600' : 'text-gray-600' %>">
+              <%= deadline[:due_date] %>
+            </div>
+            <div class="text-sm text-gray-500">
+              <%= deadline[:time_remaining] %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <% if data[:total_count] > data[:deadlines].length %>
+      <div class="text-center mt-4">
+        <small class="text-gray-500">
+          Showing <%= data[:deadlines].length %> of <%= data[:total_count] %> deadlines
+        </small>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="text-center text-gray-500 py-8">
+      <i class="fas fa-calendar-alt text-4xl mb-3"></i>
+      <p>No upcoming deadlines</p>
+      <small class="text-green-600">You're all caught up! 🎉</small>
+    </div>
+  <% end %>
+</div>

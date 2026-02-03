@@ -1,0 +1,239 @@
+<% content_for :title, "AI Grading Dashboard - #{@department.name}" %>
+
+<div class="ai-grading-dashboard">
+  <div class="dashboard-header">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="fas fa-robot me-2"></i>
+          AI Grading Dashboard
+        </h1>
+        <p class="text-muted">Department: <%= @department.name %></p>
+      </div>
+      <div class="col-md-4 text-end">
+        <%= link_to "Accuracy Report", 
+            instructors_department_ai_grading_accuracy_report_path(@department),
+            class: "btn btn-outline-primary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h5 class="card-title">Total Submissions</h5>
+              <h2 class="mb-0"><%= @total_submissions %></h2>
+            </div>
+            <div class="ms-3">
+              <i class="fas fa-file-upload fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h5 class="card-title">AI Graded</h5>
+              <h2 class="mb-0"><%= @ai_graded_submissions %></h2>
+            </div>
+            <div class="ms-3">
+              <i class="fas fa-robot fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-warning text-white">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h5 class="card-title">Pending Review</h5>
+              <h2 class="mb-0"><%= @pending_reviews %></h2>
+            </div>
+            <div class="ms-3">
+              <i class="fas fa-eye fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h5 class="card-title">Accuracy</h5>
+              <h2 class="mb-0">
+                <%= @accuracy_stats[:accuracy_10_percent] || 'N/A' %>%
+              </h2>
+            </div>
+            <div class="ms-3">
+              <i class="fas fa-bullseye fa-2x opacity-75"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- AI-Enabled Assignments -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-tasks me-2"></i>
+            AI-Enabled Assignments
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @ai_enabled_assignments.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Assignment</th>
+                    <th>Submissions</th>
+                    <th>AI Graded</th>
+                    <th>Needs Review</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @ai_enabled_assignments.each do |assignment| %>
+                    <% submission_count = assignment.submissions.count %>
+                    <% graded_count = assignment.ai_grading_results.where(processing_status: 'completed').count %>
+                    <% review_count = assignment.ai_grading_results.where(requires_review: true, review_status: 'pending').count %>
+                    
+                    <tr>
+                      <td>
+                        <div>
+                          <strong><%= link_to assignment.title, instructors_department_assignment_ai_grading_path(@department, assignment), class: "text-decoration-none" %></strong>
+                          <br>
+                          <small class="text-muted">Due: <%= assignment.due_date.strftime("%b %d, %Y") %></small>
+                        </div>
+                      </td>
+                      <td><%= submission_count %></td>
+                      <td>
+                        <span class="badge bg-success"><%= graded_count %></span>
+                      </td>
+                      <td>
+                        <% if review_count > 0 %>
+                          <span class="badge bg-warning"><%= review_count %></span>
+                        <% else %>
+                          <span class="badge bg-light text-dark">0</span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm">
+                          <%= link_to "View", 
+                              instructors_department_assignment_ai_grading_path(@department, assignment),
+                              class: "btn btn-outline-primary btn-sm" %>
+                          
+                          <% if assignment.grading_rubrics.ai_enabled.any? %>
+                            <%= link_to "Grade All", 
+                                instructors_department_assignment_grade_assignment_path(@department, assignment),
+                                method: :post,
+                                class: "btn btn-success btn-sm",
+                                data: { 
+                                  confirm: "Grade all ungraded submissions for #{assignment.title}?",
+                                  disable_with: "Grading..."
+                                } %>
+                          <% end %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+              <h5>No AI-Enabled Assignments</h5>
+              <p class="text-muted">Create grading rubrics with AI grading enabled to get started.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent AI Grading Results -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-clock me-2"></i>
+            Recent Activity
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @recent_results.any? %>
+            <% @recent_results.each do |result| %>
+              <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                <div class="flex-shrink-0 me-3">
+                  <% if result.high_confidence? %>
+                    <i class="fas fa-check-circle text-success"></i>
+                  <% elsif result.requires_review? %>
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                  <% else %>
+                    <i class="fas fa-info-circle text-info"></i>
+                  <% end %>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-bold"><%= result.submission.assignment.title %></div>
+                  <div class="small text-muted">
+                    <%= result.submission.user.name %> - 
+                    Score: <%= result.ai_score %>/<%= result.grading_rubric.total_points %>
+                  </div>
+                  <div class="small text-muted">
+                    Confidence: <%= (result.confidence_score * 100).round %>%
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center py-3">
+              <i class="fas fa-history fa-2x text-muted mb-2"></i>
+              <p class="text-muted mb-0">No recent activity</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ai-grading-dashboard .card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+.ai-grading-dashboard .card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.page-title {
+  color: #495057;
+  font-weight: 600;
+}
+</style>

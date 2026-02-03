@@ -1,0 +1,243 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Department Settings</h1>
+        <p class="mt-1 text-sm text-gray-600"><%= @department.name %> (<%= @department.code %>)</p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <%= link_to 'Preview', preview_department_settings_path(@department), class: 'inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50', target: '_blank' %>
+        <%= link_to 'Edit Settings', edit_department_settings_path(@department), class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700' %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overview -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Branding -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">🎨 Branding</h2>
+      </div>
+      <div class="px-6 py-6">
+        <dl class="space-y-4">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Primary Color</dt>
+            <dd class="mt-1 flex items-center space-x-2">
+              <div class="w-12 h-12 rounded border border-gray-300" style="background-color: <%= @settings.primary_color %>"></div>
+              <span class="text-sm text-gray-900"><%= @settings.primary_color %></span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Secondary Color</dt>
+            <dd class="mt-1 flex items-center space-x-2">
+              <div class="w-12 h-12 rounded border border-gray-300" style="background-color: <%= @settings.secondary_color %>"></div>
+              <span class="text-sm text-gray-900"><%= @settings.secondary_color %></span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Logo URL</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @settings.logo_url.presence || 'Not set' %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Banner URL</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @settings.banner_url.presence || 'Not set' %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">💬 Messages</h2>
+      </div>
+      <div class="px-6 py-6">
+        <dl class="space-y-4">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Welcome Message</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <% if @settings.welcome_message.present? %>
+                <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                  <%= simple_format(@settings.welcome_message) %>
+                </div>
+              <% else %>
+                <span class="text-gray-400">Not set</span>
+              <% end %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Footer Message</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <% if @settings.footer_message.present? %>
+                <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                  <%= simple_format(@settings.footer_message) %>
+                </div>
+              <% else %>
+                <span class="text-gray-400">Not set</span>
+              <% end %>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Default Visibility -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">👁️ Default Visibility</h2>
+      </div>
+      <div class="px-6 py-6">
+        <dl class="space-y-4">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Assignments</dt>
+            <dd class="mt-1">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <%= @settings.default_assignment_visibility.titleize %>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Notes</dt>
+            <dd class="mt-1">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                <%= @settings.default_note_visibility.titleize %>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Quizzes</dt>
+            <dd class="mt-1">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                <%= @settings.default_quiz_visibility.titleize %>
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Feature Toggles -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">⚙️ Features</h2>
+      </div>
+      <div class="px-6 py-6">
+        <dl class="space-y-3">
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">Announcements</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.enable_announcements ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.enable_announcements ? '✅ Enabled' : '❌ Disabled' %>
+              </span>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">Content Sharing</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.enable_content_sharing ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.enable_content_sharing ? '✅ Enabled' : '❌ Disabled' %>
+              </span>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">Peer Review</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.enable_peer_review ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.enable_peer_review ? '✅ Enabled' : '❌ Disabled' %>
+              </span>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">Gamification</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.enable_gamification ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.enable_gamification ? '✅ Enabled' : '❌ Disabled' %>
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">🔔 Notifications</h2>
+      </div>
+      <div class="px-6 py-6">
+        <dl class="space-y-3">
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">New Members</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.notify_new_members ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.notify_new_members ? '✅ On' : '❌ Off' %>
+              </span>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">New Content</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.notify_new_content ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.notify_new_content ? '✅ On' : '❌ Off' %>
+              </span>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-sm font-medium text-gray-700">Submissions</dt>
+            <dd>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= @settings.notify_submissions ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                <%= @settings.notify_submissions ? '✅ On' : '❌ Off' %>
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Templates -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">📝 Content Templates</h2>
+      </div>
+      <div class="px-6 py-6">
+        <div class="space-y-4">
+          <!-- Assignment Templates -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Assignment Templates</h3>
+            <% if @settings.assignment_templates&.any? %>
+              <ul class="space-y-2">
+                <% @settings.assignment_templates.each do |template| %>
+                  <li class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span class="text-sm text-gray-900"><%= template['name'] %></span>
+                    <%= button_to '🗑️', remove_template_department_settings_path(@department, template_type: 'assignment', template_id: template['id']), method: :delete, data: { confirm: 'Remove this template?' }, class: 'text-red-600 hover:text-red-800' %>
+                  </li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="text-sm text-gray-500">No assignment templates yet</p>
+            <% end %>
+          </div>
+          
+          <!-- Quiz Templates -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Quiz Templates</h3>
+            <% if @settings.quiz_templates&.any? %>
+              <ul class="space-y-2">
+                <% @settings.quiz_templates.each do |template| %>
+                  <li class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span class="text-sm text-gray-900"><%= template['name'] %></span>
+                    <%= button_to '🗑️', remove_template_department_settings_path(@department, template_type: 'quiz', template_id: template['id']), method: :delete, data: { confirm: 'Remove this template?' }, class: 'text-red-600 hover:text-red-800' %>
+                  </li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="text-sm text-gray-500">No quiz templates yet</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

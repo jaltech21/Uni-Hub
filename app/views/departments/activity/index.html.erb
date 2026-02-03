@@ -1,0 +1,409 @@
+<% content_for :title, "Activity Feed - #{@department.name}" %>
+<% content_for :breadcrumb do %>
+  <nav class="flex text-sm text-gray-600 mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to root_path, class: "text-gray-600 hover:text-gray-900" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-9 9a1 1 0 001.414 1.414L8 5.414V17a1 1 0 001 1h2a1 1 0 001-1V5.414l6.293 6.293a1 1 0 001.414-1.414l-9-9z"></path>
+          </svg>
+          Home
+        <% end %>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+          </svg>
+          <%= link_to @department.name, department_path(@department), class: "ml-1 text-gray-600 hover:text-gray-900 md:ml-2" %>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+          </svg>
+          <span class="ml-1 text-gray-500 md:ml-2">Activity Feed</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+<% end %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          🔄 Activity Feed
+        </h1>
+        <p class="text-gray-600">
+          Real-time updates from <%= @department.name %> department
+        </p>
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="refreshFeed" class="btn btn-secondary">
+          🔄 Refresh
+        </button>
+        <button id="toggleFilters" class="btn btn-primary">
+          🔍 Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- Sidebar Filters -->
+    <div class="lg:col-span-1">
+      <div id="filtersPanel" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+        
+        <!-- Activity Type Filter -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Activity Types</label>
+          <div class="space-y-2" id="activityTypeFilters">
+            <% @activity_types.each do |type| %>
+              <label class="flex items-center">
+                <input type="checkbox" 
+                       name="activity_types[]" 
+                       value="<%= type[:key] %>" 
+                       checked
+                       class="activity-type-filter mr-2 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                <span class="text-sm text-gray-700">
+                  <%= type[:icon] %> <%= type[:label] %> 
+                  <span class="text-gray-500">(<%= type[:count] %>)</span>
+                </span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+          <div class="space-y-2">
+            <% @filter_options[:date_presets].each do |preset| %>
+              <button class="date-preset-btn w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                      data-days="<%= preset[:days] %>">
+                <%= preset[:label] %>
+              </button>
+            <% end %>
+          </div>
+          
+          <div class="mt-3 pt-3 border-t border-gray-200">
+            <div class="grid grid-cols-1 gap-2">
+              <input type="date" 
+                     id="dateFrom" 
+                     name="date_from"
+                     class="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="From">
+              <input type="date" 
+                     id="dateTo" 
+                     name="date_to"
+                     class="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="To">
+            </div>
+          </div>
+        </div>
+
+        <!-- User Filter -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Filter by User</label>
+          <select id="userFilter" name="user_id" class="w-full text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            <option value="">All Users</option>
+            <% @filter_options[:users].each do |user| %>
+              <option value="<%= user[:id] %>"><%= user[:name] %> (<%= user[:role].humanize %>)</option>
+            <% end %>
+          </select>
+        </div>
+
+        <!-- Apply Filters Button -->
+        <button id="applyFilters" class="w-full btn btn-primary">
+          Apply Filters
+        </button>
+        
+        <button id="clearFilters" class="w-full btn btn-secondary mt-2">
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="lg:col-span-3">
+      <!-- Activity Statistics -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Activity Overview</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <% @activity_types.each do |type| %>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+              <div class="text-2xl mb-1"><%= type[:icon] %></div>
+              <div class="text-lg font-semibold text-gray-900"><%= type[:count] %></div>
+              <div class="text-xs text-gray-600"><%= type[:label] %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" class="hidden text-center py-8">
+        <div class="inline-flex items-center px-4 py-2 font-semibold text-sm text-blue-600">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading activity feed...
+        </div>
+      </div>
+
+      <!-- Activity Timeline -->
+      <div id="activityFeed" class="space-y-4">
+        <!-- Activities will be loaded here via AJAX -->
+      </div>
+
+      <!-- Load More Button -->
+      <div id="loadMoreContainer" class="text-center mt-8">
+        <button id="loadMoreBtn" class="hidden px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200">
+          Load More Activities
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-12">
+        <div class="text-6xl text-gray-300 mb-4">📭</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No activities found</h3>
+        <p class="text-gray-600">Try adjusting your filters or check back later for new activity.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Item Template -->
+<template id="activityTemplate">
+  <div class="activity-item bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div class="flex items-start space-x-4">
+      <!-- Activity Icon -->
+      <div class="activity-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold">
+        <span class="activity-emoji text-lg"></span>
+      </div>
+      
+      <!-- Activity Content -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="activity-title text-sm font-medium text-gray-900 truncate"></h3>
+          <time class="activity-time text-xs text-gray-500 flex-shrink-0"></time>
+        </div>
+        
+        <p class="activity-description text-sm text-gray-600 mb-3"></p>
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="activity-user text-xs text-gray-500"></span>
+            <span class="activity-date text-xs text-gray-400"></span>
+          </div>
+          
+          <a class="activity-link text-xs text-blue-600 hover:text-blue-800" href="#" target="_blank">
+            View Details →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let currentPage = 1;
+  let isLoading = false;
+  let hasMore = true;
+  
+  const activityFeed = document.getElementById('activityFeed');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const emptyState = document.getElementById('emptyState');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  const loadMoreContainer = document.getElementById('loadMoreContainer');
+  
+  // Load initial activities
+  loadActivities(true);
+  
+  // Filter event listeners
+  document.getElementById('applyFilters').addEventListener('click', function() {
+    currentPage = 1;
+    loadActivities(true);
+  });
+  
+  document.getElementById('clearFilters').addEventListener('click', function() {
+    // Reset all filters
+    document.querySelectorAll('.activity-type-filter').forEach(cb => cb.checked = true);
+    document.getElementById('userFilter').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    
+    currentPage = 1;
+    loadActivities(true);
+  });
+  
+  // Date preset buttons
+  document.querySelectorAll('.date-preset-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const days = parseInt(this.dataset.days);
+      const today = new Date();
+      const fromDate = new Date(today.getTime() - (days * 24 * 60 * 60 * 1000));
+      
+      document.getElementById('dateFrom').value = formatDateForInput(fromDate);
+      document.getElementById('dateTo').value = formatDateForInput(today);
+      
+      currentPage = 1;
+      loadActivities(true);
+    });
+  });
+  
+  // Load more button
+  loadMoreBtn.addEventListener('click', function() {
+    currentPage++;
+    loadActivities(false);
+  });
+  
+  // Refresh button
+  document.getElementById('refreshFeed').addEventListener('click', function() {
+    currentPage = 1;
+    loadActivities(true);
+  });
+  
+  // Toggle filters panel on mobile
+  document.getElementById('toggleFilters').addEventListener('click', function() {
+    const panel = document.getElementById('filtersPanel');
+    panel.classList.toggle('hidden');
+  });
+  
+  function loadActivities(resetFeed = false) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    showLoading();
+    
+    // Collect filter data
+    const formData = new FormData();
+    
+    // Activity types
+    document.querySelectorAll('.activity-type-filter:checked').forEach(cb => {
+      formData.append('activity_types[]', cb.value);
+    });
+    
+    // User filter
+    const userFilter = document.getElementById('userFilter').value;
+    if (userFilter) formData.append('user_id', userFilter);
+    
+    // Date filters
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    if (dateFrom) formData.append('date_from', dateFrom);
+    if (dateTo) formData.append('date_to', dateTo);
+    
+    // Page
+    formData.append('page', currentPage);
+    
+    const url = resetFeed ? 
+      '<%= filter_department_activity_index_path(@department) %>' : 
+      '<%= load_more_department_activity_index_path(@department) %>';
+    
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      hideLoading();
+      
+      if (resetFeed) {
+        activityFeed.innerHTML = '';
+      }
+      
+      if (data.activities.length === 0) {
+        if (resetFeed) {
+          showEmptyState();
+        }
+        hasMore = false;
+      } else {
+        hideEmptyState();
+        renderActivities(data.activities);
+        hasMore = data.has_more;
+      }
+      
+      updateLoadMoreButton();
+      isLoading = false;
+    })
+    .catch(error => {
+      console.error('Error loading activities:', error);
+      hideLoading();
+      isLoading = false;
+    });
+  }
+  
+  function renderActivities(activities) {
+    const template = document.getElementById('activityTemplate');
+    
+    activities.forEach(activity => {
+      const clone = template.content.cloneNode(true);
+      
+      // Set activity icon and color
+      const iconEl = clone.querySelector('.activity-icon');
+      const emojiEl = clone.querySelector('.activity-emoji');
+      iconEl.classList.add(`bg-${activity.color}-500`);
+      emojiEl.textContent = activity.icon;
+      
+      // Set content
+      clone.querySelector('.activity-title').textContent = activity.title;
+      clone.querySelector('.activity-description').textContent = activity.description;
+      clone.querySelector('.activity-user').textContent = `by ${activity.user_name}`;
+      clone.querySelector('.activity-time').textContent = activity.formatted_time;
+      clone.querySelector('.activity-date').textContent = activity.formatted_date;
+      
+      // Set link
+      const linkEl = clone.querySelector('.activity-link');
+      if (activity.url && activity.url !== '#') {
+        linkEl.href = activity.url;
+      } else {
+        linkEl.style.display = 'none';
+      }
+      
+      activityFeed.appendChild(clone);
+    });
+  }
+  
+  function showLoading() {
+    loadingIndicator.classList.remove('hidden');
+  }
+  
+  function hideLoading() {
+    loadingIndicator.classList.add('hidden');
+  }
+  
+  function showEmptyState() {
+    emptyState.classList.remove('hidden');
+  }
+  
+  function hideEmptyState() {
+    emptyState.classList.add('hidden');
+  }
+  
+  function updateLoadMoreButton() {
+    if (hasMore && !isLoading) {
+      loadMoreBtn.classList.remove('hidden');
+    } else {
+      loadMoreBtn.classList.add('hidden');
+    }
+  }
+  
+  function formatDateForInput(date) {
+    return date.getFullYear() + '-' + 
+           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(date.getDate()).padStart(2, '0');
+  }
+});
+</script>

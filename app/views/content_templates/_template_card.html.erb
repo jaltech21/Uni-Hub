@@ -1,0 +1,411 @@
+<% 
+  featured ||= false
+  trending ||= false
+  card_class = "template-card h-100"
+  card_class += " featured-card" if featured
+  card_class += " trending-card" if trending
+%>
+
+<div class="<%= card_class %>">
+  <div class="card">
+    <% if featured %>
+      <div class="card-badge featured-badge">
+        <i class="bi bi-star-fill"></i> Featured
+      </div>
+    <% elsif trending %>
+      <div class="card-badge trending-badge">
+        <i class="bi bi-trending-up"></i> Trending
+      </div>
+    <% end %>
+    
+    <div class="card-header bg-transparent border-0 pb-0">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="template-type-badge">
+          <span class="badge bg-<%= template_type_color(template.template_type) %>">
+            <i class="bi bi-<%= template_type_icon(template.template_type) %> me-1"></i>
+            <%= template.template_type.humanize %>
+          </span>
+        </div>
+        
+        <div class="template-actions">
+          <% if template.favorited_by?(current_user) %>
+            <button class="btn btn-sm btn-link text-danger p-0 favorite-btn" 
+                    data-template-id="<%= template.id %>"
+                    data-favorited="true">
+              <i class="bi bi-heart-fill"></i>
+            </button>
+          <% else %>
+            <button class="btn btn-sm btn-link text-muted p-0 favorite-btn" 
+                    data-template-id="<%= template.id %>"
+                    data-favorited="false">
+              <i class="bi bi-heart"></i>
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body">
+      <h5 class="card-title">
+        <%= link_to template.name, template, class: "text-decoration-none stretched-link" %>
+      </h5>
+      
+      <p class="card-text text-muted small mb-3">
+        <%= truncate(template.description, length: 100) %>
+      </p>
+      
+      <div class="template-meta mb-3">
+        <div class="d-flex justify-content-between align-items-center text-muted small">
+          <div class="template-author">
+            <i class="bi bi-person me-1"></i>
+            <%= template.created_by.name %>
+          </div>
+          <div class="template-department">
+            <% if template.department %>
+              <i class="bi bi-building me-1"></i>
+              <%= template.department.name %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="template-stats">
+        <div class="row text-center">
+          <div class="col-4">
+            <div class="stat-value"><%= template.usage_count %></div>
+            <div class="stat-label text-muted small">Uses</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value">
+              <i class="bi bi-star-fill text-warning"></i>
+              <%= template.average_rating.positive? ? template.average_rating : '-' %>
+            </div>
+            <div class="stat-label text-muted small">Rating</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value"><%= template.total_favorites %></div>
+            <div class="stat-label text-muted small">Favorites</div>
+          </div>
+        </div>
+      </div>
+      
+      <% if template.tag_list.any? %>
+        <div class="template-tags mt-3">
+          <% template.tag_list.first(3).each do |tag| %>
+            <span class="badge bg-light text-dark me-1">#<%= tag %></span>
+          <% end %>
+          <% if template.tag_list.count > 3 %>
+            <span class="text-muted small">+<%= template.tag_list.count - 3 %> more</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="card-footer bg-transparent border-0 pt-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Updated <%= time_ago_in_words(template.updated_at) %> ago
+        </small>
+        
+        <div class="template-quick-actions position-relative" style="z-index: 10;">
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary stretched-link-override" 
+                    type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <%= link_to content_template_path(template), class: "dropdown-item" do %>
+                  <i class="bi bi-eye me-2"></i> View Details
+                <% end %>
+              </li>
+              <li>
+                <%= link_to duplicate_content_template_path(template), 
+                            method: :post, class: "dropdown-item" do %>
+                  <i class="bi bi-files me-2"></i> Duplicate
+                <% end %>
+              </li>
+              <li>
+                <button class="dropdown-item use-template-btn" 
+                        data-template-id="<%= template.id %>"
+                        data-template-type="<%= template.template_type %>">
+                  <i class="bi bi-plus-circle me-2"></i> Use Template
+                </button>
+              </li>
+              <% if template.editable_by?(current_user) %>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <%= link_to edit_content_template_path(template), class: "dropdown-item" do %>
+                    <i class="bi bi-pencil me-2"></i> Edit
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :javascript do %>
+<script>
+// Template card interactions
+document.addEventListener('DOMContentLoaded', function() {
+  // Favorite button functionality
+  document.querySelectorAll('.favorite-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const templateId = this.dataset.templateId;
+      const isFavorited = this.dataset.favorited === 'true';
+      const icon = this.querySelector('i');
+      
+      const url = isFavorited ? 
+        `/content_templates/${templateId}/unfavorite` :
+        `/content_templates/${templateId}/favorite`;
+      
+      const method = isFavorited ? 'DELETE' : 'POST';
+      
+      fetch(url, {
+        method: method,
+        headers: {
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.favorited !== undefined) {
+          this.dataset.favorited = data.favorited.toString();
+          icon.className = data.favorited ? 'bi bi-heart-fill' : 'bi bi-heart';
+          this.className = data.favorited ? 
+            'btn btn-sm btn-link text-danger p-0 favorite-btn' :
+            'btn btn-sm btn-link text-muted p-0 favorite-btn';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+  
+  // Use template functionality
+  document.querySelectorAll('.use-template-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const templateId = this.dataset.templateId;
+      const templateType = this.dataset.templateType;
+      
+      // Show modal for content creation options
+      showUseTemplateModal(templateId, templateType);
+    });
+  });
+  
+  // Prevent dropdown from triggering card link
+  document.querySelectorAll('.stretched-link-override').forEach(element => {
+    element.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+  });
+});
+
+function showUseTemplateModal(templateId, templateType) {
+  // Create modal for use template options
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create ${templateType.charAt(0).toUpperCase() + templateType.slice(1)} from Template</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="useTemplateForm">
+            <div class="mb-3">
+              <label class="form-label">Title</label>
+              <input type="text" name="title" class="form-control" required>
+            </div>
+            ${templateType === 'assignment' ? `
+              <div class="mb-3">
+                <label class="form-label">Due Date (optional)</label>
+                <input type="datetime-local" name="due_date" class="form-control">
+              </div>
+            ` : ''}
+            ${templateType === 'quiz' ? `
+              <div class="mb-3">
+                <label class="form-label">Time Limit (minutes, optional)</label>
+                <input type="number" name="time_limit" class="form-control">
+              </div>
+            ` : ''}
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitUseTemplate(${templateId})">
+            Create ${templateType.charAt(0).toUpperCase() + templateType.slice(1)}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  const bootstrapModal = new bootstrap.Modal(modal);
+  bootstrapModal.show();
+  
+  // Clean up modal when hidden
+  modal.addEventListener('hidden.bs.modal', function() {
+    document.body.removeChild(modal);
+  });
+}
+
+function submitUseTemplate(templateId) {
+  const form = document.getElementById('useTemplateForm');
+  const formData = new FormData(form);
+  
+  fetch(`/content_templates/${templateId}/use`, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = data.redirect_url;
+    } else {
+      alert('Error: ' + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred while creating content from template');
+  });
+}
+</script>
+<% end %>
+
+<style>
+.template-card {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.template-card .card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.featured-card .card {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1);
+}
+
+.trending-card .card {
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1);
+}
+
+.card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.featured-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.trending-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.template-actions .favorite-btn {
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+}
+
+.template-actions .favorite-btn:hover {
+  color: #dc3545 !important;
+}
+
+.template-meta {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.template-stats .stat-value {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.template-stats .stat-label {
+  font-size: 0.75rem;
+}
+
+.template-tags .badge {
+  font-size: 0.7rem;
+  border: 1px solid #e2e8f0;
+}
+
+.stretched-link-override {
+  position: relative;
+  z-index: 10;
+}
+
+.dropdown-menu {
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item:hover {
+  background-color: #f8fafc;
+}
+</style>
+
+<%
+  def template_type_color(type)
+    case type
+    when 'assignment'
+      'primary'
+    when 'quiz'
+      'success'
+    when 'note'
+      'info'
+    else
+      'secondary'
+    end
+  end
+  
+  def template_type_icon(type)
+    case type
+    when 'assignment'
+      'file-earmark-text'
+    when 'quiz'
+      'question-circle'
+    when 'note'
+      'journal-text'
+    else
+      'file'
+    end
+  end
+%>

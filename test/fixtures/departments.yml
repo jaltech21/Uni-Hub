@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+computer_science:
+  id: 1
+  name: Computer Science Department
+  code: CS
+  university: test_university
+  created_at: <%= 45.days.ago %>
+  updated_at: <%= 5.days.ago %>
+
+physics:
+  id: 2
+  name: Physics Department
+  code: PHYS
+  university: test_university
+  created_at: <%= 40.days.ago %>
+  updated_at: <%= 7.days.ago %>

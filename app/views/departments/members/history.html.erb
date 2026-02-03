@@ -1,0 +1,60 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Member History</h1>
+        <p class="mt-1 text-sm text-gray-600"><%= @department.name %> - All member changes</p>
+      </div>
+      <%= link_to '← Back to Members', department_members_path(@department), class: 'inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50' %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="flow-root">
+      <ul class="divide-y divide-gray-200">
+        <% @histories.each do |history| %>
+          <li class="px-6 py-4 hover:bg-gray-50">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div class="h-10 w-10 rounded-full bg-<%= history.action == 'added' ? 'green' : history.action == 'removed' ? 'red' : 'blue' %>-100 flex items-center justify-center">
+                  <span class="text-<%= history.action == 'added' ? 'green' : history.action == 'removed' ? 'red' : 'blue' %>-600 font-semibold text-sm">
+                    <%= history.action == 'added' ? '+' : history.action == 'removed' ? '-' : '~' %>
+                  </span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900">
+                  <%= history.description %>
+                </div>
+                <div class="mt-1 text-sm text-gray-500">
+                  by <%= history.performed_by&.full_name || 'System' %> • 
+                  <%= time_ago_in_words(history.created_at) %> ago
+                </div>
+                <% if history.details.present? && history.details.any? %>
+                  <div class="mt-2 text-xs text-gray-400">
+                    <% history.details.each do |key, value| %>
+                      <span class="mr-2"><%= key %>: <%= value %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+              <div class="flex-shrink-0 text-xs text-gray-400">
+                <%= history.created_at.strftime('%b %d, %Y %I:%M %p') %>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    
+    <% if @histories.empty? %>
+      <div class="px-6 py-12 text-center text-gray-500">
+        No history available yet
+      </div>
+    <% end %>
+    
+    <div class="px-6 py-4 border-t border-gray-200">
+      <%= paginate @histories %>
+    </div>
+  </div>
+</div>

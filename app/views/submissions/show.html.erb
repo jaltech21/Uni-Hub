@@ -1,0 +1,483 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <%= current_user.teacher? ? 'Submission Details' : 'Your Submission' %>
+          </h1>
+          <p class="mt-2 text-sm text-gray-600">
+            Assignment: <%= link_to @assignment.title, assignment_path(@assignment), class: "text-blue-600 hover:text-blue-800 font-medium" %>
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <%= link_to current_user.teacher? ? assignment_submissions_path(@assignment) : assignments_path, 
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to <%= current_user.teacher? ? 'Submissions' : 'Assignments' %>
+          <% end %>
+          
+          <% if current_user.student? && @assignment.allow_resubmission && @submission.status != 'graded' %>
+            <%= link_to new_assignment_submission_path(@assignment), 
+                class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+              <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+              Resubmit Assignment
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Student View: Status Banner -->
+      <% if current_user.student? %>
+        <div class="mt-6">
+          <% if @submission.status == 'graded' %>
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white shadow-lg">
+              <div class="flex items-center">
+                <svg class="h-8 w-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                  <h2 class="text-xl font-bold">Your assignment has been graded!</h2>
+                  <p class="text-sm text-green-100 mt-1">
+                    Graded on <%= @submission.graded_at.strftime("%B %d, %Y at %I:%M %p") %>
+                    <% if @submission.graded_by.present? %>
+                      by <%= @submission.graded_by.full_name %>
+                    <% end %>
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% elsif @submission.late_submission? %>
+            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg p-6 text-white shadow-lg">
+              <div class="flex items-center">
+                <svg class="h-8 w-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                  <h2 class="text-xl font-bold">Late Submission</h2>
+                  <p class="text-sm text-yellow-100 mt-1">
+                    Submitted <%= distance_of_time_in_words(@assignment.due_date, @submission.submitted_at) %> after the due date
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white shadow-lg">
+              <div class="flex items-center">
+                <svg class="h-8 w-8 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                  <h2 class="text-xl font-bold">Submission Received</h2>
+                  <p class="text-sm text-blue-100 mt-1">
+                    Your submission is pending review. You'll be notified once it's graded.
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Grade Section -->
+      <% if @submission.grade.present? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Grade</h2>
+            <% if current_user.teacher? %>
+              <%= link_to edit_assignment_submission_path(@assignment, @submission), class: "text-sm text-blue-600 hover:text-blue-800 font-medium" do %>
+                Edit Grade
+              <% end %>
+            <% end %>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+              <div class="text-3xl font-bold text-blue-600">
+                <%= @submission.grade %>/<%= @assignment.points %>
+              </div>
+              <div class="text-sm text-gray-600 mt-1">Points</div>
+            </div>
+
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+              <div class="text-3xl font-bold text-green-600">
+                <%= @submission.percentage_grade.round(1) %>%
+              </div>
+              <div class="text-sm text-gray-600 mt-1">Percentage</div>
+            </div>
+
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+              <div class="text-3xl font-bold text-purple-600">
+                <%= @submission.letter_grade %>
+              </div>
+              <div class="text-sm text-gray-600 mt-1">Letter Grade</div>
+            </div>
+          </div>
+
+          <% if @submission.graded_at.present? %>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+              <div class="text-sm text-gray-600">
+                Graded on <%= @submission.graded_at.strftime("%B %d, %Y at %I:%M %p") %>
+                <% if @submission.graded_by.present? %>
+                  by <%= @submission.graded_by.full_name %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Not Graded Yet</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              <% if current_user.teacher? %>
+                This submission hasn't been graded yet.
+              <% else %>
+                Your submission is pending grading.
+              <% end %>
+            </p>
+            <% if current_user.teacher? %>
+              <div class="mt-6">
+                <%= link_to edit_assignment_submission_path(@assignment, @submission), class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" do %>
+                  Grade Now
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Feedback Section -->
+      <% if @submission.feedback.present? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Feedback</h2>
+          <div class="prose max-w-none">
+            <div class="text-gray-700 whitespace-pre-wrap"><%= @submission.feedback %></div>
+          </div>
+        </div>
+      <% elsif current_user.student? && @submission.grade.present? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Feedback</h2>
+          <p class="text-sm text-gray-500 italic">No feedback provided</p>
+        </div>
+      <% end %>
+
+      <!-- Your Comments/Notes (if student added any) -->
+      <% if @submission.content.present? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <%= current_user.teacher? ? 'Student Comments' : 'Your Comments' %>
+          </h2>
+          <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div class="text-sm text-gray-700 whitespace-pre-wrap"><%= @submission.content %></div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Submitted Files -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-gray-900">
+            <%= current_user.teacher? ? 'Submitted Files' : 'Your Submitted Files' %>
+          </h2>
+          <% if @submission.documents.attached? %>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <%= pluralize(@submission.documents.count, 'file') %>
+            </span>
+          <% end %>
+        </div>
+        
+        <% if @submission.documents.attached? %>
+          <ul class="space-y-3">
+            <% @submission.documents.each_with_index do |document, index| %>
+              <li class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition gap-3">
+                <div class="flex items-center min-w-0 flex-1">
+                  <!-- File Icon with dynamic color -->
+                  <div class="flex-shrink-0">
+                    <% 
+                      icon_color = case document.content_type
+                        when /pdf/ then 'text-red-500'
+                        when /word|document/ then 'text-blue-500'
+                        when /image/ then 'text-green-500'
+                        when /zip|rar/ then 'text-yellow-500'
+                        else 'text-gray-400'
+                      end
+                    %>
+                    <svg class="h-10 w-10 <%= icon_color %> mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-gray-900 truncate"><%= document.filename %></p>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                      <span><%= number_to_human_size(document.byte_size) %></span>
+                      <span>•</span>
+                      <span class="truncate"><%= document.content_type.split('/').last.upcase %></span>
+                      <% if index == 0 && @submission.documents.count > 1 %>
+                        <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Primary</span>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <%= link_to rails_blob_path(document, disposition: "inline"), 
+                      target: "_blank",
+                      class: "inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+                    <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View
+                  <% end %>
+                  <%= link_to rails_blob_path(document, disposition: "attachment"), 
+                      class: "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+                    <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+
+          <!-- Download All Button -->
+          <% if @submission.documents.count > 1 %>
+            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-center">
+              <button id="download-all-btn" class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Download All Files (<%= @submission.documents.count %>)
+              </button>
+            </div>
+            
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const downloadAllBtn = document.getElementById('download-all-btn');
+                if (downloadAllBtn) {
+                  downloadAllBtn.addEventListener('click', function() {
+                    // Download each file with a slight delay to avoid browser blocking
+                    const links = document.querySelectorAll('a[href*="rails/active_storage"][href*="disposition=attachment"]');
+                    links.forEach((link, index) => {
+                      setTimeout(() => {
+                        link.click();
+                      }, index * 300); // 300ms delay between downloads
+                    });
+                  });
+                }
+              });
+            </script>
+          <% end %>
+        <% else %>
+          <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No files submitted</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Grading Criteria (if available) -->
+      <% if @assignment.grading_criteria.present? %>
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <%= current_user.teacher? ? 'Grading Criteria' : 'How You Were Graded' %>
+          </h2>
+          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div class="text-sm text-gray-700 whitespace-pre-wrap"><%= @assignment.grading_criteria %></div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Student View: Performance Insights -->
+      <% if current_user.student? && @submission.grade.present? %>
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-100">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Performance Summary
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Score Achieved</span>
+                <span class="text-2xl font-bold text-indigo-600"><%= @submission.percentage_grade.round(1) %>%</span>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-indigo-600 h-2 rounded-full" style="width: <%= @submission.percentage_grade %>%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Grade Level</span>
+                <span class="text-2xl font-bold <%= 
+                  case @submission.letter_grade
+                  when 'A', 'A+', 'A-' then 'text-green-600'
+                  when 'B+', 'B', 'B-' then 'text-blue-600'
+                  when 'C+', 'C', 'C-' then 'text-yellow-600'
+                  else 'text-red-600'
+                  end
+                %>"><%= @submission.letter_grade %></span>
+              </div>
+              <div class="mt-2 text-xs text-gray-500">
+                <%= 
+                  case @submission.letter_grade
+                  when 'A', 'A+', 'A-' then 'Excellent work!'
+                  when 'B+', 'B', 'B-' then 'Good job!'
+                  when 'C+', 'C', 'C-' then 'Satisfactory'
+                  else 'Needs improvement'
+                  end
+                %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1 space-y-6">
+      <!-- Student Info -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+          <%= current_user.teacher? ? 'Student' : 'Your' %> Information
+        </h3>
+        <div class="flex items-center mb-4">
+          <div class="flex-shrink-0 h-12 w-12">
+            <div class="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+              <span class="text-white font-medium text-lg">
+                <%= @submission.user.full_name.split.map(&:first).join.upcase %>
+              </span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-medium text-gray-900">
+              <%= @submission.user.full_name %>
+            </div>
+            <div class="text-sm text-gray-500">
+              <%= @submission.user.email %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submission Status -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Submission Status</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Status</span>
+            <div>
+              <% if @submission.status == 'graded' %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Graded
+                </span>
+              <% elsif @submission.status == 'submitted' %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Submitted
+                </span>
+              <% else %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  Pending
+                </span>
+              <% end %>
+
+              <% if @submission.late_submission? %>
+                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Late Submission
+                </span>
+              <% end %>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Submitted At</span>
+            <div class="text-sm text-gray-900">
+              <%= @submission.submitted_at.strftime("%B %d, %Y") %>
+              <div class="text-xs text-gray-500"><%= @submission.submitted_at.strftime("%I:%M %p") %></div>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Due Date</span>
+            <div class="text-sm text-gray-900">
+              <%= @assignment.due_date.strftime("%B %d, %Y") %>
+              <div class="text-xs text-gray-500"><%= @assignment.due_date.strftime("%I:%M %p") %></div>
+            </div>
+          </div>
+
+          <% if @submission.late_submission? %>
+            <div>
+              <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Time Late</span>
+              <div class="text-sm text-red-600">
+                <%= distance_of_time_in_words(@assignment.due_date, @submission.submitted_at) %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Assignment Info -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Assignment Details</h3>
+        
+        <div class="space-y-3">
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Course</span>
+            <div class="text-sm text-gray-900"><%= @assignment.course_name %></div>
+          </div>
+
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Category</span>
+            <div>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                <%= case @assignment.category
+                    when 'homework' then 'bg-blue-100 text-blue-800'
+                    when 'project' then 'bg-purple-100 text-purple-800'
+                    when 'quiz' then 'bg-yellow-100 text-yellow-800'
+                    when 'exam' then 'bg-red-100 text-red-800'
+                    end %>">
+                <%= @assignment.category.titleize %>
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs font-medium text-gray-500 uppercase block mb-1">Total Points</span>
+            <div class="text-sm text-gray-900"><%= @assignment.points %> points</div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <%= link_to assignment_path(@assignment), class: "text-sm text-blue-600 hover:text-blue-800 font-medium" do %>
+            View Assignment Details →
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

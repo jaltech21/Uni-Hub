@@ -1,0 +1,388 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900"><%= @department.name %> Dashboard</h1>
+        <p class="mt-2 text-sm text-gray-600"><%= @department.description %></p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          <%= @department.code %>
+        </span>
+        <% if @department.active %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            Active
+          </span>
+        <% else %>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            Inactive
+          </span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overview Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Students -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+        <div class="ml-5 w-0 flex-1">
+          <dl>
+            <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+            <dd class="text-2xl font-semibold text-gray-900"><%= @statistics[:overview][:total_students] %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Tutors -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div class="ml-5 w-0 flex-1">
+          <dl>
+            <dt class="text-sm font-medium text-gray-500 truncate">Tutors & Teachers</dt>
+            <dd class="text-2xl font-semibold text-gray-900"><%= @statistics[:overview][:total_tutors] %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Content -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="ml-5 w-0 flex-1">
+          <dl>
+            <dt class="text-sm font-medium text-gray-500 truncate">Total Content</dt>
+            <dd class="text-2xl font-semibold text-gray-900"><%= @statistics[:overview][:total_content] %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="ml-5 w-0 flex-1">
+          <dl>
+            <dt class="text-sm font-medium text-gray-500 truncate">Active Users (2 weeks)</dt>
+            <dd class="text-2xl font-semibold text-gray-900"><%= @statistics[:overview][:active_users] %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enrollment & Activity Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Enrollment Statistics -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Enrollment Statistics</h3>
+      </div>
+      <div class="px-6 py-4">
+        <dl class="space-y-4">
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Total Enrolled</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:enrollment][:total] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Active This Month</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:enrollment][:active_this_month] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Active This Week</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:enrollment][:active_this_week] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">New This Month</dt>
+            <dd class="text-sm font-semibold text-green-600"><%= @statistics[:enrollment][:new_this_month] %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Activity This Week -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Activity This Week</h3>
+      </div>
+      <div class="px-6 py-4">
+        <dl class="space-y-4">
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Assignments Created</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:activity][:assignments_created_this_week] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Quizzes Taken</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:activity][:quizzes_taken_this_week] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Notes Created</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:activity][:notes_created_this_week] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Submissions</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:activity][:submissions_this_week] %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Statistics -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Assignments -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Assignments</h3>
+      </div>
+      <div class="px-6 py-4">
+        <dl class="space-y-3">
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Total</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:content][:assignments][:total] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Active</dt>
+            <dd class="text-sm font-semibold text-green-600"><%= @statistics[:content][:assignments][:active] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Overdue</dt>
+            <dd class="text-sm font-semibold text-red-600"><%= @statistics[:content][:assignments][:overdue] %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Notes</h3>
+      </div>
+      <div class="px-6 py-4">
+        <dl class="space-y-3">
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Total</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:content][:notes][:total] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Shared</dt>
+            <dd class="text-sm font-semibold text-blue-600"><%= @statistics[:content][:notes][:shared] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Recent (7 days)</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:content][:notes][:recent] %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Quizzes -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Quizzes</h3>
+      </div>
+      <div class="px-6 py-4">
+        <dl class="space-y-3">
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Total</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:content][:quizzes][:total] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Published</dt>
+            <dd class="text-sm font-semibold text-green-600"><%= @statistics[:content][:quizzes][:published] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Draft</dt>
+            <dd class="text-sm font-semibold text-gray-600"><%= @statistics[:content][:quizzes][:draft] %></dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Avg Score</dt>
+            <dd class="text-sm font-semibold text-gray-900"><%= @statistics[:content][:quizzes][:avg_score] %>%</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Performance Metrics</h3>
+    </div>
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Avg Assignment Score -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-500">Avg Assignment Score</span>
+            <span class="text-lg font-semibold text-gray-900"><%= @statistics[:performance][:avg_assignment_score] %>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full" style="width: <%= @statistics[:performance][:avg_assignment_score] %>%"></div>
+          </div>
+        </div>
+
+        <!-- Completion Rate -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-500">Completion Rate</span>
+            <span class="text-lg font-semibold text-gray-900"><%= @statistics[:performance][:completion_rate] %>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-green-600 h-2 rounded-full" style="width: <%= @statistics[:performance][:completion_rate] %>%"></div>
+          </div>
+        </div>
+
+        <!-- On-Time Submission Rate -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-500">On-Time Submissions</span>
+            <span class="text-lg font-semibold text-gray-900"><%= @statistics[:performance][:on_time_submission_rate] %>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-yellow-600 h-2 rounded-full" style="width: <%= @statistics[:performance][:on_time_submission_rate] %>%"></div>
+          </div>
+        </div>
+
+        <!-- Quiz Pass Rate -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-500">Quiz Pass Rate</span>
+            <span class="text-lg font-semibold text-gray-900"><%= @statistics[:performance][:quiz_pass_rate] %>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-purple-600 h-2 rounded-full" style="width: <%= @statistics[:performance][:quiz_pass_rate] %>%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Content & Activity Timeline -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Content -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Recent Content</h3>
+      </div>
+      <div class="px-6 py-4">
+        <!-- Recent Assignments -->
+        <div class="mb-6">
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Latest Assignments</h4>
+          <% if @recent_assignments.any? %>
+            <ul class="space-y-2">
+              <% @recent_assignments.each do |assignment| %>
+                <li class="flex items-center justify-between text-sm">
+                  <span class="text-gray-600 truncate"><%= link_to assignment.title, assignment_path(assignment), class: "hover:text-blue-600" %></span>
+                  <span class="text-gray-400 text-xs"><%= time_ago_in_words(assignment.created_at) %> ago</span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-sm text-gray-500">No assignments yet</p>
+          <% end %>
+        </div>
+
+        <!-- Recent Quizzes -->
+        <div class="mb-6">
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Latest Quizzes</h4>
+          <% if @recent_quizzes.any? %>
+            <ul class="space-y-2">
+              <% @recent_quizzes.each do |quiz| %>
+                <li class="flex items-center justify-between text-sm">
+                  <span class="text-gray-600 truncate"><%= link_to quiz.title, quiz_path(quiz), class: "hover:text-blue-600" %></span>
+                  <span class="text-gray-400 text-xs"><%= time_ago_in_words(quiz.created_at) %> ago</span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-sm text-gray-500">No quizzes yet</p>
+          <% end %>
+        </div>
+
+        <!-- Recent Notes -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Latest Notes</h4>
+          <% if @recent_notes.any? %>
+            <ul class="space-y-2">
+              <% @recent_notes.each do |note| %>
+                <li class="flex items-center justify-between text-sm">
+                  <span class="text-gray-600 truncate"><%= link_to note.title, note_path(note), class: "hover:text-blue-600" %></span>
+                  <span class="text-gray-400 text-xs"><%= time_ago_in_words(note.created_at) %> ago</span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-sm text-gray-500">No notes yet</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Activity Timeline</h3>
+        <p class="text-sm text-gray-500">Recent activity from the past week</p>
+      </div>
+      <div class="px-6 py-4">
+        <% if @activity_timeline.any? %>
+          <div class="flow-root">
+            <ul class="-mb-8">
+              <% @activity_timeline.each_with_index do |activity, index| %>
+                <li>
+                  <div class="relative pb-8">
+                    <% unless index == @activity_timeline.length - 1 %>
+                      <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                    <% end %>
+                    <div class="relative flex space-x-3">
+                      <div>
+                        <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white bg-gray-100">
+                          <%= activity[:icon] %>
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                        <div>
+                          <p class="text-sm text-gray-900 font-medium"><%= activity[:title] %></p>
+                          <p class="text-sm text-gray-500"><%= activity[:description] %> by <%= activity[:user] %></p>
+                        </div>
+                        <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                          <%= time_ago_in_words(activity[:timestamp]) %> ago
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% else %>
+          <p class="text-sm text-gray-500">No recent activity</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

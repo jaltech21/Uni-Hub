@@ -1,0 +1,603 @@
+<% content_for :title, "Data Mining & Pattern Recognition" %>
+<% content_for :description, "Advanced pattern discovery and data analysis platform" %>
+
+<div class="data-mining-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="row align-items-center mb-4">
+      <div class="col-md-8">
+        <h1 class="dashboard-title">
+          <i class="fas fa-search-plus me-2"></i>
+          Data Mining & Pattern Recognition
+        </h1>
+        <p class="dashboard-subtitle text-muted">
+          Discover hidden patterns, trends, and insights from institutional data
+        </p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#runAlgorithmModal">
+            <i class="fas fa-play me-1"></i> Run Algorithm
+          </button>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fas fa-download me-1"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="<%= export_patterns_data_mining_index_path(format: 'csv') %>"><i class="fas fa-file-csv me-2"></i>CSV Data</a></li>
+              <li><a class="dropdown-item" href="<%= export_patterns_data_mining_index_path(format: 'json') %>"><i class="fas fa-file-code me-2"></i>JSON Export</a></li>
+              <li><a class="dropdown-item" href="<%= export_patterns_data_mining_index_path(format: 'excel') %>"><i class="far fa-file-excel me-2"></i>Excel Report</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mining Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Patterns Discovered</h5>
+              <h3 class="card-text text-primary mb-0">
+                <%= number_with_delimiter(@mining_summary[:total_patterns]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-project-diagram fa-2x text-primary opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-success">
+            <i class="fas fa-arrow-up me-1"></i>
+            +12 new patterns this week
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Active Algorithms</h5>
+              <h3 class="card-text text-success mb-0">
+                <%= @mining_summary[:active_algorithms] %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-cogs fa-2x text-success opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-info">
+            <i class="fas fa-play me-1"></i>
+            Currently processing data
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Data Sources</h5>
+              <h3 class="card-text text-warning mb-0">
+                <%= @mining_summary[:data_sources] %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-database fa-2x text-warning opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-primary">
+            <i class="fas fa-link me-1"></i>
+            Connected and syncing
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Insights Generated</h5>
+              <h3 class="card-text text-info mb-0">
+                <%= @mining_summary[:insights_generated] %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-lightbulb fa-2x text-info opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-success">
+            <i class="fas fa-brain me-1"></i>
+            High-value discoveries
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="row">
+    <!-- Left Column - Pattern Discovery -->
+    <div class="col-lg-8">
+      <!-- Recent Patterns -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-search me-2"></i>
+                Recent Pattern Discoveries
+              </h5>
+            </div>
+            <div class="col-auto">
+              <%= link_to pattern_discovery_data_mining_index_path, class: "btn btn-sm btn-outline-primary" do %>
+                View All <i class="fas fa-arrow-right ms-1"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <% @recent_patterns.each do |pattern| %>
+            <div class="pattern-item mb-3">
+              <div class="d-flex align-items-start">
+                <div class="pattern-type-badge me-3">
+                  <span class="badge bg-<%= pattern[:type] == 'association_rule' ? 'primary' : pattern[:type] == 'clustering' ? 'success' : 'info' %>">
+                    <%= pattern[:type].humanize %>
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="pattern-description mb-2"><%= pattern[:pattern] %></h6>
+                  <div class="pattern-metrics row">
+                    <% if pattern[:confidence] %>
+                      <div class="col-auto">
+                        <small class="text-muted">
+                          <strong>Confidence:</strong> <%= pattern[:confidence] %>%
+                        </small>
+                      </div>
+                    <% end %>
+                    <% if pattern[:support] %>
+                      <div class="col-auto">
+                        <small class="text-muted">
+                          <strong>Support:</strong> <%= pattern[:support] %>%
+                        </small>
+                      </div>
+                    <% end %>
+                    <% if pattern[:cluster_size] %>
+                      <div class="col-auto">
+                        <small class="text-muted">
+                          <strong>Cluster Size:</strong> <%= pattern[:cluster_size] %>
+                        </small>
+                      </div>
+                    <% end %>
+                    <% if pattern[:correlation] %>
+                      <div class="col-auto">
+                        <small class="text-muted">
+                          <strong>Correlation:</strong> <%= pattern[:correlation] %>
+                        </small>
+                      </div>
+                    <% end %>
+                  </div>
+                  <div class="pattern-timestamp mt-2">
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i>
+                      Discovered <%= time_ago_in_words(pattern[:discovered_at]) %> ago
+                    </small>
+                  </div>
+                </div>
+                <div class="pattern-actions">
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-primary btn-sm" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" title="Export Pattern">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% unless pattern == @recent_patterns.last %>
+              <hr class="my-3">
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Algorithm Performance -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-bar me-2"></i>
+            Algorithm Performance
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <% @algorithm_performance.each do |algorithm, metrics| %>
+              <div class="col-md-6 mb-3">
+                <div class="algorithm-card p-3 border rounded">
+                  <h6 class="algorithm-name mb-2">
+                    <i class="fas fa-robot me-2"></i>
+                    <%= algorithm.to_s.humanize %>
+                  </h6>
+                  <div class="performance-metrics">
+                    <% metrics.each do |metric, value| %>
+                      <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted"><%= metric.to_s.humanize %>:</span>
+                        <span class="fw-bold">
+                          <%= metric.to_s.include?('score') ? value : "#{value}#{metric.to_s.include?('time') ? 's' : '%'}" %>
+                        </span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Quality Metrics -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2"></i>
+            Data Quality Assessment
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-8">
+              <canvas id="dataQualityChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-md-4">
+              <div class="quality-summary">
+                <h6>Quality Metrics</h6>
+                <ul class="list-unstyled">
+                  <% @data_quality_metrics.each do |metric, score| %>
+                    <li class="d-flex justify-content-between mb-2">
+                      <span><%= metric.to_s.humanize %>:</span>
+                      <span class="text-<%= score >= 95 ? 'success' : score >= 85 ? 'warning' : 'danger' %>">
+                        <%= score %>%
+                      </span>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Quick Actions and Analysis -->
+    <div class="col-lg-4">
+      <!-- Quick Analysis Actions -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Quick Analysis
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <%= link_to pattern_discovery_data_mining_index_path, class: "btn btn-outline-primary" do %>
+              <i class="fas fa-search-plus me-2"></i>
+              Pattern Discovery
+            <% end %>
+            <%= link_to association_analysis_data_mining_index_path, class: "btn btn-outline-success" do %>
+              <i class="fas fa-project-diagram me-2"></i>
+              Association Analysis
+            <% end %>
+            <%= link_to clustering_analysis_data_mining_index_path, class: "btn btn-outline-info" do %>
+              <i class="fas fa-circle-nodes me-2"></i>
+              Clustering Analysis
+            <% end %>
+            <%= link_to anomaly_detection_data_mining_index_path, class: "btn btn-outline-warning" do %>
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              Anomaly Detection
+            <% end %>
+            <%= link_to trend_analysis_data_mining_index_path, class: "btn btn-outline-secondary" do %>
+              <i class="fas fa-chart-line me-2"></i>
+              Trend Analysis
+            <% end %>
+            <%= link_to sentiment_analysis_data_mining_index_path, class: "btn btn-outline-dark" do %>
+              <i class="fas fa-smile me-2"></i>
+              Sentiment Analysis
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Sources Status -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-database me-2"></i>
+            Data Sources
+          </h5>
+        </div>
+        <div class="card-body">
+          <% ['Student Records', 'Course Data', 'Attendance', 'Assignments', 'Discussions', 'Resources'].each do |source| %>
+            <div class="data-source-item d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center">
+                <div class="status-indicator bg-success rounded-circle me-2" style="width: 8px; height: 8px;"></div>
+                <span><%= source %></span>
+              </div>
+              <small class="text-muted">Active</small>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Mining Statistics -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-area me-2"></i>
+            Mining Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Patterns This Month:</span>
+              <span class="fw-bold">47</span>
+            </div>
+            <div class="progress mt-1" style="height: 4px;">
+              <div class="progress-bar bg-primary" style="width: 78%"></div>
+            </div>
+          </div>
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Algorithm Runs:</span>
+              <span class="fw-bold">156</span>
+            </div>
+            <div class="progress mt-1" style="height: 4px;">
+              <div class="progress-bar bg-success" style="width: 85%"></div>
+            </div>
+          </div>
+          <div class="stat-item mb-3">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Data Processed (GB):</span>
+              <span class="fw-bold">23.4</span>
+            </div>
+            <div class="progress mt-1" style="height: 4px;">
+              <div class="progress-bar bg-info" style="width: 67%"></div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Insights Generated:</span>
+              <span class="fw-bold">89</span>
+            </div>
+            <div class="progress mt-1" style="height: 4px;">
+              <div class="progress-bar bg-warning" style="width: 92%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Run Algorithm Modal -->
+<div class="modal fade" id="runAlgorithmModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-play me-2"></i>
+          Run Data Mining Algorithm
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="runAlgorithmForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="algorithmType" class="form-label">Algorithm Type</label>
+              <select class="form-select" id="algorithmType" name="algorithm_type">
+                <option value="">Select algorithm...</option>
+                <option value="association_rules">Association Rules Mining</option>
+                <option value="clustering">Clustering Analysis</option>
+                <option value="anomaly_detection">Anomaly Detection</option>
+                <option value="pattern_mining">Pattern Mining</option>
+                <option value="classification">Classification</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="dataSources" class="form-label">Data Sources</label>
+              <select class="form-select" id="dataSources" name="data_sources" multiple>
+                <option value="student_records">Student Records</option>
+                <option value="course_data">Course Data</option>
+                <option value="attendance">Attendance Data</option>
+                <option value="assignments">Assignment Data</option>
+                <option value="discussions">Discussion Data</option>
+                <option value="resources">Resource Usage</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="algorithmParameters" class="form-label">Algorithm Parameters</label>
+            <textarea class="form-control" id="algorithmParameters" name="parameters" rows="3" 
+                      placeholder="Enter parameters as JSON (optional)..."></textarea>
+            <div class="form-text">Example: {"min_support": 0.1, "min_confidence": 0.8}</div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="saveResults" name="save_results" checked>
+              <label class="form-check-label" for="saveResults">
+                Save results for future reference
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="executeAlgorithm">
+          <i class="fas fa-play me-2"></i>Run Algorithm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.data-mining-dashboard .stats-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.data-mining-dashboard .stats-card:hover {
+  transform: translateY(-2px);
+}
+
+.pattern-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.pattern-item:hover {
+  background: #e9ecef;
+  transform: translateX(3px);
+}
+
+.pattern-type-badge {
+  min-width: 120px;
+}
+
+.algorithm-card {
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.algorithm-card:hover {
+  background: #e9ecef;
+  transform: scale(1.02);
+}
+
+.status-indicator {
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+}
+
+.stat-item .progress {
+  background-color: #e9ecef;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize data quality chart
+  initializeDataQualityChart();
+  
+  // Setup algorithm execution
+  setupAlgorithmExecution();
+});
+
+function initializeDataQualityChart() {
+  const ctx = document.getElementById('dataQualityChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: <%= @data_quality_metrics.keys.map(&:to_s).map(&:humanize).to_json.html_safe %>,
+        datasets: [{
+          data: <%= @data_quality_metrics.values.to_json.html_safe %>,
+          backgroundColor: [
+            '#007bff',
+            '#28a745',
+            '#ffc107',
+            '#17a2b8',
+            '#6f42c1'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+}
+
+function setupAlgorithmExecution() {
+  document.getElementById('executeAlgorithm').addEventListener('click', function() {
+    const form = document.getElementById('runAlgorithmForm');
+    const formData = new FormData(form);
+    
+    // Show loading state
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running...';
+    this.disabled = true;
+    
+    // Submit algorithm execution request
+    fetch('<%= run_algorithm_data_mining_index_path %>', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Close modal and show success
+        bootstrap.Modal.getInstance(document.getElementById('runAlgorithmModal')).hide();
+        showNotification('Algorithm executed successfully!', 'success');
+        
+        // Refresh the page to show new results
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        showNotification('Algorithm execution failed: ' + data.error, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error executing algorithm:', error);
+      showNotification('Algorithm execution failed. Please try again.', 'error');
+    })
+    .finally(() => {
+      this.innerHTML = '<i class="fas fa-play me-2"></i>Run Algorithm';
+      this.disabled = false;
+    });
+  });
+}
+
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+</script>

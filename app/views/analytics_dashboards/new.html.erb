@@ -1,0 +1,483 @@
+<% content_for :title, "New Analytics Dashboard" %>
+<% content_for :page_header, "Create Analytics Dashboard" %>
+
+<div class="analytics-dashboard-form">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-bar me-2"></i>
+            Create New Dashboard
+          </h5>
+        </div>
+        
+        <div class="card-body">
+          <%= form_with model: @analytics_dashboard, local: true, 
+                        html: { class: "needs-validation", novalidate: true } do |f| %>
+            
+            <% if @analytics_dashboard.errors.any? %>
+              <div class="alert alert-danger">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h6>
+                <ul class="mb-0">
+                  <% @analytics_dashboard.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+            
+            <!-- Basic Information -->
+            <div class="form-section mb-4">
+              <h6 class="form-section-title">Basic Information</h6>
+              
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="mb-3">
+                    <%= f.label :name, class: "form-label" %>
+                    <%= f.text_field :name, class: "form-control", 
+                                     placeholder: "Enter dashboard name...", required: true %>
+                    <div class="invalid-feedback">
+                      Please provide a dashboard name.
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <%= f.label :dashboard_type, "Type", class: "form-label" %>
+                    <%= f.select :dashboard_type, 
+                                 options_for_select(@dashboard_types.map { |type| [type.humanize, type] }),
+                                 { prompt: "Select type..." },
+                                 { class: "form-select", required: true } %>
+                    <div class="invalid-feedback">
+                      Please select a dashboard type.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <%= f.label :description, class: "form-label" %>
+                <%= f.text_area :description, class: "form-control", rows: 3,
+                                placeholder: "Describe what this dashboard will show..." %>
+                <div class="form-text">
+                  Optional: Provide a brief description of this dashboard's purpose.
+                </div>
+              </div>
+            </div>
+            
+            <!-- Configuration -->
+            <div class="form-section mb-4">
+              <h6 class="form-section-title">Configuration</h6>
+              
+              <div class="row">
+                <% if current_user.role.in?(['admin', 'teacher']) %>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <%= f.label :department_id, "Department", class: "form-label" %>
+                      <%= f.select :department_id,
+                                   options_from_collection_for_select(@departments, :id, :name, @analytics_dashboard.department_id),
+                                   { prompt: "All Departments" },
+                                   { class: "form-select" } %>
+                      <div class="form-text">
+                        Optional: Limit dashboard to specific department.
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Layout</label>
+                    <div class="layout-options">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="layout_type" 
+                               id="layout_grid" value="grid" checked>
+                        <label class="form-check-label" for="layout_grid">
+                          <i class="fas fa-th me-2"></i>Grid Layout
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="layout_type" 
+                               id="layout_list" value="list">
+                        <label class="form-check-label" for="layout_list">
+                          <i class="fas fa-list me-2"></i>List Layout
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Initial Widgets -->
+            <div class="form-section mb-4">
+              <h6 class="form-section-title">
+                Initial Widgets
+                <small class="text-muted">(You can add more widgets after creating the dashboard)</small>
+              </h6>
+              
+              <div class="widget-selection">
+                <div class="row">
+                  <% @available_widgets.each do |widget| %>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                      <div class="widget-option">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" 
+                                 name="initial_widgets[]" value="<%= widget[:id] %>" 
+                                 id="widget_<%= widget[:id] %>">
+                          <label class="form-check-label widget-label" 
+                                 for="widget_<%= widget[:id] %>">
+                            <div class="widget-info">
+                              <div class="widget-icon">
+                                <i class="<%= widget[:icon] %>"></i>
+                              </div>
+                              <div class="widget-details">
+                                <div class="widget-name"><%= widget[:name] %></div>
+                                <div class="widget-description">
+                                  <%= widget[:description] %>
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Dashboard Settings -->
+            <div class="form-section mb-4">
+              <h6 class="form-section-title">Settings</h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-check mb-3">
+                    <%= f.check_box :is_active, class: "form-check-input", checked: true %>
+                    <%= f.label :is_active, "Active", class: "form-check-label" %>
+                    <div class="form-text">
+                      Active dashboards are visible and can be accessed by users.
+                    </div>
+                  </div>
+                  
+                  <% if current_user.role == 'admin' %>
+                    <div class="form-check mb-3">
+                      <%= f.check_box :is_default, class: "form-check-input" %>
+                      <%= f.label :is_default, "Default Dashboard", class: "form-check-label" %>
+                      <div class="form-text">
+                        Set as the default dashboard for this type.
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Auto-refresh Interval</label>
+                    <select class="form-select" name="config[refresh_interval]">
+                      <option value="never">Never</option>
+                      <option value="1" selected>1 minute</option>
+                      <option value="5">5 minutes</option>
+                      <option value="15">15 minutes</option>
+                      <option value="30">30 minutes</option>
+                      <option value="60">1 hour</option>
+                    </select>
+                    <div class="form-text">
+                      How often should the dashboard data refresh automatically?
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Template Option -->
+            <div class="form-section mb-4">
+              <h6 class="form-section-title">Template (Optional)</h6>
+              
+              <div class="template-selection">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="creation_method" 
+                         id="method_custom" value="custom" checked>
+                  <label class="form-check-label" for="method_custom">
+                    Create from scratch
+                  </label>
+                </div>
+                
+                <% if @templates.any? %>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="creation_method" 
+                           id="method_template" value="template">
+                    <label class="form-check-label" for="method_template">
+                      Use template
+                    </label>
+                  </div>
+                  
+                  <div class="template-options mt-3" style="display: none;">
+                    <div class="row">
+                      <% @templates.each do |template| %>
+                        <div class="col-md-6 mb-3">
+                          <div class="template-card">
+                            <input type="radio" name="template_id" value="<%= template[:id] %>" 
+                                   id="template_<%= template[:id] %>" class="template-radio">
+                            <label for="template_<%= template[:id] %>" class="template-label">
+                              <div class="template-info">
+                                <h6 class="template-name"><%= template[:name] %></h6>
+                                <p class="template-description">
+                                  <%= template[:description] %>
+                                </p>
+                                <div class="template-meta">
+                                  <small class="text-muted">
+                                    <i class="fas fa-chart-bar me-1"></i>
+                                    <%= template[:widget_count] %> widgets
+                                  </small>
+                                </div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <div class="d-flex justify-content-between">
+                <%= link_to "Cancel", analytics_dashboards_path, 
+                            class: "btn btn-outline-secondary" %>
+                
+                <div class="action-buttons">
+                  <button type="submit" class="btn btn-success me-2" 
+                          name="action" value="save_and_edit">
+                    <i class="fas fa-edit me-2"></i>
+                    Create & Edit
+                  </button>
+                  <button type="submit" class="btn btn-primary" 
+                          name="action" value="save">
+                    <i class="fas fa-save me-2"></i>
+                    Create Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.analytics-dashboard-form .form-section-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.analytics-dashboard-form .widget-option {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.analytics-dashboard-form .widget-option:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
+
+.analytics-dashboard-form .widget-option .form-check-input:checked ~ .widget-label {
+  background-color: #f8f9ff;
+  border-color: #007bff;
+}
+
+.analytics-dashboard-form .widget-label {
+  width: 100%;
+  padding: 1rem;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 0.5rem;
+}
+
+.analytics-dashboard-form .widget-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.analytics-dashboard-form .widget-icon {
+  font-size: 1.5rem;
+  color: #007bff;
+  margin-top: 0.25rem;
+}
+
+.analytics-dashboard-form .widget-name {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.analytics-dashboard-form .widget-description {
+  font-size: 0.85rem;
+  color: #6c757d;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.analytics-dashboard-form .template-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.analytics-dashboard-form .template-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
+
+.analytics-dashboard-form .template-radio {
+  display: none;
+}
+
+.analytics-dashboard-form .template-radio:checked ~ .template-label {
+  background-color: #f8f9ff;
+  border-color: #007bff;
+}
+
+.analytics-dashboard-form .template-label {
+  width: 100%;
+  padding: 1rem;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  display: block;
+}
+
+.analytics-dashboard-form .template-name {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.analytics-dashboard-form .template-description {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.analytics-dashboard-form .layout-options {
+  display: flex;
+  gap: 1rem;
+}
+
+.analytics-dashboard-form .form-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+@media (max-width: 768px) {
+  .analytics-dashboard-form .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .analytics-dashboard-form .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .analytics-dashboard-form .layout-options {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Template method toggle
+  const methodRadios = document.querySelectorAll('input[name="creation_method"]');
+  const templateOptions = document.querySelector('.template-options');
+  const widgetSelection = document.querySelector('.widget-selection');
+  
+  methodRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'template') {
+        templateOptions.style.display = 'block';
+        widgetSelection.style.display = 'none';
+      } else {
+        templateOptions.style.display = 'none';
+        widgetSelection.style.display = 'block';
+      }
+    });
+  });
+  
+  // Form validation
+  const form = document.querySelector('.needs-validation');
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    form.classList.add('was-validated');
+  });
+  
+  // Widget selection feedback
+  const widgetCheckboxes = document.querySelectorAll('input[name="initial_widgets[]"]');
+  widgetCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const widgetOption = this.closest('.widget-option');
+      if (this.checked) {
+        widgetOption.classList.add('selected');
+      } else {
+        widgetOption.classList.remove('selected');
+      }
+    });
+  });
+  
+  // Dashboard type change handler
+  const dashboardTypeSelect = document.querySelector('select[name="analytics_dashboard[dashboard_type]"]');
+  if (dashboardTypeSelect) {
+    dashboardTypeSelect.addEventListener('change', function() {
+      // Update available widgets based on dashboard type
+      updateAvailableWidgets(this.value);
+    });
+  }
+  
+  function updateAvailableWidgets(dashboardType) {
+    // This would typically make an AJAX request to get widgets for the selected type
+    // For now, we'll just show/hide widgets based on type
+    const allWidgets = document.querySelectorAll('.widget-option');
+    
+    allWidgets.forEach(widget => {
+      const widgetInput = widget.querySelector('input[type="checkbox"]');
+      const widgetType = widgetInput.value;
+      
+      // Define which widgets are available for each dashboard type
+      const widgetAvailability = {
+        'student': ['grade_overview', 'assignment_progress', 'attendance_summary', 'performance_trends'],
+        'teacher': ['class_performance', 'student_overview', 'assignment_analytics', 'attendance_report'],
+        'admin': ['institutional_overview', 'department_comparison', 'system_health', 'user_analytics']
+      };
+      
+      if (widgetAvailability[dashboardType] && 
+          widgetAvailability[dashboardType].includes(widgetType)) {
+        widget.style.display = 'block';
+      } else {
+        widget.style.display = 'none';
+        widgetInput.checked = false;
+      }
+    });
+  }
+});
+</script>

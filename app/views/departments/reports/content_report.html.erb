@@ -1,0 +1,214 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+      <%= link_to "Departments", departments_path, class: "hover:text-blue-600" %> /
+      <%= link_to @department.name, department_path(@department), class: "hover:text-blue-600" %> /
+      <%= link_to "Reports", department_reports_path(@department), class: "hover:text-blue-600" %> /
+      <span class="text-gray-900">Content Report</span>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Content Sharing Report</h1>
+        <p class="text-gray-600 mt-2">
+          Generated on <%= @report_date.strftime("%B %d, %Y at %I:%M %p") %>
+        </p>
+      </div>
+      
+      <div class="flex gap-2">
+        <%= link_to "Export CSV", send_content_report_csv_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "btn btn-secondary" %>
+        <%= link_to "Export PDF", send_content_report_pdf_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm" %>
+        <%= link_to "Export Excel", send_content_report_excel_department_reports_path(@department, format: :xlsx, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm" %>
+        <%= link_to "Back to Reports", department_reports_path(@department), class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Range Filter -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <%= form_with url: content_report_department_reports_path(@department), method: :get, local: true, class: "flex items-center gap-4" do |f| %>
+      <label class="text-sm font-medium text-gray-700">Show data for last:</label>
+      <%= f.select :date_range, 
+          options_for_select([['7 days', '7'], ['30 days', '30'], ['90 days', '90'], ['All Time', '3650']], params[:date_range] || '30'),
+          {}, 
+          { class: "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500", onchange: "this.form.submit()" } %>
+    <% end %>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Total Content Shared</p>
+          <p class="text-3xl font-bold text-blue-600"><%= @total_content %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @recent_content.count %> in selected period
+          </p>
+        </div>
+        <span class="text-4xl">📄</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Content Types</p>
+          <p class="text-3xl font-bold text-green-600"><%= @content_by_type.keys.count %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            Different content types
+          </p>
+        </div>
+        <span class="text-4xl">📚</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Active Sharers</p>
+          <p class="text-3xl font-bold text-purple-600"><%= @top_sharers.count %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            Members sharing content
+          </p>
+        </div>
+        <span class="text-4xl">👥</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content by Type -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Content by Type</h2>
+    
+    <% if @content_by_type.any? %>
+      <div class="space-y-3">
+        <% @content_by_type.sort_by { |_, count| -count }.each do |type, count| %>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-700 font-medium"><%= type %></span>
+              <span class="text-gray-900">
+                <%= count %> (<%= number_to_percentage(count.to_f / @recent_content.count * 100, precision: 1) %>)
+              </span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full transition-all" 
+                   style="width: <%= @recent_content.count > 0 ? (count.to_f / @recent_content.count * 100) : 0 %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-4">No content shared in the selected period.</p>
+    <% end %>
+  </div>
+
+  <!-- Top Content Sharers -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Top Content Sharers</h2>
+    
+    <% if @top_sharers.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Rank
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Shares
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Percentage
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @top_sharers.each_with_index do |sharer, index| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if index == 0 %>
+                    <span class="text-2xl">🥇</span>
+                  <% elsif index == 1 %>
+                    <span class="text-2xl">🥈</span>
+                  <% elsif index == 2 %>
+                    <span class="text-2xl">🥉</span>
+                  <% else %>
+                    <span class="text-sm text-gray-500">#<%= index + 1 %></span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= sharer.first_name %> <%= sharer.last_name %>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900"><%= sharer.share_count %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-full max-w-xs bg-gray-200 rounded-full h-2 mr-2">
+                      <div class="bg-green-600 h-2 rounded-full" 
+                           style="width: <%= @recent_content.count > 0 ? (sharer.share_count.to_f / @recent_content.count * 100) : 0 %>%"></div>
+                    </div>
+                    <span class="text-sm text-gray-600">
+                      <%= number_to_percentage(sharer.share_count.to_f / @recent_content.count * 100, precision: 1) %>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No sharers found in the selected period.</p>
+    <% end %>
+  </div>
+
+  <!-- Recent Content Details -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Content Details</h2>
+    
+    <% if @recent_content.any? %>
+      <div class="space-y-4">
+        <% @recent_content.limit(20).each do |content| %>
+          <div class="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                    <%= content.shareable_type %>
+                  </span>
+                  <span class="px-2 py-0.5 <%= content.action == 'shared' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %> text-xs font-medium rounded capitalize">
+                    <%= content.action %>
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 mt-2 text-xs text-gray-600">
+                  <span>Shared by <strong><%= content.shared_by.full_name %></strong></span>
+                  <span><%= time_ago_in_words(content.created_at) %> ago</span>
+                  <span><%= content.created_at.strftime("%b %d, %Y at %I:%M %p") %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <% if @recent_content.count > 20 %>
+        <p class="text-sm text-gray-500 text-center mt-4">
+          Showing 20 of <%= @recent_content.count %> items. Export to CSV for full list.
+        </p>
+      <% end %>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No content shared in the selected period.</p>
+    <% end %>
+  </div>
+</div>

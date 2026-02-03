@@ -1,0 +1,206 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+      <%= link_to "Departments", departments_path, class: "hover:text-blue-600" %> /
+      <%= link_to @department.name, department_path(@department), class: "hover:text-blue-600" %> /
+      <%= link_to "Reports", department_reports_path(@department), class: "hover:text-blue-600" %> /
+      <span class="text-gray-900">Activity Summary</span>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Activity Summary Report</h1>
+        <p class="text-gray-600 mt-2">
+          Generated on <%= @report_date.strftime("%B %d, %Y at %I:%M %p") %>
+        </p>
+      </div>
+      
+      <div class="flex gap-2">
+        <%= link_to "Export CSV", send_activity_summary_csv_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "btn btn-secondary" %>
+        <%= link_to "Export PDF", send_activity_summary_pdf_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm" %>
+        <%= link_to "Export Excel", send_activity_summary_excel_department_reports_path(@department, format: :xlsx, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm" %>
+        <%= link_to "Back to Reports", department_reports_path(@department), class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Range Filter -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <%= form_with url: activity_summary_department_reports_path(@department), method: :get, local: true, class: "flex items-center gap-4" do |f| %>
+      <label class="text-sm font-medium text-gray-700">Show data for last:</label>
+      <%= f.select :date_range, 
+          options_for_select([['7 days', '7'], ['30 days', '30'], ['90 days', '90']], params[:date_range] || '30'),
+          {}, 
+          { class: "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500", onchange: "this.form.submit()" } %>
+    <% end %>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Total Announcements</p>
+          <p class="text-3xl font-bold text-blue-600"><%= @total_announcements %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @recent_announcements.count %> in last <%= @date_range %> days
+          </p>
+        </div>
+        <span class="text-3xl">📢</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Shared Content</p>
+          <p class="text-3xl font-bold text-green-600"><%= @total_shared_content %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @recent_content.count %> in last <%= @date_range %> days
+          </p>
+        </div>
+        <span class="text-3xl">📄</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Member Changes</p>
+          <p class="text-3xl font-bold text-purple-600"><%= @member_changes %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @new_members %> new members
+          </p>
+        </div>
+        <span class="text-3xl">👥</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-2">Published Posts</p>
+          <p class="text-3xl font-bold text-yellow-600"><%= @published_announcements %></p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @pinned_announcements %> pinned
+          </p>
+        </div>
+        <span class="text-3xl">📌</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Timeline Chart -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Activity (Last <%= @date_range %> Days)</h2>
+    <div class="h-48 flex items-end justify-between gap-1">
+      <% max_activity = @activity_by_day.values.max || 1 %>
+      <% @activity_by_day.each do |date, count| %>
+        <div class="flex-1 flex flex-col items-center group">
+          <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all hover:from-blue-700 hover:to-blue-500" 
+               style="height: <%= count > 0 ? (count.to_f / max_activity * 100) : 2 %>%"
+               title="<%= date %>: <%= count %> activities"></div>
+          <div class="text-xs text-gray-500 mt-2 hidden group-hover:block">
+            <%= date %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <div class="flex justify-between text-xs text-gray-500 mt-2">
+      <span><%= @start_date.strftime('%m/%d') %></span>
+      <span>Today</span>
+    </div>
+  </div>
+
+  <!-- Recent Announcements -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Announcements</h2>
+    
+    <% if @recent_announcements.any? %>
+      <div class="space-y-4">
+        <% @recent_announcements.each do |announcement| %>
+          <div class="border-l-4 <%= announcement.published? ? 'border-green-500' : 'border-gray-300' %> pl-4 py-2">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="font-semibold text-gray-900"><%= announcement.title %></h3>
+                  <% if announcement.pinned? %>
+                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
+                      Pinned
+                    </span>
+                  <% end %>
+                  <span class="px-2 py-0.5 <%= announcement.published? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %> text-xs font-medium rounded">
+                    <%= announcement.published? ? 'Published' : 'Draft' %>
+                  </span>
+                </div>
+                <p class="text-sm text-gray-600 mt-1 line-clamp-2"><%= announcement.content %></p>
+                <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <span>By <%= announcement.user.full_name %></span>
+                  <span><%= time_ago_in_words(announcement.created_at) %> ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No announcements in the selected period.</p>
+    <% end %>
+  </div>
+
+  <!-- Recent Shared Content -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Shared Content</h2>
+    
+    <% if @recent_content.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Shared By
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Permission
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_content.each do |content| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                    <%= content.shareable_type %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900"><%= content.shared_by.full_name %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium <%= content.action == 'shared' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %> rounded capitalize">
+                    <%= content.action %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= time_ago_in_words(content.created_at) %> ago
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No content shared in the selected period.</p>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,227 @@
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+      <%= link_to "Departments", departments_path, class: "hover:text-blue-600" %> /
+      <%= link_to @department.name, department_path(@department), class: "hover:text-blue-600" %> /
+      <%= link_to "Members", department_members_path(@department), class: "hover:text-blue-600" %> /
+      <span class="text-gray-900"><%= @member.user.full_name %></span>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+          <span class="text-2xl font-bold text-blue-600">
+            <%= @member.user.full_name.split.map(&:first).join.upcase %>
+          </span>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <%= @member.user.full_name %>
+          </h1>
+          <p class="text-gray-600"><%= @member.user.email %></p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <% if can_manage_department_members? %>
+          <%= link_to "Edit", edit_department_member_path(@department, @member), 
+              class: "btn btn-secondary" %>
+          <%= button_to "Remove", department_member_path(@department, @member), 
+              method: :delete,
+              data: { turbo_confirm: "Are you sure you want to remove this member?" },
+              class: "btn btn-danger" %>
+        <% end %>
+        <%= link_to "Back", department_members_path(@department), class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Badges -->
+  <div class="flex gap-2 mb-6">
+    <% if @member.role == 'admin' %>
+      <span class="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+        Admin
+      </span>
+    <% elsif @member.role == 'teacher' %>
+      <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+        Teacher
+      </span>
+    <% else %>
+      <span class="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
+        Member
+      </span>
+    <% end %>
+
+    <% if @member.active? %>
+      <span class="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+        Active
+      </span>
+    <% elsif @member.pending? %>
+      <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+        Pending
+      </span>
+    <% else %>
+      <span class="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
+        Inactive
+      </span>
+    <% end %>
+  </div>
+
+  <!-- Member Details -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Basic Information -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+      
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @member.user.full_name %></dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Email</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @member.user.email %></dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">User Role</dt>
+          <dd class="mt-1 text-sm text-gray-900 capitalize"><%= @member.user.role %></dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Department Role</dt>
+          <dd class="mt-1 text-sm text-gray-900 capitalize"><%= @member.role %></dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1 text-sm text-gray-900 capitalize"><%= @member.status %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Membership Details -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Membership Details</h2>
+      
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Joined At</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            <% if @member.joined_at %>
+              <%= @member.joined_at.strftime("%B %d, %Y") %>
+              <span class="text-gray-500">(<%= time_ago_in_words(@member.joined_at) %> ago)</span>
+            <% else %>
+              <span class="text-gray-400">Not set</span>
+            <% end %>
+          </dd>
+        </div>
+        
+        <% if @member.inactive? && @member.left_at %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Left At</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= @member.left_at.strftime("%B %d, %Y") %>
+              <span class="text-gray-500">(<%= time_ago_in_words(@member.left_at) %> ago)</span>
+            </dd>
+          </div>
+        <% end %>
+        
+        <% if @member.duration %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Duration</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @member.duration %> days</dd>
+          </div>
+        <% end %>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Invited By</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            <% if @member.invited_by %>
+              <%= @member.invited_by.full_name %>
+            <% else %>
+              <span class="text-gray-400">System</span>
+            <% end %>
+          </dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Added</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            <%= @member.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+          </dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            <%= @member.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <% if @member.notes.present? %>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
+      <p class="text-sm text-gray-700 whitespace-pre-wrap"><%= @member.notes %></p>
+    </div>
+  <% end %>
+
+  <!-- Activity History -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Activity History</h2>
+    
+    <% member_history = @department.department_member_histories.for_user(@member.user).recent %>
+    <% if member_history.any? %>
+      <div class="space-y-4">
+        <% member_history.each do |history| %>
+          <div class="flex gap-3">
+            <div class="flex-shrink-0">
+              <% if history.action == 'added' %>
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span class="text-green-600 text-sm">+</span>
+                </div>
+              <% elsif history.action == 'removed' %>
+                <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <span class="text-red-600 text-sm">−</span>
+                </div>
+              <% else %>
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span class="text-blue-600 text-sm">~</span>
+                </div>
+              <% end %>
+            </div>
+            
+            <div class="flex-1">
+              <p class="text-sm text-gray-900"><%= history.description %></p>
+              <p class="text-xs text-gray-500 mt-1">
+                <% if history.performed_by %>
+                  by <%= history.performed_by.full_name %> •
+                <% end %>
+                <%= time_ago_in_words(history.created_at) %> ago
+                (<%= history.created_at.strftime("%b %d, %Y at %I:%M %p") %>)
+              </p>
+              <% if history.details.present? %>
+                <div class="mt-2 text-xs text-gray-600 bg-gray-50 rounded p-2">
+                  <% history.details.each do |key, value| %>
+                    <div><strong><%= key.titleize %>:</strong> <%= value %></div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <%= link_to "View Full History", history_department_members_path(@department, user_id: @member.user_id), 
+          class: "text-sm text-blue-600 hover:text-blue-800 mt-4 inline-block" %>
+    <% else %>
+      <p class="text-sm text-gray-500">No activity history found.</p>
+    <% end %>
+  </div>
+</div>

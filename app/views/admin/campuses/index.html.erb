@@ -1,0 +1,204 @@
+<% content_for :title, "Campus Management" %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Campus Management</h1>
+        <%= link_to "Add New Campus", new_admin_campus_path, 
+            class: "btn btn-primary" %>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h4 class="mb-0"><%= @campus_statistics[:total_campuses] %></h4>
+                  <p class="mb-0">Total Campuses</p>
+                </div>
+                <div class="align-self-center">
+                  <i class="fas fa-university fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h4 class="mb-0"><%= @campus_statistics[:total_programs] %></h4>
+                  <p class="mb-0">Total Programs</p>
+                </div>
+                <div class="align-self-center">
+                  <i class="fas fa-graduation-cap fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h4 class="mb-0"><%= number_with_delimiter(@campus_statistics[:total_enrollment]) %></h4>
+                  <p class="mb-0">Total Enrollment</p>
+                </div>
+                <div class="align-self-center">
+                  <i class="fas fa-users fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h4 class="mb-0"><%= @campus_statistics[:active_collaborations] %></h4>
+                  <p class="mb-0">Active Collaborations</p>
+                </div>
+                <div class="align-self-center">
+                  <i class="fas fa-handshake fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <%= form_with url: admin_campuses_path, method: :get, 
+              local: true, class: "row g-3" do |f| %>
+            <div class="col-md-3">
+              <%= f.select :university_id, 
+                  options_from_collection_for_select(@universities, :id, :name, params[:university_id]),
+                  { prompt: "All Universities" },
+                  { class: "form-select" } %>
+            </div>
+            <div class="col-md-6">
+              <%= f.text_field :search, 
+                  placeholder: "Search campuses...",
+                  value: params[:search],
+                  class: "form-control" %>
+            </div>
+            <div class="col-md-3">
+              <%= f.submit "Filter", class: "btn btn-outline-primary me-2" %>
+              <%= link_to "Clear", admin_campuses_path, 
+                  class: "btn btn-outline-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Campuses Table -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Campus</th>
+                  <th>University</th>
+                  <th>Location</th>
+                  <th>Programs</th>
+                  <th>Enrollment</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @campuses.each do |campus| %>
+                  <tr>
+                    <td>
+                      <div>
+                        <strong><%= link_to campus.name, admin_campus_path(campus) %></strong><br>
+                        <small class="text-muted"><%= campus.code %></small>
+                      </div>
+                    </td>
+                    <td><%= campus.university.name %></td>
+                    <td>
+                      <%= campus.city %>, <%= campus.state %><br>
+                      <small class="text-muted"><%= campus.country %></small>
+                    </td>
+                    <td>
+                      <%= campus.campus_programs.count %> programs<br>
+                      <small class="text-muted">
+                        <%= campus.departments.count %> departments
+                      </small>
+                    </td>
+                    <td>
+                      <%= number_with_delimiter(campus.total_current_enrollment) %><br>
+                      <small class="text-muted">
+                        Capacity: <%= number_with_delimiter(campus.student_capacity) %>
+                      </small>
+                    </td>
+                    <td>
+                      <% if campus.is_operational? %>
+                        <span class="badge bg-success">Operational</span>
+                      <% else %>
+                        <span class="badge bg-warning">Inactive</span>
+                      <% end %>
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <%= link_to admin_campus_path(campus), 
+                            class: "btn btn-sm btn-outline-info" do %>
+                          <i class="fas fa-eye"></i>
+                        <% end %>
+                        <%= link_to edit_admin_campus_path(campus), 
+                            class: "btn btn-sm btn-outline-primary" do %>
+                          <i class="fas fa-edit"></i>
+                        <% end %>
+                        <%= link_to admin_campus_campus_programs_path(campus), 
+                            class: "btn btn-sm btn-outline-success" do %>
+                          <i class="fas fa-graduation-cap"></i>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          
+          <% if @campuses.empty? %>
+            <div class="text-center py-5">
+              <i class="fas fa-university fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">No campuses found</h5>
+              <p class="text-muted">
+                <% if params[:search].present? || params[:university_id].present? %>
+                  Try adjusting your search filters.
+                <% else %>
+                  Create your first campus to get started.
+                <% end %>
+              </p>
+              <% unless params[:search].present? || params[:university_id].present? %>
+                <%= link_to "Add Campus", new_admin_campus_path, 
+                    class: "btn btn-primary" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <% if @campuses.respond_to?(:current_page) %>
+        <div class="d-flex justify-content-center mt-4">
+          <%= paginate @campuses %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

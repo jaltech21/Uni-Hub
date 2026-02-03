@@ -1,0 +1,150 @@
+<div class="attendance-summary-widget">
+  <% if data && data[:attendance_rate] %>
+    <div class="attendance-overview mb-3">
+      <div class="row text-center">
+        <div class="col-6">
+          <div class="metric">
+            <div class="metric-value text-success h4">
+              <%= number_with_precision(data[:attendance_rate] * 100, precision: 1) %>%
+            </div>
+            <div class="metric-label text-muted small">Overall Attendance</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="metric">
+            <div class="metric-value text-info h4">
+              <%= data[:streak_days] || 0 %>
+            </div>
+            <div class="metric-label text-muted small">Day Streak</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="attendance-chart mb-3">
+      <canvas id="attendanceChart-<%= widget[:id] %>" height="100"></canvas>
+    </div>
+    
+    <div class="attendance-breakdown">
+      <div class="row">
+        <div class="col-4 text-center">
+          <div class="status-count">
+            <div class="count text-success h5"><%= data[:present_count] %></div>
+            <div class="label text-muted small">Present</div>
+          </div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="status-count">
+            <div class="count text-warning h5"><%= data[:late_count] %></div>
+            <div class="label text-muted small">Late</div>
+          </div>
+        </div>
+        <div class="col-4 text-center">
+          <div class="status-count">
+            <div class="count text-danger h5"><%= data[:absent_count] %></div>
+            <div class="label text-muted small">Absent</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <% if data[:recent_trend] %>
+      <div class="attendance-trend mt-3 pt-3 border-top">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Recent Trend</span>
+          <span class="trend <%= data[:recent_trend][:direction] %>">
+            <i class="fas fa-arrow-<%= data[:recent_trend][:direction] == 'up' ? 'up' : 'down' %>"></i>
+            <%= data[:recent_trend][:change] %>%
+          </span>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="text-center py-4">
+      <i class="fas fa-user-check fa-2x text-muted mb-2"></i>
+      <p class="text-muted">No attendance data available</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.attendance-summary-widget .metric {
+  padding: 0.5rem 0;
+}
+
+.attendance-summary-widget .metric-value {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.attendance-summary-widget .status-count .count {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.attendance-summary-widget .trend.up {
+  color: #28a745;
+}
+
+.attendance-summary-widget .trend.down {
+  color: #dc3545;
+}
+
+.attendance-summary-widget .trend.stable {
+  color: #6c757d;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const chartId = 'attendanceChart-<%= widget[:id] %>';
+  const canvas = document.getElementById(chartId);
+  
+  if (canvas && window.Chart && <%= data.present? ? 'true' : 'false' %>) {
+    const ctx = canvas.getContext('2d');
+    
+    const chartData = {
+      labels: [<%= data[:daily_labels].map { |l| "'#{l}'" }.join(', ') if data && data[:daily_labels] %>],
+      datasets: [{
+        label: 'Attendance Rate',
+        data: [<%= data[:daily_rates].join(', ') if data && data[:daily_rates] %>],
+        borderColor: '#28a745',
+        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4
+      }]
+    };
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            display: false
+          },
+          y: {
+            display: false,
+            min: 0,
+            max: 1
+          }
+        },
+        elements: {
+          point: {
+            radius: 3,
+            hoverRadius: 5
+          }
+        }
+      }
+    });
+  }
+});
+</script>

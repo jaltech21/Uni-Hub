@@ -1,0 +1,261 @@
+<div class="ai-recommendations-widget">
+  <div class="widget-header mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 text-primary">
+        <i class="fas fa-brain me-2"></i>
+        AI Recommendations
+      </h6>
+      <button class="btn btn-sm btn-outline-primary" onclick="refreshRecommendations()">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <% if data && data[:recommendations] %>
+    <div class="recommendations-tabs">
+      <ul class="nav nav-pills nav-sm mb-3" id="recommendationTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active small" id="study-tab" data-bs-toggle="pill" data-bs-target="#study-recommendations" type="button" role="tab">
+            Study
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link small" id="content-tab" data-bs-toggle="pill" data-bs-target="#content-recommendations" type="button" role="tab">
+            Content
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link small" id="productivity-tab" data-bs-toggle="pill" data-bs-target="#productivity-recommendations" type="button" role="tab">
+            Tips
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="recommendationTabsContent">
+        <!-- Study Recommendations -->
+        <div class="tab-pane fade show active" id="study-recommendations" role="tabpanel">
+          <% if data[:recommendations][:study_recommendations]&.any? %>
+            <% data[:recommendations][:study_recommendations].each do |rec| %>
+              <div class="recommendation-item mb-3 p-3 bg-light rounded border-start border-3 border-<%= rec[:priority] == 'high' ? 'danger' : rec[:priority] == 'medium' ? 'warning' : 'info' %>">
+                <div class="d-flex align-items-start">
+                  <div class="recommendation-icon me-3 text-<%= rec[:priority] == 'high' ? 'danger' : rec[:priority] == 'medium' ? 'warning' : 'info' %>">
+                    <i class="<%= rec[:icon] %> fa-lg"></i>
+                  </div>
+                  <div class="recommendation-content flex-grow-1">
+                    <h6 class="recommendation-title mb-1">
+                      <%= rec[:title] %>
+                    </h6>
+                    <p class="recommendation-description text-muted small mb-2">
+                      <%= rec[:description] %>
+                    </p>
+                    <% if rec[:action_url] %>
+                      <%= link_to rec[:action_url], class: "btn btn-sm btn-outline-primary" do %>
+                        <i class="fas fa-arrow-right me-1"></i>Take Action
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-check-circle fa-2x mb-2"></i>
+              <p class="small">You're doing great! No study recommendations at the moment.</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Content Recommendations -->
+        <div class="tab-pane fade" id="content-recommendations" role="tabpanel">
+          <% if data[:recommendations][:content_suggestions]&.any? %>
+            <% data[:recommendations][:content_suggestions].each do |suggestion| %>
+              <div class="recommendation-item mb-3 p-3 bg-light rounded">
+                <div class="d-flex align-items-start">
+                  <div class="recommendation-icon me-3 text-info">
+                    <i class="<%= suggestion[:icon] %> fa-lg"></i>
+                  </div>
+                  <div class="recommendation-content flex-grow-1">
+                    <h6 class="recommendation-title mb-1">
+                      <%= suggestion[:title] %>
+                    </h6>
+                    <% if suggestion[:course] %>
+                      <div class="course-badge mb-1">
+                        <span class="badge bg-secondary small">
+                          <%= suggestion[:course] %>
+                        </span>
+                      </div>
+                    <% end %>
+                    <p class="recommendation-description text-muted small mb-2">
+                      <%= suggestion[:description] %>
+                    </p>
+                    <% if suggestion[:action_url] %>
+                      <%= link_to suggestion[:action_url], class: "btn btn-sm btn-outline-info" do %>
+                        <i class="fas fa-external-link-alt me-1"></i>Explore
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-lightbulb fa-2x mb-2"></i>
+              <p class="small">No new content suggestions right now.</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Productivity Tips -->
+        <div class="tab-pane fade" id="productivity-recommendations" role="tabpanel">
+          <% if data[:recommendations][:productivity_tips]&.any? %>
+            <% data[:recommendations][:productivity_tips].each do |tip| %>
+              <div class="recommendation-item mb-3 p-3 bg-light rounded border-start border-3 border-success">
+                <div class="d-flex align-items-start">
+                  <div class="recommendation-icon me-3 text-success">
+                    <i class="<%= tip[:icon] %> fa-lg"></i>
+                  </div>
+                  <div class="recommendation-content flex-grow-1">
+                    <h6 class="recommendation-title mb-1">
+                      <%= tip[:title] %>
+                    </h6>
+                    <p class="recommendation-description text-muted small mb-2">
+                      <%= tip[:description] %>
+                    </p>
+                    <% if tip[:action_url] %>
+                      <%= link_to tip[:action_url], class: "btn btn-sm btn-outline-success" do %>
+                        <i class="fas fa-rocket me-1"></i>Try It
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="fas fa-thumbs-up fa-2x mb-2"></i>
+              <p class="small">Your productivity looks good!</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Path Preview -->
+    <% if data[:recommendations][:learning_path]&.any? %>
+      <div class="learning-path-preview mt-4 pt-3 border-top">
+        <h6 class="text-muted mb-2">
+          <i class="fas fa-route me-2"></i>Your Learning Path
+        </h6>
+        <div class="path-steps">
+          <% data[:recommendations][:learning_path].first(3).each_with_index do |step, index| %>
+            <div class="path-step d-flex align-items-center mb-2">
+              <div class="step-number me-3">
+                <span class="badge bg-primary rounded-circle">
+                  <%= index + 1 %>
+                </span>
+              </div>
+              <div class="step-content flex-grow-1">
+                <div class="step-title fw-medium small">
+                  <%= step[:title] %>
+                </div>
+                <div class="step-meta text-muted" style="font-size: 0.75rem;">
+                  <i class="fas fa-clock me-1"></i>
+                  <%= step[:estimated_time] %>
+                  <span class="ms-2">
+                    <i class="fas fa-signal me-1"></i>
+                    <%= step[:difficulty].capitalize %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <%= link_to learning_path_path, class: "btn btn-sm btn-primary w-100 mt-2" do %>
+          <i class="fas fa-map me-1"></i>View Full Path
+        <% end %>
+      </div>
+    <% end %>
+
+  <% else %>
+    <div class="text-center text-muted py-4">
+      <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Loading recommendations...</span>
+      </div>
+      <p class="mb-2">Analyzing your activity...</p>
+      <small>AI recommendations will appear here</small>
+    </div>
+  <% end %>
+</div>
+
+<script>
+function refreshRecommendations() {
+  const widgetElement = document.querySelector('.ai-recommendations-widget');
+  const refreshButton = widgetElement.querySelector('.btn-outline-primary');
+  
+  // Show loading state
+  refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  refreshButton.disabled = true;
+  
+  // Make AJAX request to refresh recommendations
+  fetch('/dashboard/widgets/ai_recommendations/refresh', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Refresh the widget content
+      location.reload(); // Simple reload for now
+    }
+  })
+  .catch(error => {
+    console.error('Error refreshing recommendations:', error);
+  })
+  .finally(() => {
+    // Reset button state
+    refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    refreshButton.disabled = false;
+  });
+}
+</script>
+
+<style>
+.nav-pills .nav-link {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.recommendation-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.recommendation-icon {
+  width: 40px;
+  text-align: center;
+}
+
+.path-step .step-number .badge {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.learning-path-preview {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+</style>

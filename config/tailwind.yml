@@ -1,0 +1,2 @@
+input: "app/assets/stylesheets/application.tailwind.css"
+output: "app/assets/builds/application.css"

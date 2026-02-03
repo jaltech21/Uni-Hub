@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Test quiz generation with Gemini
+require_relative '../config/environment'
+
+puts "=" * 60
+puts "GEMINI QUIZ GENERATION TEST"
+puts "=" * 60
+puts
+
+test_text = <<~TEXT
+  Entity-Relationship Model (ERM) is a conceptual data model used in database design.
+  It represents real-world entities and the relationships between them.
+  
+  Key components include:
+  - Entities: Objects or things in the real world (e.g., Student, Course)
+  - Attributes: Properties of entities (e.g., student name, course code)
+  - Relationships: Associations between entities (e.g., Student enrolls in Course)
+  
+  ERM uses diagrams with rectangles for entities, ovals for attributes, and diamonds for relationships.
+TEXT
+
+puts "📝 Test Text: #{test_text[0..100]}..."
+puts "🔧 Provider: #{ENV['AI_PROVIDER']}"
+puts
+
+begin
+  puts "🚀 Generating quiz questions..."
+  provider = AiServiceFactory.provider
+  
+  result = provider.generate_questions(
+    test_text,
+    question_type: :multiple_choice,
+    count: 3,
+    difficulty: :medium,
+    user_id: 1
+  )
+  
+  if result[:success]
+    puts "✅ SUCCESS!"
+    puts
+    puts "📊 Generated #{result[:questions].length} questions:"
+    puts
+    
+    result[:questions].each_with_index do |q, i|
+      puts "Question #{i + 1}:"
+      puts "  Type: #{q[:type]}"
+      puts "  Q: #{q[:question]}"
+      puts "  Options: #{q[:options].inspect}"
+      puts "  Correct: #{q[:correct_answer]}"
+      puts "  Explanation: #{q[:explanation]}"
+      puts
+    end
+    
+    puts "⏱️  Processing Time: #{result[:processing_time]}s"
+    puts "🎯 Tokens Used: #{result[:tokens_used]}"
+  else
+    puts "❌ FAILED!"
+    puts
+    puts "Error: #{result[:error]}"
+  end
+rescue StandardError => e
+  puts "❌ EXCEPTION!"
+  puts
+  puts "Error: #{e.class.name}"
+  puts "Message: #{e.message}"
+  puts
+  puts "Backtrace:"
+  puts e.backtrace.first(10).join("\n")
+end
+
+puts
+puts "=" * 60

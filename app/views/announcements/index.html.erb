@@ -1,0 +1,74 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Announcements</h1>
+        <p class="mt-1 text-sm text-gray-600"><%= @department.name %> (<%= @department.code %>)</p>
+      </div>
+      <% if can_manage_announcements? %>
+        <div>
+          <%= link_to 'New Announcement', new_announcement_path(department_id: @department.id), class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Pinned Announcements -->
+  <% if @pinned_announcements.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+        <span class="mr-2">📌</span> Pinned Announcements
+      </h2>
+      <div class="space-y-4">
+        <% @pinned_announcements.each do |announcement| %>
+          <%= render 'announcement_card', announcement: announcement %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Active Announcements -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Announcements</h2>
+    <% if @regular_announcements.any? %>
+      <div class="space-y-4">
+        <% @regular_announcements.each do |announcement| %>
+          <%= render 'announcement_card', announcement: announcement %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <p class="text-gray-500">No announcements at this time.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Draft Announcements (Teachers/Tutors only) -->
+  <% if can_manage_announcements? && @draft_announcements&.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+        <span class="mr-2">📝</span> Drafts
+      </h2>
+      <div class="space-y-4">
+        <% @draft_announcements.each do |announcement| %>
+          <%= render 'announcement_card', announcement: announcement %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Expired Announcements (Teachers/Tutors only) -->
+  <% if can_manage_announcements? && @expired_announcements&.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+        <span class="mr-2">🕐</span> Expired
+      </h2>
+      <div class="space-y-4">
+        <% @expired_announcements.each do |announcement| %>
+          <%= render 'announcement_card', announcement: announcement, show_expired: true %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

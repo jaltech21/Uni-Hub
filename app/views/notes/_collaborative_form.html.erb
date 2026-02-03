@@ -1,0 +1,351 @@
+<%= form_with(model: note, class: "space-y-6", id: "collaborative-note-form") do |form| %>
+  <% if note.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6" role="alert">
+      <div class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div class="flex-1">
+          <h3 class="font-bold text-red-800"><%= pluralize(note.errors.count, "error") %> prohibited this note from being saved:</h3>
+          <ul class="mt-2 list-disc list-inside text-sm text-red-700">
+            <% note.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Note Form Card with Collaboration Features -->
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <!-- Title Section -->
+    <div class="p-6 border-b border-gray-200">
+      <%= form.label :title, class: "block text-sm font-semibold text-gray-900 mb-2" do %>
+        Title <span class="text-red-500">*</span>
+      <% end %>
+      <%= form.text_field :title, 
+          class: "block w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors",
+          placeholder: "Enter note title...",
+          required: true %>
+    </div>
+
+    <!-- Collaborative Content Section -->
+    <div class="p-6">
+      <div class="mb-3 flex items-center justify-between">
+        <%= form.label :content, class: "block text-sm font-semibold text-gray-900" do %>
+          Content <span class="text-red-500">*</span>
+          <span class="text-xs font-normal text-gray-500 ml-2">(Live collaboration enabled)</span>
+        <% end %>
+        <div class="flex items-center space-x-4 text-xs text-gray-500">
+          <span id="char-count">0</span> characters
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <span>Auto-saving...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collaboration Status will be inserted here by JavaScript -->
+      
+      <!-- Rich Text Editor Toolbar (Enhanced for Collaboration) -->
+      <div class="mb-2 flex items-center gap-1 p-2 bg-gray-50 border border-gray-300 rounded-t-lg flex-wrap">
+        <button type="button" onclick="formatText('bold')" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Bold (Ctrl+B)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M11.49 1.5v3.996h-3.989V1.5h3.989zm-3.989 6.506h3.989v3.996h-3.989V8.006zm0 6.506h3.989V18.5h-3.989v-3.988z"/>
+          </svg>
+        </button>
+        <button type="button" onclick="formatText('italic')" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Italic (Ctrl+I)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8 1h8v2h-3l-2 12h3v2H6v-2h3l2-12H8V1z"/>
+          </svg>
+        </button>
+        <button type="button" onclick="formatText('underline')" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Underline (Ctrl+U)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a6 6 0 00-6 6v5a6 6 0 0012 0V8a6 6 0 00-6-6zM4 13a4 4 0 018 0v-1a4 4 0 00-8 0v1zm0 4h12v2H4v-2z"/>
+          </svg>
+        </button>
+        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+        <button type="button" onclick="insertList('unordered')" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Bullet List">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <button type="button" onclick="insertList('ordered')" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Numbered List">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+          </svg>
+        </button>
+        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+        <button type="button" onclick="insertHeading()" class="p-2 hover:bg-gray-200 rounded transition-colors font-bold" title="Heading">
+          H
+        </button>
+        <button type="button" onclick="insertLink()" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Insert Link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </button>
+        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+        <!-- Collaboration-specific tools -->
+        <button type="button" onclick="collaborationManager.getVersionHistory()" class="p-2 hover:bg-gray-200 rounded transition-colors" title="Version History">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+        <button type="button" onclick="collaborationManager.saveDocument()" class="p-2 hover:bg-blue-200 bg-blue-50 rounded transition-colors text-blue-700" title="Save Document (Ctrl+S)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Enhanced Content Textarea with Collaboration -->
+      <div class="relative">
+        <%= form.text_area :content,
+            id: "note-content",
+            class: "block w-full px-4 py-3 border border-gray-300 border-t-0 rounded-b-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none font-mono text-sm leading-relaxed",
+            rows: 20,
+            placeholder: "Start writing your note here...\n\nLive collaboration is enabled - you'll see other users' changes in real-time.\nChanges are automatically saved every few seconds.",
+            required: true,
+            oninput: "updateCharCount()",
+            data: {
+              collaboration: "enabled",
+              document_type: "note",
+              document_id: note.id
+            } %>
+            
+        <!-- Collaborator cursors will be rendered here -->
+        <div id="collaborator-cursors" class="absolute inset-0 pointer-events-none"></div>
+      </div>
+    </div>
+
+    <!-- Metadata Section -->
+    <div class="p-6 bg-gray-50 border-t border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Folder Selection -->
+        <div>
+          <%= form.label :folder_id, class: "block text-sm font-semibold text-gray-900 mb-2" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>
+            Folder (Optional)
+          <% end %>
+          <%= form.collection_select :folder_id, 
+              current_user.folders.ordered, 
+              :id, 
+              :name, 
+              { include_blank: "No Folder" },
+              class: "block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" %>
+        </div>
+
+        <!-- Tags Input -->
+        <div>
+          <%= form.label :tag_list, class: "block text-sm font-semibold text-gray-900 mb-2" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+            Tags (Optional)
+          <% end %>
+          <%= form.text_field :tag_list,
+              value: note.tags.map(&:name).join(', '),
+              class: "block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "e.g., biology, exam, chapter-3" %>
+          <p class="text-xs text-gray-500 mt-1">Separate tags with commas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Action Buttons -->
+    <div class="p-6 bg-white border-t border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-600">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              All fields marked with <span class="text-red-500">*</span> are required
+            </div>
+            <div class="flex items-center text-green-600">
+              <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+              Live collaboration enabled
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <%= link_to "Cancel", note_path(@note), class: "px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors" %>
+          <button type="button" onclick="collaborationManager.saveDocument()" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            Save & Continue Editing
+          </button>
+          <%= form.submit "Save & Exit", class: "cursor-pointer inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Enhanced JavaScript for Collaborative Editor -->
+<script>
+  // Character counter
+  function updateCharCount() {
+    const content = document.getElementById('note-content').value;
+    document.getElementById('char-count').textContent = content.length;
+  }
+
+  // Enhanced format text functions that work with collaboration
+  function formatText(command) {
+    const textarea = document.getElementById('note-content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    let prefix = '';
+    let suffix = '';
+    
+    switch(command) {
+      case 'bold':
+        prefix = '**';
+        suffix = '**';
+        break;
+      case 'italic':
+        prefix = '_';
+        suffix = '_';
+        break;
+      case 'underline':
+        prefix = '<u>';
+        suffix = '</u>';
+        break;
+    }
+    
+    if (selectedText) {
+      // Text is selected - wrap it
+      const formattedText = prefix + selectedText + suffix;
+      textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+      // Place cursor after the formatted text
+      const newPos = start + formattedText.length;
+      textarea.focus();
+      textarea.setSelectionRange(newPos, newPos);
+    } else {
+      // No selection - insert markers and place cursor between them
+      const text = prefix + suffix;
+      textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+      // Place cursor between the markers
+      const newPos = start + prefix.length;
+      textarea.focus();
+      textarea.setSelectionRange(newPos, newPos);
+    }
+    
+    updateCharCount();
+    // Trigger input event for collaboration sync
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function insertList(type) {
+    const textarea = document.getElementById('note-content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    
+    // Check if cursor is at start of line or add newline
+    const beforeCursor = value.substring(0, start);
+    const needsNewline = beforeCursor.length > 0 && !beforeCursor.endsWith('\n');
+    
+    const marker = type === 'ordered' ? '1. ' : '- ';
+    const prefix = needsNewline ? '\n' : '';
+    const text = prefix + marker;
+    
+    // If there's selected text, make it a list item
+    const selectedText = value.substring(start, end);
+    const finalText = selectedText ? text + selectedText : text;
+    
+    textarea.value = value.substring(0, start) + finalText + value.substring(end);
+    const newPos = start + finalText.length;
+    textarea.focus();
+    textarea.setSelectionRange(newPos, newPos);
+    updateCharCount();
+    // Trigger input event for collaboration sync
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function insertHeading() {
+    const textarea = document.getElementById('note-content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    const selectedText = value.substring(start, end);
+    
+    // Check if cursor is at start of line or add newline
+    const beforeCursor = value.substring(0, start);
+    const needsNewline = beforeCursor.length > 0 && !beforeCursor.endsWith('\n');
+    
+    const prefix = needsNewline ? '\n## ' : '## ';
+    const text = selectedText ? prefix + selectedText : prefix;
+    
+    textarea.value = value.substring(0, start) + text + value.substring(end);
+    const newPos = start + text.length;
+    textarea.focus();
+    textarea.setSelectionRange(newPos, newPos);
+    updateCharCount();
+    // Trigger input event for collaboration sync
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function insertLink() {
+    const textarea = document.getElementById('note-content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    if (selectedText) {
+      // If text is selected, use it as link text
+      const linkText = `[${selectedText}](url)`;
+      textarea.value = textarea.value.substring(0, start) + linkText + textarea.value.substring(end);
+      // Select "url" so user can easily replace it
+      const urlStart = start + selectedText.length + 3; // After [text](
+      const urlEnd = urlStart + 3; // Length of "url"
+      textarea.focus();
+      textarea.setSelectionRange(urlStart, urlEnd);
+    } else {
+      // No selection - insert template
+      const linkText = '[link text](url)';
+      textarea.value = textarea.value.substring(0, start) + linkText + textarea.value.substring(end);
+      // Select "link text" so user can replace it
+      const textStart = start + 1; // After [
+      const textEnd = textStart + 9; // Length of "link text"
+      textarea.focus();
+      textarea.setSelectionRange(textStart, textEnd);
+    }
+    
+    updateCharCount();
+    // Trigger input event for collaboration sync
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Initialize character count and keyboard shortcuts
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCharCount();
+    
+    // Add event listener for keyboard shortcuts
+    const textarea = document.getElementById('note-content');
+    if (textarea) {
+      textarea.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          switch(e.key.toLowerCase()) {
+            case 'b':
+              e.preventDefault();
+              formatText('bold');
+              break;
+            case 'i':
+              e.preventDefault();
+              formatText('italic');
+              break;
+            case 'u':
+              e.preventDefault();
+              formatText('underline');
+              break;
+          }
+        }
+      });
+    }
+  });
+</script>

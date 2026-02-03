@@ -1,0 +1,399 @@
+<% content_for :title, "AI Learning Insights" %>
+
+<!-- Page Header -->
+<div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-6 mb-6 shadow-lg">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-2">
+        <i class="fas fa-brain mr-2"></i>AI Learning Insights
+      </h1>
+      <p class="text-indigo-100">Intelligent analysis and predictions for student success</p>
+    </div>
+    <div class="flex gap-2">
+      <% if current_user.role.in?(['admin', 'teacher']) %>
+        <%= link_to generate_insights_learning_insights_path, method: :post, 
+            class: "bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors", 
+            data: { confirm: "This will generate new insights for all students. Continue?" } do %>
+          <i class="fas fa-magic mr-1"></i>Generate Insights
+        <% end %>
+        <%= link_to analytics_learning_insights_path, class: "bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-400 transition-colors" do %>
+          <i class="fas fa-chart-bar mr-1"></i>Analytics
+        <% end %>
+        <%= link_to predictive_dashboard_learning_insights_path, class: "bg-purple-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-400 transition-colors" do %>
+          <i class="fas fa-crystal-ball mr-1"></i>Predictions
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Statistics Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center">
+    <div class="text-3xl font-bold text-gray-900 mb-1"><%= @insight_stats[:total] %></div>
+    <div class="text-sm text-gray-600">Total Insights</div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center">
+    <div class="text-3xl font-bold text-yellow-600 mb-1"><%= @insight_stats[:active] %></div>
+    <div class="text-sm text-gray-600">Active</div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center">
+    <div class="text-3xl font-bold text-red-600 mb-1"><%= @insight_stats[:high_priority] %></div>
+    <div class="text-sm text-gray-600">High Priority</div>
+  </div>
+  <div class="bg-white rounded-lg p-6 shadow-sm text-center">
+    <div class="text-3xl font-bold text-green-600 mb-1"><%= @insight_stats[:recent] %></div>
+    <div class="text-sm text-gray-600">Recent</div>
+  </div>
+</div>
+
+<!-- Filters Section -->
+<div class="bg-white rounded-lg p-4 mb-6 shadow-sm">
+  <%= form_with url: learning_insights_path, method: :get, local: true, class: "space-y-4" do |form| %>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</label>
+        <%= form.select :type, options_for_select([['All Types', '']] + @insight_types.map { |t| [t.humanize, t] }, params[:type]), 
+            {}, { class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", onchange: "this.form.submit();" } %>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Priority</label>
+        <%= form.select :priority, options_for_select([['All Priorities', '']] + @priority_levels.map { |p| [p.humanize, p] }, params[:priority]), 
+            {}, { class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", onchange: "this.form.submit();" } %>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Status</label>
+        <%= form.select :status, options_for_select([['All Statuses', '']] + @status_options.map { |s| [s.humanize, s] }, params[:status]), 
+            {}, { class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500", onchange: "this.form.submit();" } %>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Recent Only</label>
+        <div class="flex items-center">
+          <%= form.check_box :recent, { checked: params[:recent] == 'true', onchange: "this.form.submit();", class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" }, "true", "" %>
+          <%= form.label :recent, "Recent Only", class: "ml-2 text-sm text-gray-700" %>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">High Confidence</label>
+        <div class="flex items-center">
+          <%= form.check_box :high_confidence, { checked: params[:high_confidence] == 'true', onchange: "this.form.submit();", class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" }, "true", "" %>
+          <%= form.label :high_confidence, "High Confidence", class: "ml-2 text-sm text-gray-700" %>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">&nbsp;</label>
+        <%= link_to learning_insights_path, class: "inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+          <i class="fas fa-times mr-1"></i>Clear Filters
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Bulk Actions (hidden by default) -->
+<div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6 hidden" id="bulkActions">
+  <%= form_with url: bulk_action_learning_insights_path, method: :post, class: "flex flex-wrap items-center gap-4" do |form| %>
+    <span class="font-semibold text-indigo-900">Selected: <span id="selectedCount" class="text-indigo-600">0</span> insights</span>
+    <div class="flex gap-2">
+      <%= form.submit "Implement", name: "bulk_action", value: "implement", class: "inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+      <%= form.submit "Dismiss", name: "bulk_action", value: "dismiss", class: "inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" %>
+      <%= form.submit "Archive", name: "bulk_action", value: "archive", class: "inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+    </div>
+    <button type="button" class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onclick="clearSelection()">Clear</button>
+    <input type="hidden" name="insight_ids" id="bulkInsightIds" value="">
+  <% end %>
+</div>
+
+<!-- Insights List -->
+<div class="space-y-4">
+  <% if @insights.any? %>
+    <% @insights.each do |insight| %>
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 <% case insight.priority
+        when 'critical' then %>border-l-4 border-l-red-500<%
+        when 'high' then %>border-l-4 border-l-orange-500<%
+        when 'medium' then %>border-l-4 border-l-yellow-500<%
+        when 'low' then %>border-l-4 border-l-green-500<%
+      end %>" data-insight-id="<%= insight.id %>">
+        <div class="p-6">
+          <div class="flex">
+            <div class="flex-shrink-0 mr-4">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center <% case insight.insight_type
+                when 'performance_decline' then %>bg-red-100 text-red-600<%
+                when 'at_risk_student' then %>bg-orange-100 text-orange-600<%
+                when 'engagement_drop' then %>bg-yellow-100 text-yellow-600<%
+                when 'learning_difficulty' then %>bg-purple-100 text-purple-600<%
+                when 'content_gap' then %>bg-blue-100 text-blue-600<%
+                when 'study_pattern' then %>bg-green-100 text-green-600<%
+                when 'peer_comparison' then %>bg-indigo-100 text-indigo-600<%
+                when 'time_management' then %>bg-pink-100 text-pink-600<%
+                when 'skill_development' then %>bg-teal-100 text-teal-600<%
+                else %>bg-gray-100 text-gray-600<%
+              end %>">
+                <i class="fas fa-<%= insight_type_icon(insight.insight_type) %>"></i>
+              </div>
+            </div>
+            
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center">
+                  <input type="checkbox" class="insight-checkbox mr-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" value="<%= insight.id %>" onchange="updateBulkActions()">
+                  <h3 class="text-lg font-semibold text-gray-900"><%= insight.title %></h3>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <% case insight.priority
+                    when 'critical' then %>bg-red-100 text-red-800<%
+                    when 'high' then %>bg-orange-100 text-orange-800<%
+                    when 'medium' then %>bg-yellow-100 text-yellow-800<%
+                    when 'low' then %>bg-green-100 text-green-800<%
+                  end %>">
+                    <%= insight.priority.upcase %>
+                  </span>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <%= insight.confidence_percentage %>% confident
+                  </span>
+                </div>
+              </div>
+            
+              <div class="text-gray-600 mb-4 leading-relaxed">
+                <%= insight.description %>
+              </div>
+              
+              <% if insight.user != current_user %>
+                <div class="mb-3">
+                  <div class="text-sm text-gray-500">
+                    <i class="fas fa-user mr-1"></i>
+                    <span class="font-medium"><%= insight.user.name %></span>
+                    <% if insight.department %>
+                      <span class="mx-2">•</span>
+                      <i class="fas fa-building mr-1"></i><%= insight.department.name %>
+                    <% end %>
+                    <% if insight.schedule %>
+                      <span class="mx-2">•</span>
+                      <i class="fas fa-calendar mr-1"></i><%= insight.schedule.title %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            
+              <% if insight.supporting_evidence.any? %>
+                <div class="mb-4">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2">Supporting Evidence:</h4>
+                  <div class="space-y-1">
+                    <% insight.supporting_evidence.first(3).each do |evidence| %>
+                      <div class="flex items-start text-sm text-gray-600">
+                        <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                        <span><%= evidence %></span>
+                      </div>
+                    <% end %>
+                    <% if insight.supporting_evidence.size > 3 %>
+                      <div class="flex items-center text-sm text-gray-500">
+                        <i class="fas fa-ellipsis-h mr-2"></i>
+                        <span>+<%= insight.supporting_evidence.size - 3 %> more evidence points</span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            
+              <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <div class="flex space-x-2">
+                  <%= link_to learning_insight_path(insight), class: "inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+                    <i class="fas fa-eye mr-1"></i>View Details
+                  <% end %>
+                  
+                  <% if insight.status == 'active' %>
+                    <%= link_to implement_learning_insight_path(insight), method: :patch,
+                        class: "inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+                        data: { 
+                          confirm: "Mark this insight as implemented?",
+                          remote: true,
+                          insight_id: insight.id
+                        } do %>
+                      <i class="fas fa-check mr-1"></i>Implement
+                    <% end %>
+                    
+                    <%= link_to dismiss_learning_insight_path(insight), method: :patch,
+                        class: "inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500",
+                        data: { 
+                          confirm: "Dismiss this insight?",
+                          remote: true,
+                          insight_id: insight.id
+                        } do %>
+                      <i class="fas fa-times mr-1"></i>Dismiss
+                    <% end %>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= insight.status.humanize %>
+                    </span>
+                  <% end %>
+                </div>
+                
+                <div class="text-sm text-gray-500">
+                  <i class="fas fa-clock mr-1"></i>
+                  <%= time_ago_in_words(insight.created_at) %> ago
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Pagination -->
+    <div class="flex justify-center mt-6">
+      <%= paginate @insights if respond_to?(:paginate) %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <i class="fas fa-brain text-2xl text-gray-400"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">No Learning Insights Found</h3>
+      <p class="text-gray-600 mb-6 max-w-md mx-auto">
+        <% if params.values.any?(&:present?) %>
+          No insights match your current filters. Try adjusting your search criteria.
+        <% else %>
+          No learning insights have been generated yet. AI-powered insights will help identify student performance patterns and learning opportunities.
+        <% end %>
+      </p>
+      <% if current_user.role.in?(['admin', 'teacher']) %>
+        <%= link_to generate_insights_learning_insights_path, method: :post,
+            class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+            data: { confirm: "Generate insights for all students?" } do %>
+          <i class="fas fa-magic mr-2"></i>Generate Insights Now
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+// Bulk actions functionality
+let selectedInsights = new Set();
+
+function updateBulkActions() {
+  const checkboxes = document.querySelectorAll('.insight-checkbox:checked');
+  selectedInsights.clear();
+  
+  checkboxes.forEach(checkbox => {
+    selectedInsights.add(checkbox.value);
+  });
+  
+  const bulkActions = document.getElementById('bulkActions');
+  const selectedCount = document.getElementById('selectedCount');
+  const bulkInsightIds = document.getElementById('bulkInsightIds');
+  
+  if (selectedInsights.size > 0) {
+    bulkActions.classList.remove('hidden');
+    selectedCount.textContent = selectedInsights.size;
+    bulkInsightIds.value = Array.from(selectedInsights).join(',');
+  } else {
+    bulkActions.classList.add('hidden');
+  }
+}
+
+function clearSelection() {
+  selectedInsights.clear();
+  document.querySelectorAll('.insight-checkbox').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  updateBulkActions();
+}
+
+function selectAllInsights(checkbox) {
+  const allCheckboxes = document.querySelectorAll('.insight-checkbox');
+  allCheckboxes.forEach(cb => {
+    cb.checked = checkbox.checked;
+  });
+  updateBulkActions();
+}
+
+// AJAX handling for quick actions
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle implement/dismiss actions with AJAX
+  document.querySelectorAll('[data-remote="true"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const insightId = this.dataset.insight_id;
+      const url = this.href;
+      const action = url.includes('implement') ? 'implement' : 'dismiss';
+      
+      if (confirm(this.dataset.confirm)) {
+        performQuickAction(insightId, url, action);
+      }
+    });
+  });
+});
+
+function performQuickAction(insightId, url, action) {
+  const card = document.querySelector(`[data-insight-id="${insightId}"]`);
+  const actionsDiv = card.querySelector('.insight-actions');
+  
+  // Show loading state
+  actionsDiv.innerHTML = '<div class="loading-spinner"></div> Processing...';
+  
+  fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Update the card to show new status
+      const statusBadge = `<span class="badge bg-secondary">${data.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`;
+      actionsDiv.innerHTML = statusBadge;
+      
+      // Show success message
+      showNotification(data.message, 'success');
+      
+      // Add visual feedback
+      card.style.opacity = '0.7';
+      card.style.transform = 'scale(0.98)';
+    } else {
+      showNotification(data.message || 'Action failed', 'error');
+      // Restore original actions
+      location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('An error occurred. Please try again.', 'error');
+    location.reload();
+  });
+}
+
+function showNotification(message, type) {
+  // Create a simple notification
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 3000);
+}
+</script>

@@ -1,0 +1,376 @@
+<% content_for :title, "Collaboration Sessions" %>
+
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Collaboration Sessions</h1>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Active Sessions -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="h5 mb-0">
+            Active Sessions
+            <span class="badge bg-primary ms-2"><%= @active_sessions.count %></span>
+          </h2>
+        </div>
+        <div class="card-body">
+          <% if @active_sessions.any? %>
+            <div class="row">
+              <% @active_sessions.each do |session| %>
+                <div class="col-md-6 col-lg-4 mb-4">
+                  <div class="card h-100 border-start border-4 border-primary">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h3 class="h6 mb-0"><%= session.session_name %></h3>
+                        <span class="badge <%= session.status == 'active' ? 'bg-success' : 'bg-warning' %>">
+                          <%= session.status.capitalize %>
+                        </span>
+                      </div>
+                      
+                      <p class="text-muted small mb-2">
+                        <%= session.collaboratable_type %>: 
+                        <%= truncate(session.collaboratable.respond_to?(:title) ? session.collaboratable.title : session.collaboratable.name, length: 40) %>
+                      </p>
+                      
+                      <div class="d-flex align-items-center text-muted small mb-3">
+                        <i class="bi bi-people me-1"></i>
+                        <%= pluralize(session.active_participants.count, 'participant') %>
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-clock me-1"></i>
+                        Started <%= time_ago_in_words(session.started_at) %> ago
+                      </div>
+                      
+                      <!-- Participant Avatars -->
+                      <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                          <% session.active_participants.includes(:user).limit(4).each_with_index do |participant, index| %>
+                            <div class="participant-avatar-small" 
+                                 style="background-color: <%= participant_color(participant.user_id) %>; z-index: <%= 4 - index %>; margin-left: <%= index > 0 ? '-8px' : '0' %>">
+                              <% if participant.user.avatar.attached? %>
+                                <%= image_tag participant.user.avatar, alt: participant.user.name, class: "w-100 h-100 rounded-circle" %>
+                              <% else %>
+                                <%= participant.user.name.first.upcase %>
+                              <% end %>
+                            </div>
+                          <% end %>
+                          
+                          <% if session.active_participants.count > 4 %>
+                            <div class="participant-avatar-small bg-secondary text-white" style="margin-left: -8px;">
+                              +<%= session.active_participants.count - 4 %>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                      
+                      <div class="d-flex gap-2">
+                        <%= link_to "Join Session", collaboration_session_path(session), 
+                                    class: "btn btn-primary btn-sm flex-grow-1" %>
+                        
+                        <% if session.user_permission(current_user) == 'admin' %>
+                          <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                              <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                              <li>
+                                <%= link_to "Session Settings", "#", class: "dropdown-item", 
+                                            data: { bs_toggle: "modal", bs_target: "#sessionSettings#{session.id}" } %>
+                              </li>
+                              <li>
+                                <%= link_to session.status == 'active' ? "Pause Session" : "Resume Session", 
+                                            session.status == 'active' ? pause_collaboration_session_path(session) : resume_collaboration_session_path(session),
+                                            method: :patch, class: "dropdown-item" %>
+                              </li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li>
+                                <%= link_to "End Session", collaboration_session_path(session), 
+                                            method: :delete, class: "dropdown-item text-danger",
+                                            confirm: "Are you sure you want to end this session?" %>
+                              </li>
+                            </ul>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-5">
+              <i class="bi bi-people display-1 text-muted"></i>
+              <h3 class="mt-3">No Active Sessions</h3>
+              <p class="text-muted">Start a new collaboration session from any assignment, note, or quiz.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Sessions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Recent Sessions</h2>
+        </div>
+        <div class="card-body">
+          <% if @recent_sessions.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Session Name</th>
+                    <th>Content</th>
+                    <th>Participants</th>
+                    <th>Duration</th>
+                    <th>Ended</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @recent_sessions.each do |session| %>
+                    <tr>
+                      <td>
+                        <div class="fw-medium"><%= session.session_name %></div>
+                        <div class="text-muted small">
+                          Created by <%= session.created_by.name %>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="small">
+                          <span class="badge bg-light text-dark me-1">
+                            <%= session.collaboratable_type %>
+                          </span>
+                          <%= truncate(session.collaboratable.respond_to?(:title) ? session.collaboratable.title : session.collaboratable.name, length: 30) %>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <% session.session_participants.includes(:user).limit(3).each_with_index do |participant, index| %>
+                            <div class="participant-avatar-tiny" 
+                                 style="background-color: <%= participant_color(participant.user_id) %>; margin-left: <%= index > 0 ? '-4px' : '0' %>">
+                              <% if participant.user.avatar.attached? %>
+                                <%= image_tag participant.user.avatar, alt: participant.user.name, class: "w-100 h-100 rounded-circle" %>
+                              <% else %>
+                                <%= participant.user.name.first.upcase %>
+                              <% end %>
+                            </div>
+                          <% end %>
+                          
+                          <% if session.session_participants.count > 3 %>
+                            <span class="text-muted small ms-2">
+                              +<%= session.session_participants.count - 3 %> more
+                            </span>
+                          <% end %>
+                        </div>
+                      </td>
+                      <td>
+                        <% if session.ended_at && session.started_at %>
+                          <%= distance_of_time_in_words(session.started_at, session.ended_at) %>
+                        <% else %>
+                          <span class="text-muted">-</span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <div class="text-muted small">
+                          <%= session.ended_at ? time_ago_in_words(session.ended_at) + ' ago' : '-' %>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <%= link_to "View History", history_collaboration_session_path(session), 
+                                          class: "dropdown-item", target: "_blank" %>
+                            </li>
+                            <li>
+                              <%= link_to "View Content", session.collaboratable, class: "dropdown-item" %>
+                            </li>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="bi bi-clock-history display-1 text-muted"></i>
+              <h3 class="mt-3">No Recent Sessions</h3>
+              <p class="text-muted">Your completed collaboration sessions will appear here.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Settings Modals -->
+<% @active_sessions.each do |session| %>
+  <div class="modal fade" id="sessionSettings<%= session.id %>" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Session Settings - <%= session.session_name %></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Basic Information</h6>
+              <dl class="row small">
+                <dt class="col-5">Status:</dt>
+                <dd class="col-7">
+                  <span class="badge <%= session.status == 'active' ? 'bg-success' : 'bg-warning' %>">
+                    <%= session.status.capitalize %>
+                  </span>
+                </dd>
+                
+                <dt class="col-5">Started:</dt>
+                <dd class="col-7"><%= session.started_at.strftime('%B %d, %Y at %I:%M %p') %></dd>
+                
+                <dt class="col-5">Duration:</dt>
+                <dd class="col-7"><%= distance_of_time_in_words(session.started_at, Time.current) %></dd>
+                
+                <dt class="col-5">Max Participants:</dt>
+                <dd class="col-7"><%= session.max_participants || 'Unlimited' %></dd>
+              </dl>
+            </div>
+            
+            <div class="col-md-6">
+              <h6>Statistics</h6>
+              <dl class="row small">
+                <dt class="col-6">Total Edits:</dt>
+                <dd class="col-6"><%= session.edit_operations.count %></dd>
+                
+                <dt class="col-6">Comments:</dt>
+                <dd class="col-6"><%= session.collaboration_events.where(event_type: 'comment').count %></dd>
+                
+                <dt class="col-6">Active Users:</dt>
+                <dd class="col-6"><%= session.active_participants.count %></dd>
+              </dl>
+            </div>
+          </div>
+          
+          <hr>
+          
+          <div>
+            <h6>Participants</h6>
+            <div class="list-group list-group-flush">
+              <% session.session_participants.includes(:user).each do |participant| %>
+                <div class="list-group-item px-0 py-2">
+                  <div class="d-flex align-items-center">
+                    <div class="participant-avatar-small me-2" style="background-color: <%= participant_color(participant.user_id) %>">
+                      <% if participant.user.avatar.attached? %>
+                        <%= image_tag participant.user.avatar, alt: participant.user.name, class: "w-100 h-100 rounded-circle" %>
+                      <% else %>
+                        <%= participant.user.name.first.upcase %>
+                      <% end %>
+                    </div>
+                    
+                    <div class="flex-grow-1">
+                      <div class="fw-medium small"><%= participant.user.name %></div>
+                      <div class="text-muted" style="font-size: 11px;">
+                        <%= participant.permission_level.capitalize %> • 
+                        Last seen <%= time_ago_in_words(participant.last_seen_at) %> ago
+                      </div>
+                    </div>
+                    
+                    <div class="text-end">
+                      <div class="small text-muted">
+                        <%= participant.edits_count %> edits, <%= participant.comments_count %> comments
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <%= link_to "View Session", collaboration_session_path(session), class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<style>
+.participant-avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 11px;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.participant-avatar-tiny {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 10px;
+  border: 1px solid white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.border-start {
+  border-left-width: 4px !important;
+}
+
+.card {
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dropdown-menu {
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<% content_for :javascript do %>
+<script>
+// Helper function to assign consistent colors to users
+function participantColor(userId) {
+  const colors = [
+    '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
+    '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
+  ];
+  return colors[userId % colors.length];
+}
+</script>
+<% end %>

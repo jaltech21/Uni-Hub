@@ -1,0 +1,223 @@
+<div class="performance-trends-widget">
+  <% if data && data[:trend_data] %>
+    <div class="trend-summary mb-3">
+      <div class="row">
+        <div class="col-8">
+          <div class="current-performance">
+            <div class="performance-value">
+              <span class="h4 mb-0">
+                <%= number_with_precision(data[:current_average], precision: 1) %>%
+              </span>
+              <span class="trend-indicator ms-2">
+                <% case data[:trend_direction] %>
+                <% when 'up' %>
+                  <i class="fas fa-arrow-up text-success"></i>
+                  <span class="text-success">+<%= data[:trend_change] %>%</span>
+                <% when 'down' %>
+                  <i class="fas fa-arrow-down text-danger"></i>
+                  <span class="text-danger">-<%= data[:trend_change] %>%</span>
+                <% else %>
+                  <i class="fas fa-minus text-muted"></i>
+                  <span class="text-muted">0%</span>
+                <% end %>
+              </span>
+            </div>
+            <div class="performance-label text-muted small">Current Average</div>
+          </div>
+        </div>
+        <div class="col-4 text-end">
+          <div class="trend-period">
+            <div class="period-label text-muted small">
+              <%= data[:period] || '30 days' %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="trend-chart mb-3">
+      <canvas id="trendChart-<%= widget[:id] %>" height="120"></canvas>
+    </div>
+    
+    <div class="performance-metrics">
+      <div class="row">
+        <div class="col-6">
+          <div class="metric-item">
+            <div class="metric-icon">
+              <i class="fas fa-chart-line text-primary"></i>
+            </div>
+            <div class="metric-details">
+              <div class="metric-value">
+                <%= number_with_precision(data[:peak_performance], precision: 1) %>%
+              </div>
+              <div class="metric-label text-muted small">Peak Performance</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="metric-item">
+            <div class="metric-icon">
+              <i class="fas fa-chart-area text-info"></i>
+            </div>
+            <div class="metric-details">
+              <div class="metric-value">
+                <%= number_with_precision(data[:consistency_score], precision: 1) %>%
+              </div>
+              <div class="metric-label text-muted small">Consistency</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <% if data[:insights] && data[:insights].any? %>
+      <div class="performance-insights mt-3 pt-3 border-top">
+        <h6 class="widget-subtitle mb-2">
+          <i class="fas fa-lightbulb me-1"></i>
+          Key Insights
+        </h6>
+        <% data[:insights].first(2).each do |insight| %>
+          <div class="insight-item mb-2">
+            <div class="insight-icon">
+              <i class="fas fa-<%= insight[:icon] %> text-<%= insight[:type] %>"></i>
+            </div>
+            <div class="insight-text">
+              <small><%= insight[:message] %></small>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="text-center py-4">
+      <i class="fas fa-chart-line fa-2x text-muted mb-2"></i>
+      <p class="text-muted">Not enough data for trends</p>
+      <small class="text-muted">Complete more assignments to see performance trends</small>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.performance-trends-widget .performance-value {
+  display: flex;
+  align-items: center;
+}
+
+.performance-trends-widget .trend-indicator {
+  font-size: 0.8rem;
+}
+
+.performance-trends-widget .metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.performance-trends-widget .metric-icon {
+  font-size: 1.2rem;
+}
+
+.performance-trends-widget .metric-value {
+  font-weight: 600;
+  color: #495057;
+}
+
+.performance-trends-widget .widget-subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.performance-trends-widget .insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.performance-trends-widget .insight-icon {
+  margin-top: 0.1rem;
+}
+
+.performance-trends-widget .insight-text {
+  flex-grow: 1;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const chartId = 'trendChart-<%= widget[:id] %>';
+  const canvas = document.getElementById(chartId);
+  
+  if (canvas && window.Chart && <%= data.present? ? 'true' : 'false' %>) {
+    const ctx = canvas.getContext('2d');
+    
+    const chartData = {
+      labels: [<%= data[:trend_data][:labels].map { |l| "'#{l}'" }.join(', ') if data && data[:trend_data] && data[:trend_data][:labels] %>],
+      datasets: [{
+        label: 'Performance',
+        data: [<%= data[:trend_data][:values].join(', ') if data && data[:trend_data] && data[:trend_data][:values] %>],
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#007bff',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    };
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: {
+                size: 10
+              },
+              maxTicksLimit: 6
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            },
+            ticks: {
+              font: {
+                size: 10
+              },
+              callback: function(value) {
+                return value + '%';
+              }
+            },
+            min: 0,
+            max: 100
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    });
+  }
+});
+</script>

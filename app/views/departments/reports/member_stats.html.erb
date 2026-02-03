@@ -1,0 +1,194 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+      <%= link_to "Departments", departments_path, class: "hover:text-blue-600" %> /
+      <%= link_to @department.name, department_path(@department), class: "hover:text-blue-600" %> /
+      <%= link_to "Reports", department_reports_path(@department), class: "hover:text-blue-600" %> /
+      <span class="text-gray-900">Member Statistics</span>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Member Statistics Report</h1>
+        <p class="text-gray-600 mt-2">
+          Generated on <%= @report_date.strftime("%B %d, %Y at %I:%M %p") %>
+        </p>
+      </div>
+      
+      <div class="flex gap-2">
+        <%= link_to "Export CSV", send_member_stats_csv_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "btn btn-secondary" %>
+        <%= link_to "Export PDF", send_member_stats_pdf_department_reports_path(@department, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm" %>
+        <%= link_to "Export Excel", send_member_stats_excel_department_reports_path(@department, format: :xlsx, date_range: params[:date_range]), 
+            class: "px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm" %>
+        <%= link_to "Back to Reports", department_reports_path(@department), class: "btn btn-secondary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Range Filter -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <%= form_with url: member_stats_department_reports_path(@department), method: :get, local: true, class: "flex items-center gap-4" do |f| %>
+      <label class="text-sm font-medium text-gray-700">Show data for last:</label>
+      <%= f.select :date_range, 
+          options_for_select([['7 days', '7'], ['30 days', '30'], ['90 days', '90'], ['6 months', '180'], ['1 year', '365']], params[:date_range] || '30'),
+          {}, 
+          { class: "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500", onchange: "this.form.submit()" } %>
+    <% end %>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <p class="text-sm text-gray-500 mb-2">Total Members</p>
+      <p class="text-3xl font-bold text-blue-600"><%= @total_members %></p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <p class="text-sm text-gray-500 mb-2">Active Members</p>
+      <p class="text-3xl font-bold text-green-600"><%= @active_members %></p>
+      <p class="text-xs text-gray-500 mt-1">
+        <%= number_to_percentage(@active_members.to_f / @total_members * 100, precision: 1) %>
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <p class="text-sm text-gray-500 mb-2">Teachers</p>
+      <p class="text-3xl font-bold text-purple-600"><%= @teachers %></p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <p class="text-sm text-gray-500 mb-2">Students</p>
+      <p class="text-3xl font-bold text-yellow-600"><%= @students %></p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <p class="text-sm text-gray-500 mb-2">Admins</p>
+      <p class="text-3xl font-bold text-red-600"><%= @admins %></p>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Role Distribution -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Role Distribution</h2>
+      <div class="space-y-3">
+        <% @role_distribution.each do |role, count| %>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-700"><%= role %></span>
+              <span class="font-medium text-gray-900"><%= count %></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full" 
+                   style="width: <%= @total_members > 0 ? (count.to_f / @total_members * 100) : 0 %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Member Status</h2>
+      <div class="space-y-3">
+        <% @status_distribution.each do |status, count| %>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-700"><%= status %></span>
+              <span class="font-medium text-gray-900"><%= count %></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <% color = status == 'Active' ? 'bg-green-600' : status == 'Pending' ? 'bg-yellow-600' : 'bg-gray-600' %>
+              <div class="<%= color %> h-2 rounded-full" 
+                   style="width: <%= @total_members > 0 ? (count.to_f / @total_members * 100) : 0 %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Growth Chart -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Member Growth (Last 6 Months)</h2>
+    <div class="h-64 flex items-end justify-between gap-2">
+      <% max_count = @member_growth.values.max || 1 %>
+      <% @member_growth.each do |month, count| %>
+        <div class="flex-1 flex flex-col items-center">
+          <div class="w-full bg-blue-600 rounded-t transition-all hover:bg-blue-700" 
+               style="height: <%= (count.to_f / max_count * 100) %>%"
+               title="<%= month %>: <%= count %> members"></div>
+          <p class="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left"><%= month %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Additions -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      Recent Additions (Last <%= @date_range %> Days)
+    </h2>
+    
+    <% if @recent_additions.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Role
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Joined Date
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_additions.each do |member| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= member.user.full_name %>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500"><%= member.user.email %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full <%= member.role == 'admin' ? 'bg-red-100 text-red-800' : member.role == 'teacher' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' %>">
+                    <%= member.role.capitalize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full <%= member.status == 'active' ? 'bg-green-100 text-green-800' : member.status == 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800' %>">
+                    <%= member.status.capitalize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= member.joined_at&.strftime("%b %d, %Y") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">
+        No new members added in the last <%= @date_range %> days.
+      </p>
+    <% end %>
+  </div>
+</div>

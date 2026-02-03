@@ -1,0 +1,138 @@
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <%= link_to notes_path, class: "inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors mb-4" do %>
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to Notes
+    <% end %>
+    
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2"><%= @note.title %></h1>
+        <div class="flex items-center space-x-4 text-sm text-gray-600">
+          <span class="flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Created <%= time_ago_in_words(@note.created_at) %> ago
+          </span>
+          <span class="flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Updated <%= time_ago_in_words(@note.updated_at) %> ago
+          </span>
+        </div>
+      </div>
+      
+      <div class="flex space-x-2">
+        <%= link_to edit_note_path(@note), class: "inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Edit
+        <% end %>
+        
+        <%= button_to @note, method: :delete, data: { turbo_confirm: 'Are you sure you want to delete this note?' }, class: "inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Delete
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metadata -->
+  <div class="mb-6 flex flex-wrap gap-3">
+    <% if @note.folder.present? %>
+      <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+        </svg>
+        <%= @note.folder %>
+      </span>
+    <% end %>
+    
+    <% if @note.tags.present? %>
+      <% @note.tags.each do |tag| %>
+        <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          <%= tag %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Note Content -->
+  <div class="bg-white rounded-lg shadow-lg p-8">
+    <div class="prose prose-lg max-w-none
+                prose-headings:font-bold prose-headings:text-gray-900
+                prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+                prose-p:text-gray-700 prose-p:leading-relaxed
+                prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-gray-900 prose-strong:font-bold
+                prose-em:text-gray-700 prose-em:italic
+                prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4
+                prose-ol:list-decimal prose-ol:pl-6 prose-ol:my-4
+                prose-li:text-gray-700 prose-li:my-1
+                prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
+                prose-pre:bg-gray-900 prose-pre:text-gray-100
+                prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic note-content-display">
+      <%= raw(sanitize(@note.content, tags: %w[b i u strong em h1 h2 h3 h4 h5 h6 p br div span ul ol li a blockquote code pre], attributes: %w[style href class])) %>
+    </div>
+  </div>
+  
+  <style>
+    .note-content-display div[style*="text-align"] {
+      margin: 0.75rem 0;
+      padding: 0.5rem 0;
+    }
+    
+    .note-content-display b,
+    .note-content-display strong {
+      font-weight: 700;
+    }
+    
+    .note-content-display i,
+    .note-content-display em {
+      font-style: italic;
+    }
+    
+    .note-content-display u {
+      text-decoration: underline;
+    }
+    
+    .note-content-display ul {
+      list-style-type: disc;
+      margin: 1rem 0;
+      padding-left: 2rem;
+    }
+    
+    .note-content-display ol {
+      list-style-type: decimal;
+      margin: 1rem 0;
+      padding-left: 2rem;
+    }
+    
+    .note-content-display li {
+      margin: 0.25rem 0;
+    }
+  </style>
+
+  <!-- Actions Footer -->
+  <div class="mt-6 flex justify-between items-center">
+    <div class="text-sm text-gray-600">
+      <%= pluralize(@note.content.length, 'character') %>
+    </div>
+    
+    <div class="flex space-x-3">
+      <%= link_to "Share Note", "#", class: "text-blue-600 hover:text-blue-800 font-medium text-sm" %>
+      <%= link_to "Export as PDF", "#", class: "text-blue-600 hover:text-blue-800 font-medium text-sm" %>
+    </div>
+  </div>
+</div>

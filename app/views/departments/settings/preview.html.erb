@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= @department.name %> Preview</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+</head>
+
+<body style="background-color: <%= @settings.primary_color %>10;">
+  <div class="min-h-screen">
+    <!-- Header with Banner -->
+    <% if @settings.banner_url.present? %>
+      <div class="w-full h-64 bg-cover bg-center" style="background-image: url('<%= @settings.banner_url %>');">
+        <div class="h-full bg-gradient-to-b from-transparent to-black/50 flex items-end">
+          <div class="container mx-auto px-4 py-6">
+            <% if @settings.logo_url.present? %>
+              <img src="<%= @settings.logo_url %>" alt="Logo" class="h-16 mb-4">
+            <% end %>
+            <h1 class="text-4xl font-bold text-white"><%= @department.name %></h1>
+            <p class="text-xl text-white/90"><%= @department.code %></p>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="py-12" style="background: linear-gradient(135deg, <%= @settings.primary_color %> 0%, <%= @settings.secondary_color %> 100%);">
+        <div class="container mx-auto px-4">
+          <% if @settings.logo_url.present? %>
+            <img src="<%= @settings.logo_url %>" alt="Logo" class="h-16 mb-4">
+          <% end %>
+          <h1 class="text-4xl font-bold text-white"><%= @department.name %></h1>
+          <p class="text-xl text-white/90"><%= @department.code %></p>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Welcome Message -->
+    <% if @settings.welcome_message.present? %>
+      <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6" style="border-left: 4px solid <%= @settings.primary_color %>;">
+          <h2 class="text-2xl font-bold mb-4" style="color: <%= @settings.primary_color %>;">Welcome!</h2>
+          <div class="text-gray-700 prose max-w-none">
+            <%= simple_format(@settings.welcome_message) %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Sample Content Cards -->
+    <div class="container mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold mb-6 text-gray-900">Sample Content</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Sample Assignment -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="h-2" style="background-color: <%= @settings.primary_color %>;"></div>
+          <div class="p-6">
+            <h3 class="text-lg font-semibold mb-2">Sample Assignment</h3>
+            <p class="text-gray-600 text-sm mb-4">This is how assignments will look with your branding</p>
+            <button class="px-4 py-2 rounded text-white text-sm font-medium" style="background-color: <%= @settings.primary_color %>;">
+              View Assignment
+            </button>
+          </div>
+        </div>
+
+        <!-- Sample Note -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="h-2" style="background-color: <%= @settings.secondary_color %>;"></div>
+          <div class="p-6">
+            <h3 class="text-lg font-semibold mb-2">Sample Note</h3>
+            <p class="text-gray-600 text-sm mb-4">This is how notes will look with your branding</p>
+            <button class="px-4 py-2 rounded text-white text-sm font-medium" style="background-color: <%= @settings.secondary_color %>;">
+              View Note
+            </button>
+          </div>
+        </div>
+
+        <!-- Sample Quiz -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="h-2" style="background: linear-gradient(90deg, <%= @settings.primary_color %> 0%, <%= @settings.secondary_color %> 100%);"></div>
+          <div class="p-6">
+            <h3 class="text-lg font-semibold mb-2">Sample Quiz</h3>
+            <p class="text-gray-600 text-sm mb-4">This is how quizzes will look with your branding</p>
+            <button class="px-4 py-2 rounded text-white text-sm font-medium" style="background: linear-gradient(90deg, <%= @settings.primary_color %> 0%, <%= @settings.secondary_color %> 100%);">
+              Start Quiz
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Message -->
+    <% if @settings.footer_message.present? %>
+      <div class="py-8 mt-12" style="background-color: <%= @settings.primary_color %>20;">
+        <div class="container mx-auto px-4">
+          <div class="text-center text-gray-700">
+            <%= simple_format(@settings.footer_message) %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Preview Notice -->
+    <div class="fixed bottom-4 right-4 bg-yellow-100 border border-yellow-400 rounded-lg shadow-lg p-4 max-w-sm">
+      <div class="flex items-center">
+        <span class="text-2xl mr-3">👁️</span>
+        <div>
+          <p class="font-semibold text-yellow-800">Preview Mode</p>
+          <p class="text-sm text-yellow-700">This is how your department branding will look</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+Hi <%= @student.full_name %>,
+
+⏰ CLASS REMINDER ⏰
+
+Your class starts in 30 minutes!
+
+Class: <%= @schedule.title %>
+Course: <%= @schedule.course %>
+Time: <%= @schedule.formatted_time_range %>
+Room: <%= @schedule.room %>
+Instructor: <%= @instructor_name %>
+
+Don't forget to bring any required materials for class!
+
+View schedule details: <%= schedule_url(@schedule) %>
+
+---
+This is an automated reminder from Uni-Hub.
+© <%= Time.current.year %> Uni-Hub. All rights reserved.

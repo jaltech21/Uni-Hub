@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Quick test to verify Gemini API connection
+require_relative '../config/environment'
+
+puts "=" * 60
+puts "GEMINI API CONNECTION TEST"
+puts "=" * 60
+puts
+
+# Test with a simple summarization
+test_text = <<~TEXT
+  Ruby on Rails is a web application framework written in Ruby. 
+  It follows the Model-View-Controller (MVC) architectural pattern 
+  and emphasizes convention over configuration. Rails was created 
+  by David Heinemeier Hansson and released in 2004. It has become 
+  one of the most popular frameworks for building web applications.
+TEXT
+
+puts "📝 Test Text Length: #{test_text.length} characters"
+puts "🔧 Using Provider: #{ENV['AI_PROVIDER'] || 'gemini (default)'}"
+puts "🔑 API Key: #{ENV['GEMINI_API_KEY'] ? 'Set ✅' : 'Missing ❌'}"
+puts
+
+begin
+  puts "🚀 Attempting to summarize text..."
+  provider = AiServiceFactory.provider
+  
+  result = provider.summarize_text(
+    test_text,
+    length: :short,
+    user_id: 1
+  )
+  
+  if result[:success]
+    puts "✅ SUCCESS!"
+    puts
+    puts "📄 Summary:"
+    puts result[:summary]
+    puts
+    puts "⏱️  Processing Time: #{result[:processing_time]}s"
+    puts "🎯 Tokens Used: #{result[:tokens_used]}"
+  else
+    puts "❌ FAILED!"
+    puts
+    puts "Error: #{result[:error]}"
+  end
+rescue StandardError => e
+  puts "❌ EXCEPTION CAUGHT!"
+  puts
+  puts "Error Class: #{e.class.name}"
+  puts "Error Message: #{e.message}"
+  puts
+  puts "Backtrace (first 5 lines):"
+  puts e.backtrace.first(5).join("\n")
+end
+
+puts
+puts "=" * 60

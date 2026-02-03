@@ -1,0 +1,763 @@
+<% content_for :title, "Predictive Analytics Dashboard" %>
+<% content_for :page_css do %>
+<style>
+  .predictive-header {
+    background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .prediction-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+  
+  .prediction-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  }
+  
+  .risk-card {
+    border-left: 5px solid #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
+  }
+  
+  .performance-card {
+    border-left: 5px solid #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #fff 100%);
+  }
+  
+  .engagement-card {
+    border-left: 5px solid #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #fff 100%);
+  }
+  
+  .intervention-card {
+    border-left: 5px solid #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #fff 100%);
+  }
+  
+  .dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .metric-box {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+  
+  .metric-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: block;
+    margin-bottom: 8px;
+  }
+  
+  .metric-title {
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  .risk-level-critical {
+    background: linear-gradient(135deg, #fecaca 0%, #f87171 100%);
+    color: #991b1b;
+  }
+  
+  .risk-level-high {
+    background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+    color: #9a3412;
+  }
+  
+  .risk-level-medium {
+    background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+    color: #92400e;
+  }
+  
+  .risk-level-low {
+    background: linear-gradient(135deg, #dcfce7 0%, #4ade80 100%);
+    color: #166534;
+  }
+  
+  .student-list {
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .student-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .student-item:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+  }
+  
+  .student-risk-critical { border-left-color: #ef4444; }
+  .student-risk-high { border-left-color: #f59e0b; }
+  .student-risk-medium { border-left-color: #eab308; }
+  .student-risk-low { border-left-color: #22c55e; }
+  
+  .risk-score {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    flex-shrink: 0;
+  }
+  
+  .score-critical { background: #ef4444; }
+  .score-high { background: #f59e0b; }
+  .score-medium { background: #eab308; }
+  .score-low { background: #22c55e; }
+  
+  .risk-factors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .risk-factor {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+  }
+  
+  .confidence-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .confidence-bar {
+    flex-grow: 1;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  
+  .confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  
+  .alert-banner {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .alert-critical {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #fecaca;
+  }
+  
+  .alert-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fed7aa;
+  }
+  
+  .alert-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #bfdbfe;
+  }
+  
+  .prediction-filters {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .empty-predictions {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+  }
+  
+  .empty-predictions i {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 20px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .real-time-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #22c55e;
+    font-size: 0.9rem;
+  }
+  
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .refresh-button {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .refresh-button.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: loading 1.5s infinite;
+  }
+  
+  @keyframes loading {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+</style>
+<% end %>
+
+<div class="predictive-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="mb-2"><i class="fas fa-crystal-ball me-2"></i>Predictive Analytics Dashboard</h1>
+      <p class="mb-0 opacity-90">AI-powered predictions and early intervention recommendations</p>
+    </div>
+    <div class="d-flex gap-2">
+      <div class="real-time-indicator">
+        <div class="pulse-dot"></div>
+        Real-time predictions
+      </div>
+      <button class="btn btn-outline-light btn-sm refresh-button" id="refreshPredictions">
+        <i class="fas fa-sync-alt me-1"></i>Refresh
+      </button>
+      <%= link_to analytics_learning_insights_path, class: "btn btn-light btn-sm" do %>
+        <i class="fas fa-chart-bar me-1"></i>Analytics
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Metrics -->
+<div class="dashboard-metrics">
+  <div class="metric-box">
+    <span class="metric-number text-danger"><%= @dashboard_metrics[:total_predictions] %></span>
+    <div class="metric-title">Total Predictions</div>
+  </div>
+  
+  <div class="metric-box">
+    <span class="metric-number text-warning"><%= @dashboard_metrics[:high_confidence_predictions] %></span>
+    <div class="metric-title">High Confidence</div>
+  </div>
+  
+  <div class="metric-box">
+    <span class="metric-number text-danger"><%= @dashboard_metrics[:critical_alerts] %></span>
+    <div class="metric-title">Critical Alerts</div>
+  </div>
+  
+  <div class="metric-box">
+    <span class="metric-number text-info"><%= @dashboard_metrics[:pending_interventions] %></span>
+    <div class="metric-title">Pending Interventions</div>
+  </div>
+</div>
+
+<!-- Critical Alerts Banner -->
+<% if @dashboard_metrics[:critical_alerts] > 0 %>
+  <div class="alert-banner alert-critical">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-exclamation-triangle fa-2x text-danger me-3"></i>
+      <div>
+        <h5 class="mb-1 text-danger">Critical Alerts Detected</h5>
+        <p class="mb-0 text-dark">
+          <strong><%= @dashboard_metrics[:critical_alerts] %></strong> students require immediate attention.
+          Review the at-risk predictions below and take action.
+        </p>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Prediction Filters -->
+<div class="prediction-filters">
+  <div class="filter-row">
+    <div class="filter-group">
+      <label class="filter-label">Risk Level</label>
+      <select class="form-select" id="riskFilter">
+        <option value="">All Risk Levels</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">Confidence</label>
+      <select class="form-select" id="confidenceFilter">
+        <option value="">All Confidence Levels</option>
+        <option value="high">High (>80%)</option>
+        <option value="medium">Medium (60-80%)</option>
+        <option value="low">Low (<60%)</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">Department</label>
+      <select class="form-select" id="departmentFilter">
+        <option value="">All Departments</option>
+        <option value="computer_science">Computer Science</option>
+        <option value="mathematics">Mathematics</option>
+        <option value="engineering">Engineering</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">&nbsp;</label>
+      <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+        <i class="fas fa-filter me-1"></i>Apply Filters
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- At-Risk Students Predictions -->
+<div class="prediction-card risk-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-exclamation-triangle me-2 text-danger"></i>At-Risk Students</h3>
+    <span class="badge bg-danger fs-6"><%= @predictions[:at_risk_students].count %> students</span>
+  </div>
+  
+  <% if @predictions[:at_risk_students].any? %>
+    <div class="student-list">
+      <% @predictions[:at_risk_students].each do |prediction| %>
+        <div class="student-item student-risk-<%= prediction[:risk_level] %>">
+          <div class="d-flex align-items-center">
+            <div class="risk-score score-<%= prediction[:risk_level] %>">
+              <%= (prediction[:risk_score] * 100).round %>%
+            </div>
+            
+            <div class="flex-grow-1 ms-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1"><%= prediction[:name] %></h6>
+                  <small class="text-muted">ID: <%= prediction[:user_id] %></small>
+                </div>
+                <span class="badge bg-<%= prediction[:risk_level] == 'critical' ? 'danger' : prediction[:risk_level] == 'high' ? 'warning' : 'secondary' %>">
+                  <%= prediction[:risk_level].upcase %>
+                </span>
+              </div>
+              
+              <div class="confidence-indicator">
+                <small class="text-muted">Confidence:</small>
+                <div class="confidence-bar">
+                  <div class="confidence-fill" style="width: <%= (prediction[:confidence] * 100).round %>%"></div>
+                </div>
+                <small class="fw-bold"><%= (prediction[:confidence] * 100).round %>%</small>
+              </div>
+              
+              <div class="risk-factors">
+                <% prediction[:factors].first(4).each do |factor| %>
+                  <span class="risk-factor"><%= factor %></span>
+                <% end %>
+                <% if prediction[:factors].size > 4 %>
+                  <span class="risk-factor">+<%= prediction[:factors].size - 4 %> more</span>
+                <% end %>
+              </div>
+              
+              <div class="action-buttons">
+                <%= link_to student_insights_path(prediction[:user_id]), 
+                    class: "btn btn-outline-primary btn-sm" do %>
+                  <i class="fas fa-user me-1"></i>View Profile
+                <% end %>
+                
+                <button class="btn btn-warning btn-sm" onclick="createIntervention(<%= prediction[:user_id] %>)">
+                  <i class="fas fa-hand-holding-heart me-1"></i>Intervene
+                </button>
+                
+                <button class="btn btn-outline-secondary btn-sm" onclick="scheduleFollowUp(<%= prediction[:user_id] %>)">
+                  <i class="fas fa-calendar-plus me-1"></i>Follow Up
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-predictions">
+      <i class="fas fa-check-circle"></i>
+      <h4>No At-Risk Students Detected</h4>
+      <p>All students appear to be performing well based on current data.</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Performance Trends -->
+<div class="prediction-card performance-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-chart-line me-2 text-warning"></i>Performance Trend Predictions</h3>
+    <span class="badge bg-warning fs-6"><%= @predictions[:performance_trends].count %> trends</span>
+  </div>
+  
+  <% if @predictions[:performance_trends].any? %>
+    <div class="row">
+      <% @predictions[:performance_trends].each do |trend| %>
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title"><%= trend[:title] %></h6>
+              <p class="card-text text-muted"><%= trend[:description] %></p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">Confidence: <%= trend[:confidence] %>%</small>
+                <span class="badge bg-<%= trend[:severity] %>"><%= trend[:severity].humanize %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-predictions">
+      <i class="fas fa-chart-line"></i>
+      <h4>No Performance Trends Detected</h4>
+      <p>Performance patterns are stable across all monitored metrics.</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Engagement Alerts -->
+<div class="prediction-card engagement-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-users me-2 text-primary"></i>Engagement Alerts</h3>
+    <span class="badge bg-primary fs-6"><%= @predictions[:engagement_alerts].count %> alerts</span>
+  </div>
+  
+  <% if @predictions[:engagement_alerts].any? %>
+    <div class="row">
+      <% @predictions[:engagement_alerts].each do |alert| %>
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title"><%= alert[:title] %></h6>
+              <p class="card-text text-muted"><%= alert[:description] %></p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">Impact: <%= alert[:impact] %></small>
+                <span class="badge bg-<%= alert[:priority] %>"><%= alert[:priority].humanize %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-predictions">
+      <i class="fas fa-heart"></i>
+      <h4>Strong Engagement Levels</h4>
+      <p>Student engagement is healthy across all monitored activities.</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Intervention Recommendations -->
+<div class="prediction-card intervention-card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-hand-holding-heart me-2 text-success"></i>Intervention Recommendations</h3>
+    <span class="badge bg-success fs-6"><%= @predictions[:intervention_recommendations].count %> recommendations</span>
+  </div>
+  
+  <% if @predictions[:intervention_recommendations].any? %>
+    <div class="row">
+      <% @predictions[:intervention_recommendations].each do |recommendation| %>
+        <div class="col-md-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title"><%= recommendation[:title] %></h6>
+              <p class="card-text text-muted"><%= recommendation[:description] %></p>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">Effort: <%= recommendation[:effort] %></small>
+                <small class="text-muted">Impact: <%= recommendation[:expected_impact] %></small>
+              </div>
+              <button class="btn btn-success btn-sm w-100" onclick="implementRecommendation('<%= recommendation[:id] %>')">
+                <i class="fas fa-play me-1"></i>Implement
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-predictions">
+      <i class="fas fa-thumbs-up"></i>
+      <h4>No Immediate Interventions Needed</h4>
+      <p>Current support systems appear to be adequate for all students.</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Quick Actions Panel -->
+<div class="prediction-card">
+  <h4 class="mb-4"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h4>
+  
+  <div class="row">
+    <div class="col-md-3">
+      <button class="btn btn-outline-primary w-100 mb-2" onclick="generateNewPredictions()">
+        <i class="fas fa-magic me-2"></i>Generate New Predictions
+      </button>
+    </div>
+    
+    <div class="col-md-3">
+      <button class="btn btn-outline-success w-100 mb-2" onclick="exportPredictions()">
+        <i class="fas fa-download me-2"></i>Export Data
+      </button>
+    </div>
+    
+    <div class="col-md-3">
+      <button class="btn btn-outline-warning w-100 mb-2" onclick="scheduleReport()">
+        <i class="fas fa-calendar me-2"></i>Schedule Report
+      </button>
+    </div>
+    
+    <div class="col-md-3">
+      <%= link_to intervention_tracker_learning_insights_path, class: "btn btn-outline-info w-100 mb-2" do %>
+        <i class="fas fa-tasks me-2"></i>Track Interventions
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+// Real-time updates
+let refreshInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Start auto-refresh every 5 minutes
+  refreshInterval = setInterval(refreshPredictions, 300000);
+  
+  // Initialize filters
+  initializeFilters();
+});
+
+function refreshPredictions() {
+  const refreshBtn = document.getElementById('refreshPredictions');
+  refreshBtn.classList.add('loading');
+  refreshBtn.disabled = true;
+  
+  // Simulate API call - in real implementation, this would be an AJAX request
+  setTimeout(() => {
+    refreshBtn.classList.remove('loading');
+    refreshBtn.disabled = false;
+    
+    // Update last refresh time
+    updateLastRefreshTime();
+    
+    // Show success notification
+    showNotification('Predictions updated successfully', 'success');
+  }, 2000);
+}
+
+function initializeFilters() {
+  // Set up filter change handlers
+  document.getElementById('riskFilter').addEventListener('change', applyFilters);
+  document.getElementById('confidenceFilter').addEventListener('change', applyFilters);
+  document.getElementById('departmentFilter').addEventListener('change', applyFilters);
+}
+
+function applyFilters() {
+  const riskLevel = document.getElementById('riskFilter').value;
+  const confidence = document.getElementById('confidenceFilter').value;
+  const department = document.getElementById('departmentFilter').value;
+  
+  // Filter student items
+  const studentItems = document.querySelectorAll('.student-item');
+  
+  studentItems.forEach(item => {
+    let shouldShow = true;
+    
+    // Apply risk level filter
+    if (riskLevel && !item.classList.contains(`student-risk-${riskLevel}`)) {
+      shouldShow = false;
+    }
+    
+    // Apply confidence filter
+    if (confidence && shouldShow) {
+      const confidenceValue = parseInt(item.querySelector('.confidence-fill').style.width);
+      
+      switch(confidence) {
+        case 'high':
+          shouldShow = confidenceValue > 80;
+          break;
+        case 'medium':
+          shouldShow = confidenceValue >= 60 && confidenceValue <= 80;
+          break;
+        case 'low':
+          shouldShow = confidenceValue < 60;
+          break;
+      }
+    }
+    
+    // Show/hide item
+    item.style.display = shouldShow ? 'block' : 'none';
+  });
+  
+  // Update counts
+  updateFilteredCounts();
+}
+
+function updateFilteredCounts() {
+  const visibleItems = document.querySelectorAll('.student-item:not([style*="display: none"])');
+  const countBadge = document.querySelector('.risk-card .badge');
+  countBadge.textContent = `${visibleItems.length} students`;
+}
+
+function createIntervention(studentId) {
+  if (confirm('Create an intervention plan for this student?')) {
+    // In real implementation, this would open an intervention creation modal
+    showNotification(`Intervention plan created for student ${studentId}`, 'success');
+  }
+}
+
+function scheduleFollowUp(studentId) {
+  if (confirm('Schedule a follow-up for this student?')) {
+    // In real implementation, this would open a scheduling modal
+    showNotification(`Follow-up scheduled for student ${studentId}`, 'info');
+  }
+}
+
+function implementRecommendation(recommendationId) {
+  if (confirm('Implement this recommendation?')) {
+    // In real implementation, this would trigger the recommendation implementation
+    showNotification(`Recommendation ${recommendationId} implementation started`, 'success');
+  }
+}
+
+function generateNewPredictions() {
+  if (confirm('Generate new predictions? This may take a few moments.')) {
+    showNotification('Generating new predictions...', 'info');
+    
+    // Simulate prediction generation
+    setTimeout(() => {
+      showNotification('New predictions generated successfully', 'success');
+      // In real implementation, would reload the page or update data
+    }, 3000);
+  }
+}
+
+function exportPredictions() {
+  // In real implementation, this would trigger a download
+  showNotification('Preparing export file...', 'info');
+  
+  setTimeout(() => {
+    showNotification('Predictions exported successfully', 'success');
+  }, 1000);
+}
+
+function scheduleReport() {
+  // In real implementation, this would open a scheduling modal
+  showNotification('Report scheduling feature coming soon', 'info');
+}
+
+function updateLastRefreshTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString();
+  
+  // You could update a "last updated" indicator somewhere on the page
+  console.log(`Predictions last updated at ${timeString}`);
+}
+
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'warning'} position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 4000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
+});
+</script>

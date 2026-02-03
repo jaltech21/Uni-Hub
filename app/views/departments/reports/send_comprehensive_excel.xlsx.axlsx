@@ -1,0 +1,88 @@
+wb = xlsx_package.workbook
+
+# Member Statistics Sheet
+wb.add_worksheet(name: "Member Statistics") do |sheet|
+  # Header
+  sheet.add_row ["Department: #{@department.name} - Comprehensive Report", "", "", "Generated: #{Date.today}"]
+  sheet.add_row []
+  
+  # Summary Stats
+  sheet.add_row ["Member Summary", "", "", ""]
+  sheet.add_row ["Total Members", @total_members, "", ""]
+  sheet.add_row ["Teachers", @total_teachers, "", ""]
+  sheet.add_row ["Students", @total_students, "", ""]
+  sheet.add_row []
+  
+  # Role Distribution
+  sheet.add_row ["Role Distribution", "", "", ""]
+  sheet.add_row ["Role", "Count", "Percentage", ""]
+  @members_by_role.each do |role, count|
+    percentage = @total_members > 0 ? (count.to_f / @total_members * 100).round(1) : 0
+    sheet.add_row [role.humanize, count, "#{percentage}%", ""]
+  end
+  sheet.add_row []
+  
+  # Member Growth
+  if @member_growth.any?
+    sheet.add_row ["Member Growth", "", "", ""]
+    sheet.add_row ["Month", "Total Members", "", ""]
+    @member_growth.each do |month, count|
+      sheet.add_row [month, count, "", ""]
+    end
+  end
+end
+
+# Activity Summary Sheet
+wb.add_worksheet(name: "Activity Summary") do |sheet|
+  # Header
+  sheet.add_row ["Activity Summary", "", "", ""]
+  sheet.add_row []
+  
+  # Summary Stats
+  sheet.add_row ["Activity Statistics", "", "", ""]
+  sheet.add_row ["Total Announcements", @total_announcements, "", ""]
+  sheet.add_row ["Shared Content Items", @shared_content_count, "", ""]
+  sheet.add_row []
+  
+  # Daily Activity
+  if @daily_activity.any?
+    sheet.add_row ["Daily Activity (Last 7 Days)", "", "", ""]
+    sheet.add_row ["Date", "Activity Count", "", ""]
+    @daily_activity.each do |date, count|
+      sheet.add_row [date, count, "", ""]
+    end
+  end
+end
+
+# Content Report Sheet
+wb.add_worksheet(name: "Content Report") do |sheet|
+  # Header
+  sheet.add_row ["Content Report", "", "", ""]
+  sheet.add_row []
+  
+  # Summary Stats
+  sheet.add_row ["Content Statistics", "", "", ""]
+  sheet.add_row ["Total Shared Content", @total_content, "", ""]
+  sheet.add_row ["Recent Content (30 days)", @recent_content.count, "", ""]
+  sheet.add_row []
+  
+  # Content by Type
+  if @content_by_type.any?
+    sheet.add_row ["Content by Type", "", "", ""]
+    sheet.add_row ["Type", "Count", "Percentage", ""]
+    @content_by_type.each do |type, count|
+      percentage = @total_content > 0 ? (count.to_f / @total_content * 100).round(1) : 0
+      sheet.add_row [type, count, "#{percentage}%", ""]
+    end
+    sheet.add_row []
+  end
+  
+  # Top Sharers
+  if @top_sharers.any?
+    sheet.add_row ["Top Content Sharers", "", "", ""]
+    sheet.add_row ["Rank", "Name", "Shares", ""]
+    @top_sharers.each_with_index do |(name, count), index|
+      sheet.add_row ["##{index + 1}", name, count, ""]
+    end
+  end
+end

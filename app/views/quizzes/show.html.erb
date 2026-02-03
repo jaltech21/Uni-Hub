@@ -1,0 +1,273 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <%= link_to quizzes_path, class: "inline-flex items-center px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md font-medium" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Quizzes
+        <% end %>
+        
+        <div class="flex gap-3">
+          <% if @quiz.user == current_user %>
+            <%= link_to edit_quiz_path(@quiz), class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              Edit Quiz
+            <% end %>
+            
+            <% if @quiz.status == 'draft' %>
+              <%= button_to publish_quiz_path(@quiz), method: :patch, class: "inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md" do %>
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Publish Quiz
+              <% end %>
+            <% end %>
+          <% end %>
+          
+          <% if @quiz.published? %>
+            <%= link_to take_quiz_path(@quiz), class: "inline-flex items-center px-5 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              Take Quiz
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Title Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-3">
+            <h1 class="text-4xl font-bold text-gray-900"><%= @quiz.title %></h1>
+            <% if @quiz.status == 'draft' %>
+              <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">Draft</span>
+            <% elsif @quiz.status == 'published' %>
+              <span class="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">Published</span>
+            <% end %>
+          </div>
+          
+          <% if @quiz.description.present? %>
+            <p class="text-gray-600 text-lg mb-4"><%= @quiz.description %></p>
+          <% end %>
+          
+          <div class="flex flex-wrap gap-4 text-sm">
+            <div class="flex items-center gap-2 text-gray-700">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-semibold"><%= @quiz.total_questions %></span> questions
+            </div>
+            
+            <div class="flex items-center gap-2 text-gray-700">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-semibold"><%= @quiz.time_limit %></span> minutes
+            </div>
+            
+            <div class="flex items-center gap-2 text-gray-700">
+              <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span class="font-semibold capitalize"><%= @quiz.difficulty %></span> difficulty
+            </div>
+            
+            <% if @quiz.note.present? %>
+              <div class="flex items-center gap-2 text-gray-700">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Based on: <span class="font-semibold"><%= link_to @quiz.note.title, @quiz.note, class: "text-blue-600 hover:text-blue-700" %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Cards (if published) -->
+    <% if @quiz.published? && @attempts.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Best Score -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Your Best Score</p>
+              <p class="text-3xl font-bold text-green-600"><%= @best_score.present? ? "#{@best_score}%" : "N/A" %></p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-lg">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attempts -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Total Attempts</p>
+              <p class="text-3xl font-bold text-blue-600"><%= @attempts.count %></p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-lg">
+              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Average Score</p>
+              <p class="text-3xl font-bold text-purple-600"><%= @avg_score.present? ? "#{@avg_score.round(1)}%" : "N/A" %></p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-lg">
+              <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Questions Preview -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        Questions Preview
+      </h2>
+
+      <% if @quiz.quiz_questions.any? %>
+        <div class="space-y-6">
+          <% @quiz.quiz_questions.order(:position).each_with_index do |question, index| %>
+            <div class="border-2 border-gray-200 rounded-xl p-6 hover:border-indigo-300 transition-colors">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-lg">
+                  <%= index + 1 %>
+                </div>
+                
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full capitalize">
+                      <%= question.question_type.gsub('_', ' ') %>
+                    </span>
+                    <span class="text-gray-500 text-sm"><%= question.points %> point<%= question.points != 1 ? 's' : '' %></span>
+                  </div>
+                  
+                  <p class="text-lg font-medium text-gray-900 mb-3"><%= question.question_text %></p>
+                  
+                  <% if question.options.present? && question.options.any? %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+                      <% question.options.each_with_index do |option, opt_index| %>
+                        <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <span class="flex-shrink-0 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-xs font-semibold">
+                            <%= ('A'.ord + opt_index).chr %>
+                          </span>
+                          <span class="text-gray-700"><%= option %></span>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  
+                  <% if @quiz.user == current_user && question.explanation.present? %>
+                    <div class="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p class="text-sm text-green-800">
+                        <strong>💡 Explanation:</strong> <%= question.explanation %>
+                      </p>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No questions yet</h3>
+          <p class="mt-1 text-sm text-gray-500">Get started by adding some questions to this quiz.</p>
+          <% if @quiz.user == current_user %>
+            <div class="mt-6">
+              <%= link_to edit_quiz_path(@quiz), class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700" do %>
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Add Questions
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Recent Attempts (if any) -->
+    <% if @attempts.any? %>
+      <div class="bg-white rounded-2xl shadow-xl p-8 mt-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Your Recent Attempts
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Taken</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @attempts.limit(5).each do |attempt| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= attempt.completed_at.strftime("%b %d, %Y at %I:%M %p") %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-lg font-bold <%= attempt.score >= 70 ? 'text-green-600' : attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600' %>">
+                      <%= attempt.score.round(1) %>%
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <%= attempt.time_taken ? "#{attempt.time_taken} min" : "N/A" %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full <%= attempt.score >= 70 ? 'bg-green-100 text-green-800' : attempt.score >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800' %>">
+                      <%= attempt.score >= 70 ? 'Passed' : attempt.score >= 50 ? 'Fair' : 'Needs Improvement' %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <%= link_to results_quiz_path(@quiz, attempt_id: attempt.id), class: "text-indigo-600 hover:text-indigo-900 font-medium" do %>
+                      View Results →
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

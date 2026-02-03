@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Uni Hub" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "actiontext", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">-->
+    
+    <%# Apply user personalization theme if available %>
+    <% if user_signed_in? && current_user.user_personalization_preference.present? %>
+      <% pref = current_user.user_personalization_preference %>
+      <style>
+        :root {
+          <% pref.apply_theme_to_css.each do |property, value| %>
+            <%= property %>: <%= value %>;
+          <% end %>
+        }
+        
+        <% if pref.accessibility_settings_with_defaults['high_contrast_mode'] %>
+          body { filter: contrast(1.5); }
+        <% end %>
+        
+        <% if pref.accessibility_settings_with_defaults['large_text'] %>
+          body { font-size: 1.125rem; }
+        <% end %>
+        
+        <% if pref.accessibility_settings_with_defaults['reduced_motion'] %>
+          *, *::before, *::after { 
+            animation-duration: 0.01ms !important; 
+            animation-iteration-count: 1 !important; 
+            transition-duration: 0.01ms !important; 
+          }
+        <% end %>
+      </style>
+    <% end %>
+  </head>
+  <body class="<%= theme_body_class %> h-screen">
+    <div class="flex h-screen" id="wrapper">
+      <div id="sidebar-wrapper" class="w-64 <%= sidebar_theme_class %> shadow-lg transition-all duration-300 ease-in-out">
+        <%= render 'layouts/sidebar' %>
+      </div>
+
+      <div id="page-content-wrapper" class="flex-1 <%= content_wrapper_theme_class %> p-4 overflow-y-auto">
+        <nav class="<%= navbar_theme_class %> shadow-sm flex items-center justify-between p-4 border-b <%= border_theme_class %>">
+          <button id="sidebarToggle" class="text-gray-600 focus:outline-none">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </button>
+          <div class="flex items-center space-x-4">
+            <div class="hidden sm:block">
+              <%= render 'shared/department_switcher' %>
+            </div>
+            <%= link_to "Logout", destroy_user_session_path, class: "bg-red-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300" %>
+          </div>
+        </nav>
+        <div class="p-6">
+          <!-- Flash Messages -->
+          <% if notice.present? %>
+            <div class="mb-6 bg-green-50 border-l-4 border-green-500 rounded-r-lg p-4 shadow-md animate-fade-in" role="alert">
+              <div class="flex items-start">
+                <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-green-800 font-medium"><%= notice %></p>
+              </div>
+            </div>
+          <% end %>
+          
+          <% if alert.present? %>
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 shadow-md animate-fade-in" role="alert">
+              <div class="flex items-start">
+                <svg class="w-6 h-6 text-red-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-red-800 font-medium"><%= alert %></p>
+              </div>
+            </div>
+          <% end %>
+          
+          <%= yield %>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function(event) {
+        var sidebarToggle = document.getElementById('sidebarToggle');
+        var wrapper = document.getElementById('wrapper');
+        sidebarToggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          wrapper.classList.toggle('toggled');
+        });
+        // This is a simple Tailwind-based toggle script
+        const toggleSidebar = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar-wrapper');
+        toggleSidebar.addEventListener('click', () => {
+          sidebar.classList.toggle('-ml-64');
+        });
+      });
+    </script>
+  </body>
+</html>

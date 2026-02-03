@@ -1,0 +1,428 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <%= current_user.teacher? ? 'My Schedules' : 'My Class Schedule' %>
+          </h1>
+          <p class="text-gray-600 mt-1">
+            <%= current_user.teacher? ? 'Manage your class schedules and enrollments' : 'View your enrolled classes' %>
+          </p>
+        </div>
+        
+        <% if current_user.teacher? %>
+          <%= link_to new_schedule_path, class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-all duration-200 hover:shadow-lg" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Create Schedule
+          <% end %>
+        <% else %>
+          <%= link_to browse_schedules_path, class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-all duration-200 hover:shadow-lg" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            Browse Available Classes
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600 font-medium"><%= current_user.teacher? ? 'Total Schedules' : 'Enrolled Classes' %></p>
+              <p class="text-2xl font-bold text-gray-900"><%= @schedules.count %></p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <% if current_user.teacher? %>
+                <p class="text-sm text-gray-600 font-medium">Total Students</p>
+                <p class="text-2xl font-bold text-gray-900"><%= @schedules.sum { |s| s.student_count } %></p>
+              <% else %>
+                <p class="text-sm text-gray-600 font-medium">This Week</p>
+                <p class="text-2xl font-bold text-gray-900"><%= @schedules.select(&:recurring?).count %></p>
+              <% end %>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <% if current_user.teacher? %>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                <% else %>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                <% end %>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600 font-medium">Unique Courses</p>
+              <p class="text-2xl font-bold text-gray-900"><%= @schedules.pluck(:course).uniq.count %></p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <% if current_user.teacher? %>
+                <p class="text-sm text-gray-600 font-medium">Total Hours</p>
+                <p class="text-2xl font-bold text-gray-900"><%= @schedules.sum { |s| s.duration_minutes / 60.0 }.round(1) %></p>
+              <% else %>
+                <p class="text-sm text-gray-600 font-medium">Classes Today</p>
+                <p class="text-2xl font-bold text-gray-900"><%= @schedules.where(day_of_week: Time.current.wday).count %></p>
+              <% end %>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <% if current_user.teacher? %>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <% else %>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                <% end %>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span class="text-sm font-medium text-gray-700">Filters:</span>
+        </div>
+
+        <!-- Day Filter -->
+        <select id="day-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Days</option>
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+
+        <!-- Course Filter -->
+        <select id="course-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Courses</option>
+          <% @schedules.pluck(:course).uniq.sort.each do |course| %>
+            <option value="<%= course %>"><%= course %></option>
+          <% end %>
+        </select>
+
+        <!-- View Mode Toggle -->
+        <div class="ml-auto flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <button id="calendar-view-btn" class="view-toggle px-4 py-2 rounded-md text-sm font-medium transition-colors active bg-white text-blue-600 shadow-sm">
+            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Calendar
+          </button>
+          <button id="list-view-btn" class="view-toggle px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-900">
+            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            List
+          </button>
+        </div>
+
+        <!-- Reset Button -->
+        <button id="reset-filters-btn" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div id="calendar-view" class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <!-- Time Grid Header -->
+      <div class="grid grid-cols-8 bg-gray-50 border-b border-gray-200">
+        <div class="p-4 text-center text-sm font-semibold text-gray-600 border-r border-gray-200">Time</div>
+        <% ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].each do |day| %>
+          <div class="p-4 text-center text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0">
+            <%= day %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Time Grid Body -->
+      <div class="grid grid-cols-8 min-h-[600px]" id="schedule-grid">
+        <!-- Time Labels Column -->
+        <div class="border-r border-gray-200 bg-gray-50">
+          <% (8..20).each do |hour| %>
+            <div class="h-20 border-b border-gray-200 p-2 text-xs text-gray-600 font-medium">
+              <%= Time.new(2000, 1, 1, hour, 0, 0).strftime("%I:%M %p") %>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Day Columns -->
+        <% (0..6).each do |day_num| %>
+          <div class="border-r border-gray-200 last:border-r-0 relative" data-day="<%= day_num %>">
+            <% (8..20).each do |hour| %>
+              <div class="h-20 border-b border-gray-200 hover:bg-gray-50 transition-colors"></div>
+            <% end %>
+
+            <!-- Schedule Blocks for this day -->
+            <% @schedules.select { |s| s.day_of_week == day_num }.each do |schedule| %>
+              <% 
+                start_hour = schedule.start_time.hour + (schedule.start_time.min / 60.0)
+                end_hour = schedule.end_time.hour + (schedule.end_time.min / 60.0)
+                top_position = ((start_hour - 8) * 80)
+                height = ((end_hour - start_hour) * 80)
+              %>
+              <div class="schedule-block absolute left-1 right-1 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden"
+                   style="top: <%= top_position %>px; height: <%= height %>px; background-color: <%= schedule.color || '#3B82F6' %>; z-index: 10;"
+                   data-schedule-id="<%= schedule.id %>"
+                   data-day="<%= schedule.day_of_week %>"
+                   data-course="<%= schedule.course %>"
+                   onclick="window.location.href='<%= schedule_path(schedule) %>'">
+                <div class="p-2 h-full flex flex-col text-white">
+                  <div class="font-semibold text-sm truncate"><%= schedule.title %></div>
+                  <div class="text-xs opacity-90 truncate"><%= schedule.course %></div>
+                  <div class="text-xs opacity-90 mt-1">
+                    <%= schedule.start_time.strftime("%I:%M %p") %> - <%= schedule.end_time.strftime("%I:%M %p") %>
+                  </div>
+                  <div class="text-xs opacity-90 truncate mt-auto">
+                    <svg class="w-3 h-3 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <%= schedule.room %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- List View (Hidden by default) -->
+    <div id="list-view" class="hidden">
+      <div class="space-y-4">
+        <% @schedules.group_by(&:day_of_week).sort.each do |day_num, day_schedules| %>
+          <div class="bg-white rounded-lg shadow-sm overflow-hidden schedule-day-group" data-day="<%= day_num %>">
+            <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                <%= ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day_num] %>
+              </h3>
+            </div>
+            <div class="divide-y divide-gray-200">
+              <% day_schedules.sort_by(&:start_time).each do |schedule| %>
+                <div class="p-6 hover:bg-gray-50 transition-colors schedule-list-item" 
+                     data-day="<%= schedule.day_of_week %>"
+                     data-course="<%= schedule.course %>">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4 flex-1">
+                      <!-- Color Indicator -->
+                      <div class="w-1 h-16 rounded-full flex-shrink-0" style="background-color: <%= schedule.color || '#3B82F6' %>"></div>
+                      
+                      <!-- Schedule Info -->
+                      <div class="flex-1">
+                        <div class="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 class="text-lg font-semibold text-gray-900 hover:text-blue-600">
+                              <%= link_to schedule.title, schedule_path(schedule) %>
+                            </h4>
+                            <p class="text-sm text-gray-600"><%= schedule.course %></p>
+                          </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                          <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <%= schedule.formatted_time_range %>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <%= schedule.room %>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            <%= schedule.student_count %> students
+                          </div>
+                          <% if schedule.recurring? %>
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                              </svg>
+                              Weekly
+                            </span>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <% if current_user.teacher? && (schedule.user_id == current_user.id || schedule.instructor_id == current_user.id) %>
+                      <div class="flex items-center gap-2 ml-4">
+                        <%= link_to edit_schedule_path(schedule), class: "p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" do %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        <% end %>
+                        <%= button_to schedule_path(schedule), method: :delete, data: { confirm: "Are you sure you want to delete this schedule?" }, class: "p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" do %>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @schedules.empty? %>
+          <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No schedules found</h3>
+            <% if current_user.teacher? %>
+              <p class="text-gray-600 mb-4">Get started by creating your first class schedule</p>
+              <%= link_to 'Create Schedule', new_schedule_path, class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" %>
+            <% else %>
+              <p class="text-gray-600 mb-4">You are not enrolled in any classes yet. Contact your instructors to get enrolled.</p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vanilla JavaScript for Filters and View Toggle -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dayFilter = document.getElementById('day-filter');
+  const courseFilter = document.getElementById('course-filter');
+  const resetBtn = document.getElementById('reset-filters-btn');
+  const calendarViewBtn = document.getElementById('calendar-view-btn');
+  const listViewBtn = document.getElementById('list-view-btn');
+  const calendarView = document.getElementById('calendar-view');
+  const listView = document.getElementById('list-view');
+
+  // Filter functionality
+  function applyFilters() {
+    const selectedDay = dayFilter.value;
+    const selectedCourse = courseFilter.value;
+
+    // Filter calendar blocks
+    const scheduleBlocks = document.querySelectorAll('.schedule-block');
+    scheduleBlocks.forEach(block => {
+      const blockDay = block.dataset.day;
+      const blockCourse = block.dataset.course;
+      
+      const dayMatch = !selectedDay || blockDay === selectedDay;
+      const courseMatch = !selectedCourse || blockCourse === selectedCourse;
+      
+      if (dayMatch && courseMatch) {
+        block.classList.remove('hidden');
+      } else {
+        block.classList.add('hidden');
+      }
+    });
+
+    // Filter list items
+    const listItems = document.querySelectorAll('.schedule-list-item');
+    const dayGroups = document.querySelectorAll('.schedule-day-group');
+    
+    listItems.forEach(item => {
+      const itemDay = item.dataset.day;
+      const itemCourse = item.dataset.course;
+      
+      const dayMatch = !selectedDay || itemDay === selectedDay;
+      const courseMatch = !selectedCourse || itemCourse === selectedCourse;
+      
+      if (dayMatch && courseMatch) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    // Hide empty day groups
+    dayGroups.forEach(group => {
+      const visibleItems = group.querySelectorAll('.schedule-list-item:not(.hidden)');
+      if (visibleItems.length === 0) {
+        group.classList.add('hidden');
+      } else {
+        group.classList.remove('hidden');
+      }
+    });
+  }
+
+  // Reset filters
+  function resetFilters() {
+    dayFilter.value = '';
+    courseFilter.value = '';
+    applyFilters();
+  }
+
+  // View toggle
+  function switchView(view) {
+    if (view === 'calendar') {
+      calendarView.classList.remove('hidden');
+      listView.classList.add('hidden');
+      calendarViewBtn.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+      calendarViewBtn.classList.remove('text-gray-600');
+      listViewBtn.classList.remove('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+      listViewBtn.classList.add('text-gray-600');
+    } else {
+      calendarView.classList.add('hidden');
+      listView.classList.remove('hidden');
+      listViewBtn.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+      listViewBtn.classList.remove('text-gray-600');
+      calendarViewBtn.classList.remove('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+      calendarViewBtn.classList.add('text-gray-600');
+    }
+  }
+
+  // Event listeners
+  dayFilter.addEventListener('change', applyFilters);
+  courseFilter.addEventListener('change', applyFilters);
+  resetBtn.addEventListener('click', resetFilters);
+  calendarViewBtn.addEventListener('click', () => switchView('calendar'));
+  listViewBtn.addEventListener('click', () => switchView('list'));
+
+  // Initialize
+  applyFilters();
+});

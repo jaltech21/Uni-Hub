@@ -1,0 +1,179 @@
+<div class="widget-body">
+  <% config = widget.configuration_with_defaults %>
+  <% show_forecast = config['show_forecast'] != false %>
+  <% units = config['units'] || 'metric' %>
+  <% temp_unit = units == 'metric' ? '°C' : '°F' %>
+  
+  <div class="weather-widget">
+    <% if data[:current_weather] %>
+      <!-- Current Weather -->
+      <div class="current-weather text-center mb-4">
+        <div class="weather-location mb-2">
+          <i class="fas fa-map-marker-alt me-1"></i>
+          <%= data[:location] || 'Your Location' %>
+        </div>
+        
+        <div class="weather-main d-flex align-items-center justify-content-center mb-3">
+          <div class="weather-icon me-3">
+            <i class="<%= weather_icon(data[:current_weather][:condition]) %> fa-4x"></i>
+          </div>
+          <div class="weather-temp">
+            <div class="temp-value display-3 fw-bold">
+              <%= data[:current_weather][:temperature] %><span class="temp-unit"><%= temp_unit %></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="weather-condition h5 mb-3">
+          <%= data[:current_weather][:condition] %>
+        </div>
+        
+        <div class="weather-details row g-2 mb-3">
+          <div class="col-4">
+            <div class="detail-item">
+              <i class="fas fa-tint text-info"></i>
+              <div class="detail-label">Humidity</div>
+              <div class="detail-value"><%= data[:current_weather][:humidity] %>%</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="detail-item">
+              <i class="fas fa-wind text-secondary"></i>
+              <div class="detail-label">Wind</div>
+              <div class="detail-value"><%= data[:current_weather][:wind_speed] %> km/h</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="detail-item">
+              <i class="fas fa-eye text-muted"></i>
+              <div class="detail-label">Visibility</div>
+              <div class="detail-value"><%= data[:current_weather][:visibility] %> km</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="feels-like text-muted">
+          Feels like <%= data[:current_weather][:feels_like] %><%= temp_unit %>
+        </div>
+      </div>
+      
+      <!-- Forecast -->
+      <% if show_forecast && data[:forecast]&.any? %>
+        <div class="weather-forecast">
+          <h6 class="mb-3 text-center">5-Day Forecast</h6>
+          <div class="forecast-list">
+            <% data[:forecast].first(5).each do |day| %>
+              <div class="forecast-item">
+                <div class="forecast-day"><%= day[:day] %></div>
+                <div class="forecast-icon">
+                  <i class="<%= weather_icon(day[:condition]) %> fa-lg"></i>
+                </div>
+                <div class="forecast-temps">
+                  <span class="temp-high"><%= day[:high] %><%= temp_unit %></span>
+                  <span class="temp-low text-muted"><%= day[:low] %><%= temp_unit %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      
+      <div class="weather-footer text-center mt-3 pt-3 border-top">
+        <small class="text-muted">
+          Last updated: <%= time_ago_in_words(data[:updated_at]) %> ago
+        </small>
+      </div>
+    <% else %>
+      <div class="text-center py-4">
+        <i class="fas fa-cloud-sun fa-3x text-muted mb-3"></i>
+        <p class="text-muted mb-0">Weather data unavailable</p>
+        <small class="text-muted">Check your location settings</small>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .weather-widget {
+    font-size: 0.9rem;
+  }
+  .weather-widget .current-weather {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 1rem;
+    margin: -1rem -1rem 1rem -1rem;
+    border-radius: 0.5rem;
+  }
+  .weather-widget .weather-location {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+  .weather-widget .weather-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .weather-widget .temp-value {
+    color: white;
+    line-height: 1;
+  }
+  .weather-widget .temp-unit {
+    font-size: 2rem;
+    opacity: 0.8;
+  }
+  .weather-widget .weather-condition {
+    color: rgba(255, 255, 255, 0.95);
+    text-transform: capitalize;
+  }
+  .weather-widget .detail-item {
+    text-align: center;
+  }
+  .weather-widget .detail-item i {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+  .weather-widget .detail-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+  }
+  .weather-widget .detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .weather-widget .feels-like {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .weather-widget .forecast-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .weather-widget .forecast-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+  .weather-widget .forecast-day {
+    font-weight: 600;
+    min-width: 70px;
+  }
+  .weather-widget .forecast-icon {
+    color: #667eea;
+    min-width: 40px;
+    text-align: center;
+  }
+  .weather-widget .forecast-temps {
+    text-align: right;
+  }
+  .weather-widget .temp-high {
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  .weather-widget .temp-low {
+    font-size: 0.85rem;
+  }
+</style>

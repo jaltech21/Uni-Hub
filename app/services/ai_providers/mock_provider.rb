@@ -1,0 +1,212 @@
+# frozen_string_literal: true
+
+module AiProviders
+  class MockProvider < BaseProvider
+    def initialize(api_key: nil)
+      super(api_key: api_key || 'mock_key')
+    end
+
+    def summarize_text(text, length:, user_id:)
+      start_time = Time.current
+      
+      # Check rate limit
+      unless can_make_request?(user_id)
+        log_rate_limit(user_id, 'summarize_text')
+        return {
+          success: false,
+          error: "Rate limit exceeded. Please wait before making another request.",
+          rate_limited: true
+        }
+      end
+
+      begin
+        log_request(user_id, 'summarize_text', { length: length, text_length: text.length })
+        
+        # Simulate API delay
+        sleep(rand(1.0..2.5))
+        
+        summary = generate_mock_summary(text, length)
+        mock_tokens = 150
+        
+        @rate_limiter.record_request(user_id)
+        processing_time = (Time.current - start_time).round(2)
+        log_success(user_id, 'summarize_text', processing_time, mock_tokens)
+        
+        {
+          success: true,
+          summary: "[MOCK MODE] #{summary}",
+          tokens_used: mock_tokens,
+          processing_time: processing_time
+        }
+      rescue StandardError => e
+        processing_time = (Time.current - start_time).round(2)
+        log_failure(user_id, 'summarize_text', e, processing_time)
+        
+        {
+          success: false,
+          error: e.message
+        }
+      end
+    end
+
+    def generate_questions(text, question_type:, count:, difficulty:, user_id:)
+      start_time = Time.current
+      
+      # Check rate limit
+      unless can_make_request?(user_id)
+        log_rate_limit(user_id, 'generate_questions')
+        return {
+          success: false,
+          error: "Rate limit exceeded. Please wait before making another request.",
+          rate_limited: true
+        }
+      end
+
+      begin
+        log_request(user_id, 'generate_questions', { 
+          question_type: question_type, 
+          count: count, 
+          difficulty: difficulty 
+        })
+        
+        # Simulate API delay
+        sleep(rand(2.0..4.0))
+        
+        questions = generate_mock_questions(text, question_type, count)
+        mock_tokens = 300
+        
+        @rate_limiter.record_request(user_id)
+        processing_time = (Time.current - start_time).round(2)
+        log_success(user_id, 'generate_questions', processing_time, mock_tokens)
+        
+        {
+          success: true,
+          questions: questions,
+          tokens_used: mock_tokens,
+          processing_time: processing_time
+        }
+      rescue StandardError => e
+        processing_time = (Time.current - start_time).round(2)
+        log_failure(user_id, 'generate_questions', e, processing_time)
+        
+        {
+          success: false,
+          error: e.message
+        }
+      end
+    end
+
+    def get_study_hints(topic, user_id:)
+      start_time = Time.current
+      
+      # Check rate limit
+      unless can_make_request?(user_id)
+        log_rate_limit(user_id, 'get_study_hints')
+        return {
+          success: false,
+          error: "Rate limit exceeded. Please wait before making another request.",
+          rate_limited: true
+        }
+      end
+
+      begin
+        log_request(user_id, 'get_study_hints', { topic: topic })
+        
+        # Simulate API delay
+        sleep(rand(0.5..1.5))
+        
+        hints = generate_mock_hints(topic)
+        mock_tokens = 100
+        
+        @rate_limiter.record_request(user_id)
+        processing_time = (Time.current - start_time).round(2)
+        log_success(user_id, 'get_study_hints', processing_time, mock_tokens)
+        
+        {
+          success: true,
+          hints: hints,
+          tokens_used: mock_tokens,
+          processing_time: processing_time
+        }
+      rescue StandardError => e
+        processing_time = (Time.current - start_time).round(2)
+        log_failure(user_id, 'get_study_hints', e, processing_time)
+        
+        {
+          success: false,
+          error: e.message
+        }
+      end
+    end
+
+    private
+
+    def generate_mock_summary(text, length)
+      case length
+      when :short
+        "This is a brief summary of the provided text. Key points have been extracted and condensed."
+      when :medium
+        "This is a comprehensive summary of your text. The main ideas have been identified and presented clearly. Important concepts are highlighted, and the overall message is preserved while reducing length significantly."
+      when :long
+        "This is a detailed summary of your content. The text has been analyzed carefully to extract all key points and main themes. Important concepts are explained thoroughly, supporting details are included where relevant, and the overall narrative flow is maintained. This summary provides a complete overview while still being more concise than the original."
+      else
+        "This is a mock summary of your text. In production, this would be generated by AI."
+      end
+    end
+
+    def generate_mock_questions(text, question_type, count)
+      questions = []
+      
+      count.times do |i|
+        case question_type.to_sym
+        when :multiple_choice
+          options = [
+            "The foundational principles and core concepts",
+            "Advanced implementation strategies",
+            "Historical context and background",
+            "Practical applications and use cases"
+          ]
+          questions << {
+            type: 'multiple_choice',
+            question: "What is the main concept discussed in point #{i + 1} of the text?",
+            options: options,
+            correct_answer: options[1], # Must match one of the options
+            explanation: "This is a mock explanation. The text emphasizes advanced strategies based on the analysis."
+          }
+        when :true_false
+          questions << {
+            type: 'true_false',
+            question: "Statement #{i + 1}: The text discusses important educational concepts.",
+            options: ['True', 'False'],
+            correct_answer: 'True',
+            explanation: "This statement is true based on the content provided."
+          }
+        when :short_answer
+          questions << {
+            type: 'short_answer',
+            question: "Explain the key concept #{i + 1} mentioned in the text.",
+            options: [],
+            correct_answer: "A comprehensive explanation would include multiple aspects of the concept, considering both theoretical foundations and practical applications.",
+            explanation: "Look for specific details in the text that support your answer."
+          }
+        else
+          # Mixed questions - randomly choose a type
+          type = [:multiple_choice, :true_false, :short_answer].sample
+          questions.concat(generate_mock_questions(text, type, 1))
+        end
+      end
+      
+      questions
+    end
+
+    def generate_mock_hints(topic)
+      [
+        "Start by breaking down #{topic} into smaller, manageable concepts",
+        "Create a mind map or visual diagram to connect related ideas",
+        "Practice active recall by testing yourself regularly",
+        "Use the Feynman Technique: explain the concept in simple terms",
+        "Review your notes within 24 hours to improve retention"
+      ]
+    end
+  end
+end

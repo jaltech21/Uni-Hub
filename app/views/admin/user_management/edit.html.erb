@@ -1,0 +1,174 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header with Back Button -->
+    <div class="mb-6">
+      <%= link_to admin_user_management_index_path, class: "inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 mb-4" do %>
+        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to User Management
+      <% end %>
+      <h1 class="text-3xl font-bold text-gray-900">Edit User</h1>
+      <p class="mt-2 text-sm text-gray-600">Update user information and permissions</p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+      <%= form_with(model: @user, url: admin_user_management_path(@user), method: :patch, local: true, class: "divide-y divide-gray-200") do |form| %>
+        <!-- Error Messages -->
+        <% if @user.errors.any? %>
+          <div class="px-6 py-4 bg-red-50 border-l-4 border-red-500">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  <%= pluralize(@user.errors.count, "error") %> prevented this user from being saved
+                </h3>
+                <ul class="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
+                  <% @user.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Form Fields -->
+        <div class="px-6 py-6 space-y-6">
+          <!-- User Info Section -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">User Information</h3>
+            
+            <!-- Current Info (Read Only) -->
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 mb-6 border border-indigo-100">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <span class="block text-xs font-medium text-indigo-600 uppercase tracking-wide">Email</span>
+                  <span class="block text-sm font-semibold text-gray-900 mt-1"><%= @user.email %></span>
+                </div>
+                <div>
+                  <span class="block text-xs font-medium text-indigo-600 uppercase tracking-wide">Current Role</span>
+                  <span class="block text-sm font-semibold text-gray-900 mt-1 capitalize"><%= @user.role %></span>
+                </div>
+                <div>
+                  <span class="block text-xs font-medium text-indigo-600 uppercase tracking-wide">Joined</span>
+                  <span class="block text-sm font-semibold text-gray-900 mt-1"><%= @user.created_at.strftime("%B %d, %Y") %></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Name Fields -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <%= form.label :first_name, "First Name", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= form.text_field :first_name, 
+                    placeholder: "John",
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+
+              <div>
+                <%= form.label :last_name, "Last Name", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                <%= form.text_field :last_name,
+                    placeholder: "Doe",
+                    class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Role & Permissions Section -->
+          <div class="pt-6 border-t border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Role & Permissions</h3>
+            
+            <!-- Role Selection -->
+            <div class="mb-6">
+              <%= form.label :role, "User Role", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.select :role, 
+                  options_for_select([
+                    ['Student - Can enroll in courses', 'student'],
+                    ['Tutor - Can teach and manage courses', 'tutor'],
+                    ['Admin - Full system access', 'admin']
+                  ], @user.role),
+                  {},
+                  class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <p class="text-xs text-blue-800 leading-relaxed">
+                  <span class="font-semibold">💡 Role Guide:</span><br>
+                  <strong>Student:</strong> Enrolled in one primary department<br>
+                  <strong>Tutor:</strong> Can teach courses across multiple departments<br>
+                  <strong>Admin:</strong> Full access to manage users, courses, and departments
+                </p>
+              </div>
+            </div>
+
+            <!-- Primary Department (for Students) -->
+            <div id="primary-department">
+              <%= form.label :department_id, "Primary Department", class: "block text-sm font-medium text-gray-700 mb-2" %>
+              <%= form.select :department_id, 
+                  options_for_select([['Select Department', '']] + @departments.map { |d| [d.name, d.id] }, @user.department_id),
+                  {},
+                  class: "block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-150 ease-in-out text-sm" %>
+              <p class="mt-2 text-xs text-gray-500">Required for students. For tutors, this serves as their home department.</p>
+            </div>
+
+            <!-- Teaching Departments (for Tutors) -->
+            <div id="teaching-departments" class="mt-6" style="<%= @user.student? ? 'display: none;' : '' %>">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Teaching Departments</label>
+              <div class="border-2 border-gray-200 rounded-lg p-4 space-y-2 max-h-64 overflow-y-auto bg-gray-50">
+                <% @departments.each do |department| %>
+                  <label class="flex items-center p-3 hover:bg-white rounded-lg cursor-pointer transition duration-150 ease-in-out border border-transparent hover:border-indigo-200">
+                    <%= check_box_tag 'user[teaching_department_ids][]', 
+                        department.id, 
+                        @user.teaching_departments.include?(department),
+                        class: "h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer transition duration-150 ease-in-out" %>
+                    <span class="ml-3 flex-1">
+                      <span class="font-mono text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded"><%= department.code %></span>
+                      <span class="text-sm text-gray-900 ml-2"><%= department.name %></span>
+                    </span>
+                  </label>
+                <% end %>
+              </div>
+              <p class="mt-2 text-xs text-gray-500">💼 Select all departments where this tutor can teach courses</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+          <%= link_to admin_user_management_index_path, class: "inline-flex items-center px-5 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" do %>
+            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          <% end %>
+          <%= form.submit "Update User", class: "inline-flex items-center px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('user_role');
+    const teachingDepartments = document.getElementById('teaching-departments');
+    
+    function toggleTeachingDepartments() {
+      const role = roleSelect.value;
+      if (role === 'tutor' || role === 'admin') {
+        teachingDepartments.style.display = 'block';
+      } else {
+        teachingDepartments.style.display = 'none';
+      }
+    }
+    
+    if (roleSelect && teachingDepartments) {
+      roleSelect.addEventListener('change', toggleTeachingDepartments);
+      toggleTeachingDepartments(); // Initialize on page load
+    }
+  });
+</script>

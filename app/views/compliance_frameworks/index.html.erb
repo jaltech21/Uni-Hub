@@ -1,0 +1,267 @@
+<% content_for :title, "Compliance Frameworks" %>
+
+<div class="compliance-frameworks-index">
+  <!-- Header Section -->
+  <div class="page-header mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Compliance Frameworks</h1>
+        <p class="text-lg text-gray-600 mt-2">Manage regulatory compliance and institutional standards</p>
+      </div>
+      <div class="flex space-x-3">
+        <%= link_to "Compliance Dashboard", compliance_dashboard_compliance_frameworks_path, 
+            class: "btn btn-outline" %>
+        <%= link_to "New Framework", new_compliance_framework_path, 
+            class: "btn btn-primary" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <%= form_with url: compliance_frameworks_path, method: :get, local: true, class: "flex flex-wrap gap-4 items-end" do |form| %>
+      <div class="form-group flex-1 min-w-64">
+        <%= form.label :search, "Search Frameworks", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :search, 
+            value: params[:search], 
+            placeholder: "Search by name, regulatory body...", 
+            class: "form-input w-full" %>
+      </div>
+      
+      <div class="form-group">
+        <%= form.label :regulatory_body, "Regulatory Body", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.select :regulatory_body, 
+            options_for_select([['All Bodies', '']] + @regulatory_bodies.map { |rb| [rb, rb] }, params[:regulatory_body]),
+            {}, 
+            { class: "form-select" } %>
+      </div>
+      
+      <div class="form-group">
+        <%= form.label :status, "Status", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.select :status,
+            options_for_select([['All Statuses', '']] + @statuses.map { |s| [s.humanize, s] }, params[:status]),
+            {},
+            { class: "form-select" } %>
+      </div>
+      
+      <div class="form-actions">
+        <%= form.submit "Search", class: "btn btn-primary" %>
+        <%= link_to "Clear", compliance_frameworks_path, class: "btn btn-outline ml-2" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="stats-grid grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="p-3 bg-blue-100 rounded-full">
+            <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Frameworks</p>
+          <p class="text-2xl font-bold text-gray-900"><%= @compliance_frameworks.total_count %></p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="p-3 bg-green-100 rounded-full">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Active Frameworks</p>
+          <p class="text-2xl font-bold text-green-600"><%= @compliance_frameworks.where(status: 'active').count %></p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="p-3 bg-yellow-100 rounded-full">
+            <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Needs Attention</p>
+          <p class="text-2xl font-bold text-yellow-600">
+            <%= @compliance_frameworks.select { |f| (f.days_since_last_assessment || 0) > 90 }.count %>
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="p-3 bg-purple-100 rounded-full">
+            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Avg Score</p>
+          <p class="text-2xl font-bold text-purple-600">
+            <%= number_to_percentage(@compliance_frameworks.average(:compliance_threshold) || 0, precision: 1) %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frameworks Table -->
+  <div class="frameworks-table bg-white rounded-lg shadow-sm border">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-900">Compliance Frameworks</h2>
+        <div class="flex space-x-2">
+          <%= link_to compliance_frameworks_path(format: :csv, **params.permit(:search, :regulatory_body, :status)), 
+              class: "btn btn-outline btn-sm" do %>
+            <i class="fas fa-download mr-2"></i>Export CSV
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Framework
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Regulatory Body
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Campus
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Compliance Score
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Last Assessment
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Next Assessment
+            </th>
+            <th scope="col" class="relative px-6 py-3">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @compliance_frameworks.each do |framework| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div>
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= link_to framework.name, framework, class: "hover:text-blue-600" %>
+                  </div>
+                  <div class="text-sm text-gray-500 truncate max-w-xs">
+                    <%= framework.description %>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= framework.regulatory_body %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= framework.campus&.name || "All Campuses" %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                  <%= case framework.status
+                      when 'active' then 'bg-green-100 text-green-800'
+                      when 'inactive' then 'bg-gray-100 text-gray-800'
+                      when 'under_review' then 'bg-yellow-100 text-yellow-800'
+                      else 'bg-red-100 text-red-800'
+                      end %>">
+                  <%= framework.status.humanize %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= number_to_percentage(framework.current_compliance_score, precision: 1) %>
+                  </div>
+                  <div class="ml-3 w-16 bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full 
+                      <%= framework.current_compliance_score >= 80 ? 'bg-green-500' : 
+                          framework.current_compliance_score >= 60 ? 'bg-yellow-500' : 'bg-red-500' %>"
+                         style="width: <%= framework.current_compliance_score %>%"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if framework.last_assessment_date %>
+                  <%= time_ago_in_words(framework.last_assessment_date) %> ago
+                <% else %>
+                  <span class="text-gray-400">Never</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if framework.next_assessment_date %>
+                  <%= framework.next_assessment_date.strftime('%b %d, %Y') %>
+                <% else %>
+                  <span class="text-gray-400">Not scheduled</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex space-x-2">
+                  <%= link_to framework, class: "text-blue-600 hover:text-blue-900" do %>
+                    <i class="fas fa-eye" title="View"></i>
+                  <% end %>
+                  <%= link_to edit_compliance_framework_path(framework), 
+                      class: "text-indigo-600 hover:text-indigo-900" do %>
+                    <i class="fas fa-edit" title="Edit"></i>
+                  <% end %>
+                  <%= link_to generate_report_compliance_framework_path(framework), 
+                      method: :post,
+                      class: "text-green-600 hover:text-green-900",
+                      title: "Generate Report" do %>
+                    <i class="fas fa-file-alt"></i>
+                  <% end %>
+                  <%= link_to schedule_assessment_compliance_framework_path(framework), 
+                      method: :post,
+                      class: "text-purple-600 hover:text-purple-900",
+                      title: "Schedule Assessment" do %>
+                    <i class="fas fa-calendar-plus"></i>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if @compliance_frameworks.respond_to?(:current_page) %>
+      <div class="px-6 py-4 border-t border-gray-200">
+        <%= paginate @compliance_frameworks, theme: 'twitter_bootstrap_4' %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Empty State -->
+  <% if @compliance_frameworks.empty? %>
+    <div class="empty-state text-center py-12">
+      <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-shield-alt text-gray-400 text-3xl"></i>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No compliance frameworks found</h3>
+      <p class="text-gray-500 mb-6">Get started by creating your first compliance framework.</p>
+      <%= link_to "Create Framework", new_compliance_framework_path, 
+          class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

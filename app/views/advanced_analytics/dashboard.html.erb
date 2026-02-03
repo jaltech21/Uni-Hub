@@ -1,0 +1,860 @@
+<% content_for :title, "Advanced Analytics Dashboard" %>
+<% content_for :description, "Comprehensive analytics and intelligence platform for data-driven insights" %>
+
+<div class="analytics-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="row align-items-center mb-4">
+      <div class="col-md-8">
+        <h1 class="dashboard-title">
+          <i class="fas fa-chart-line me-2"></i>
+          Advanced Analytics Dashboard
+        </h1>
+        <p class="dashboard-subtitle text-muted">
+          Real-time insights, predictive analytics, and business intelligence for institutional excellence
+        </p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-primary" id="refreshDashboard">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+          </button>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fas fa-download me-1"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" data-export="pdf"><i class="far fa-file-pdf me-2"></i>PDF Report</a></li>
+              <li><a class="dropdown-item" href="#" data-export="excel"><i class="far fa-file-excel me-2"></i>Excel Data</a></li>
+              <li><a class="dropdown-item" href="#" data-export="csv"><i class="fas fa-file-csv me-2"></i>CSV Export</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Total Analytics</h5>
+              <h3 class="card-text text-primary mb-0" id="totalAnalytics">
+                <%= number_with_delimiter(@dashboard_summary[:total_analytics]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-chart-bar fa-2x text-primary opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-success">
+            <i class="fas fa-arrow-up me-1"></i>
+            <%= @dashboard_summary[:analytics_growth] %>% this month
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Active Predictions</h5>
+              <h3 class="card-text text-success mb-0" id="activePredictions">
+                <%= number_with_delimiter(@dashboard_summary[:active_predictions]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-brain fa-2x text-success opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-info">
+            <i class="fas fa-bullseye me-1"></i>
+            <%= @dashboard_summary[:avg_accuracy] %>% average accuracy
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">BI Reports</h5>
+              <h3 class="card-text text-warning mb-0" id="biReports">
+                <%= number_with_delimiter(@dashboard_summary[:bi_reports_count]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-file-chart-line fa-2x text-warning opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-primary">
+            <i class="fas fa-clock me-1"></i>
+            <%= @dashboard_summary[:reports_this_week] %> generated this week
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stats-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">System Health</h5>
+              <h3 class="card-text text-info mb-0" id="systemHealth">
+                <%= @dashboard_summary[:system_health_score] %>%
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-heartbeat fa-2x text-info opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-muted">
+            <i class="fas fa-shield-alt me-1"></i>
+            <%= @dashboard_summary[:critical_alerts] %> critical alerts
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Analytics Content -->
+  <div class="row">
+    <!-- Left Column - Charts and Trends -->
+    <div class="col-lg-8">
+      <!-- Performance Trends Chart -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-line-chart me-2"></i>
+            Performance Trends
+          </h5>
+        </div>
+        <div class="card-body">
+          <canvas id="performanceTrendsChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Campus Comparison Chart -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-university me-2"></i>
+            Campus Performance Comparison
+          </h5>
+        </div>
+        <div class="card-body">
+          <canvas id="campusComparisonChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- Predictive Analytics Insights -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-crystal-ball me-2"></i>
+                Predictive Insights
+              </h5>
+            </div>
+            <div class="col-auto">
+              <a href="<%= predictive_analytics_path %>" class="btn btn-sm btn-outline-primary">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <% @recent_predictions.each do |prediction| %>
+              <div class="col-md-6 mb-3">
+                <div class="prediction-card p-3 border rounded">
+                  <h6 class="prediction-title"><%= prediction[:title] %></h6>
+                  <p class="prediction-description text-muted mb-2"><%= prediction[:description] %></p>
+                  <div class="prediction-metrics">
+                    <span class="badge bg-<%= prediction[:confidence_level] == 'high' ? 'success' : prediction[:confidence_level] == 'medium' ? 'warning' : 'secondary' %> me-2">
+                      <%= prediction[:confidence_level].capitalize %> Confidence
+                    </span>
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i>
+                      <%= time_ago_in_words(prediction[:created_at]) %> ago
+                    </small>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Insights and Alerts -->
+    <div class="col-lg-4">
+      <!-- Real-time Alerts -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Real-time Alerts
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @active_alerts.any? %>
+            <% @active_alerts.each do |alert| %>
+              <div class="alert alert-<%= alert[:severity] == 'critical' ? 'danger' : alert[:severity] == 'warning' ? 'warning' : 'info' %> alert-dismissible fade show mb-2" role="alert">
+                <strong><i class="fas fa-<%= alert[:icon] %> me-1"></i><%= alert[:title] %></strong>
+                <p class="mb-1 small"><%= alert[:message] %></p>
+                <small class="text-muted">
+                  <i class="fas fa-clock me-1"></i>
+                  <%= time_ago_in_words(alert[:timestamp]) %> ago
+                </small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-check-circle fa-3x mb-2"></i>
+              <p class="mb-0">All systems running normally</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Key Insights -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-lightbulb me-2"></i>
+            Key Insights
+          </h5>
+        </div>
+        <div class="card-body">
+          <% @key_insights.each do |insight| %>
+            <div class="insight-item mb-3">
+              <div class="d-flex align-items-start">
+                <div class="insight-icon me-3">
+                  <i class="fas fa-<%= insight[:icon] %> text-<%= insight[:type] %>"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="insight-title mb-1"><%= insight[:title] %></h6>
+                  <p class="insight-description text-muted small mb-2"><%= insight[:description] %></p>
+                  <div class="insight-actions">
+                    <span class="badge bg-<%= insight[:priority] == 'high' ? 'danger' : insight[:priority] == 'medium' ? 'warning' : 'secondary' %> me-2">
+                      <%= insight[:priority].capitalize %> Priority
+                    </span>
+                    <% if insight[:action_url] %>
+                      <a href="<%= insight[:action_url] %>" class="btn btn-sm btn-outline-primary">
+                        Take Action <i class="fas fa-arrow-right ms-1"></i>
+                      </a>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% unless insight == @key_insights.last %>
+              <hr class="my-3">
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Quick Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <%= link_to business_intelligence_reports_path, class: "btn btn-outline-primary" do %>
+              <i class="fas fa-file-chart-line me-2"></i>
+              Generate BI Report
+            <% end %>
+            <%= link_to predictive_analytics_path, class: "btn btn-outline-success" do %>
+              <i class="fas fa-brain me-2"></i>
+              Run Prediction Model
+            <% end %>
+            <%= link_to performance_metrics_path, class: "btn btn-outline-warning" do %>
+              <i class="fas fa-tachometer-alt me-2"></i>
+              Performance Analysis
+            <% end %>
+            <%= link_to "#", class: "btn btn-outline-info", data: { bs_toggle: "modal", bs_target: "#customAnalysisModal" } do %>
+              <i class="fas fa-cogs me-2"></i>
+              Custom Analysis
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section - Detailed Analytics Tables -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab">
+                <i class="fas fa-chart-bar me-2"></i>Metrics Overview
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="predictions-tab" data-bs-toggle="tab" data-bs-target="#predictions" type="button" role="tab">
+                <i class="fas fa-brain me-2"></i>Predictions
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab">
+                <i class="fas fa-tachometer-alt me-2"></i>Performance
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">
+                <i class="fas fa-file-chart-line me-2"></i>Reports
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content">
+            <!-- Metrics Tab -->
+            <div class="tab-pane fade show active" id="metrics" role="tabpanel">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Metric Name</th>
+                      <th>Type</th>
+                      <th>Current Value</th>
+                      <th>Trend</th>
+                      <th>Last Updated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @recent_metrics.each do |metric| %>
+                      <tr>
+                        <td>
+                          <strong><%= metric.metric_name %></strong>
+                          <% if metric.campus %>
+                            <br><small class="text-muted">Campus: <%= metric.campus.name %></small>
+                          <% end %>
+                        </td>
+                        <td>
+                          <span class="badge bg-secondary"><%= metric.metric_type.humanize %></span>
+                        </td>
+                        <td>
+                          <span class="metric-value">
+                            <%= number_with_precision(metric.metric_value, precision: 2) %>
+                            <%= metric.metric_unit if metric.respond_to?(:metric_unit) && metric.metric_unit %>
+                          </span>
+                        </td>
+                        <td>
+                          <% trend = metric.calculate_trend rescue 'stable' %>
+                          <i class="fas fa-arrow-<%= trend == 'up' ? 'up text-success' : trend == 'down' ? 'down text-danger' : 'right text-muted' %>"></i>
+                          <span class="text-<%= trend == 'up' ? 'success' : trend == 'down' ? 'danger' : 'muted' %>">
+                            <%= trend.capitalize %>
+                          </span>
+                        </td>
+                        <td>
+                          <small class="text-muted">
+                            <%= time_ago_in_words(metric.updated_at) %> ago
+                          </small>
+                        </td>
+                        <td>
+                          <div class="btn-group btn-group-sm">
+                            <%= link_to "#", class: "btn btn-outline-primary btn-sm" do %>
+                              <i class="fas fa-eye"></i>
+                            <% end %>
+                            <%= link_to "#", class: "btn btn-outline-secondary btn-sm" do %>
+                              <i class="fas fa-download"></i>
+                            <% end %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Predictions Tab -->
+            <div class="tab-pane fade" id="predictions" role="tabpanel">
+              <div class="row">
+                <% @recent_predictions.each do |prediction| %>
+                  <div class="col-md-6 mb-3">
+                    <div class="card border-start border-4 border-<%= prediction[:confidence_level] == 'high' ? 'success' : prediction[:confidence_level] == 'medium' ? 'warning' : 'secondary' %>">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-<%= prediction[:icon] %> me-2"></i>
+                          <%= prediction[:title] %>
+                        </h6>
+                        <p class="card-text text-muted small"><%= prediction[:description] %></p>
+                        <div class="prediction-details mb-2">
+                          <div class="row text-center">
+                            <div class="col">
+                              <strong class="text-<%= prediction[:confidence_level] == 'high' ? 'success' : prediction[:confidence_level] == 'medium' ? 'warning' : 'secondary' %>">
+                                <%= prediction[:confidence] %>%
+                              </strong>
+                              <br><small class="text-muted">Confidence</small>
+                            </div>
+                            <div class="col">
+                              <strong class="text-primary">
+                                <%= prediction[:accuracy] %>%
+                              </strong>
+                              <br><small class="text-muted">Accuracy</small>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            <%= time_ago_in_words(prediction[:created_at]) %> ago
+                          </small>
+                          <%= link_to "#", class: "btn btn-sm btn-outline-primary" do %>
+                            View Details <i class="fas fa-arrow-right ms-1"></i>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-pane fade" id="performance" role="tabpanel">
+              <div class="row">
+                <div class="col-md-8">
+                  <canvas id="performanceOverviewChart" width="400" height="200"></canvas>
+                </div>
+                <div class="col-md-4">
+                  <div class="performance-summary">
+                    <h6>System Performance Summary</h6>
+                    <ul class="list-unstyled">
+                      <li class="d-flex justify-content-between mb-2">
+                        <span>Response Time:</span>
+                        <span class="text-success"><%= @dashboard_summary[:avg_response_time] %>ms</span>
+                      </li>
+                      <li class="d-flex justify-content-between mb-2">
+                        <span>Error Rate:</span>
+                        <span class="text-<%= @dashboard_summary[:error_rate] > 5 ? 'danger' : 'success' %>">
+                          <%= @dashboard_summary[:error_rate] %>%
+                        </span>
+                      </li>
+                      <li class="d-flex justify-content-between mb-2">
+                        <span>Uptime:</span>
+                        <span class="text-success"><%= @dashboard_summary[:uptime] %>%</span>
+                      </li>
+                      <li class="d-flex justify-content-between mb-2">
+                        <span>CPU Usage:</span>
+                        <span class="text-<%= @dashboard_summary[:cpu_usage] > 80 ? 'warning' : 'success' %>">
+                          <%= @dashboard_summary[:cpu_usage] %>%
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-pane fade" id="reports" role="tabpanel">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Report Name</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Generated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @recent_bi_reports.each do |report| %>
+                      <tr>
+                        <td>
+                          <strong><%= report.report_name %></strong>
+                          <% if report.campus %>
+                            <br><small class="text-muted">Campus: <%= report.campus.name %></small>
+                          <% end %>
+                        </td>
+                        <td>
+                          <span class="badge bg-info"><%= report.report_type.humanize %></span>
+                        </td>
+                        <td>
+                          <span class="badge bg-<%= report.status == 'completed' ? 'success' : report.status == 'generating' ? 'warning' : 'secondary' %>">
+                            <%= report.status.humanize %>
+                          </span>
+                        </td>
+                        <td>
+                          <% if report.generated_at %>
+                            <%= time_ago_in_words(report.generated_at) %> ago
+                          <% else %>
+                            <span class="text-muted">In progress</span>
+                          <% end %>
+                        </td>
+                        <td>
+                          <div class="btn-group btn-group-sm">
+                            <%= link_to report, class: "btn btn-outline-primary btn-sm" do %>
+                              <i class="fas fa-eye"></i>
+                            <% end %>
+                            <% if report.status == 'completed' %>
+                              <%= link_to export_business_intelligence_report_path(report, format: 'pdf'), class: "btn btn-outline-secondary btn-sm" do %>
+                                <i class="fas fa-download"></i>
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Analysis Modal -->
+<div class="modal fade" id="customAnalysisModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-cogs me-2"></i>
+          Custom Analysis Setup
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="customAnalysisForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="analysisType" class="form-label">Analysis Type</label>
+              <select class="form-select" id="analysisType" name="analysis_type">
+                <option value="">Select analysis type...</option>
+                <option value="student_performance">Student Performance Analysis</option>
+                <option value="resource_utilization">Resource Utilization Analysis</option>
+                <option value="financial_trends">Financial Trends Analysis</option>
+                <option value="predictive_modeling">Predictive Modeling</option>
+                <option value="comparative_analysis">Comparative Analysis</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="timeRange" class="form-label">Time Range</label>
+              <select class="form-select" id="timeRange" name="time_range">
+                <option value="7_days">Last 7 days</option>
+                <option value="30_days">Last 30 days</option>
+                <option value="90_days">Last 90 days</option>
+                <option value="1_year">Last year</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="campusFilter" class="form-label">Campus Filter</label>
+            <select class="form-select" id="campusFilter" name="campus_id">
+              <option value="">All campuses</option>
+              <% Campus.all.each do |campus| %>
+                <option value="<%= campus.id %>"><%= campus.name %></option>
+              <% end %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="analysisDescription" class="form-label">Analysis Description</label>
+            <textarea class="form-control" id="analysisDescription" name="description" rows="3" 
+                      placeholder="Describe what specific insights you're looking for..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="runCustomAnalysis">
+          <i class="fas fa-play me-2"></i>Run Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.analytics-dashboard .stats-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.analytics-dashboard .stats-card:hover {
+  transform: translateY(-2px);
+}
+
+.prediction-card {
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.prediction-card:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.insight-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+}
+
+.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-value {
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.performance-summary {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize charts
+  initializeCharts();
+  
+  // Setup real-time updates
+  setupRealTimeUpdates();
+  
+  // Setup export functionality
+  setupExportHandlers();
+  
+  // Setup custom analysis
+  setupCustomAnalysis();
+});
+
+function initializeCharts() {
+  // Performance Trends Chart
+  const performanceCtx = document.getElementById('performanceTrendsChart');
+  if (performanceCtx) {
+    new Chart(performanceCtx, {
+      type: 'line',
+      data: {
+        labels: <%= @trend_data[:labels].to_json.html_safe %>,
+        datasets: [{
+          label: 'Performance Score',
+          data: <%= @trend_data[:performance].to_json.html_safe %>,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  }
+  
+  // Campus Comparison Chart
+  const campusCtx = document.getElementById('campusComparisonChart');
+  if (campusCtx) {
+    new Chart(campusCtx, {
+      type: 'bar',
+      data: {
+        labels: <%= @campus_data[:labels].to_json.html_safe %>,
+        datasets: [{
+          label: 'Performance Score',
+          data: <%= @campus_data[:scores].to_json.html_safe %>,
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 205, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  }
+}
+
+function setupRealTimeUpdates() {
+  // Refresh dashboard data every 30 seconds
+  setInterval(function() {
+    fetch('<%= dashboard_advanced_analytics_index_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Update stats cards
+      updateStatsCards(data);
+      
+      // Update alerts
+      updateAlerts(data);
+    })
+    .catch(error => {
+      console.error('Error updating dashboard:', error);
+    });
+  }, 30000);
+}
+
+function updateStatsCards(data) {
+  if (data.dashboard_summary) {
+    document.getElementById('totalAnalytics').textContent = 
+      new Intl.NumberFormat().format(data.dashboard_summary.total_analytics);
+    document.getElementById('activePredictions').textContent = 
+      new Intl.NumberFormat().format(data.dashboard_summary.active_predictions);
+    document.getElementById('biReports').textContent = 
+      new Intl.NumberFormat().format(data.dashboard_summary.bi_reports_count);
+    document.getElementById('systemHealth').textContent = 
+      data.dashboard_summary.system_health_score + '%';
+  }
+}
+
+function setupExportHandlers() {
+  document.querySelectorAll('[data-export]').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const format = this.getAttribute('data-export');
+      
+      // Show loading state
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting...';
+      this.disabled = true;
+      
+      // Trigger export
+      window.location.href = '<%= export_data_advanced_analytics_index_path %>?format=' + format;
+      
+      // Reset button after delay
+      setTimeout(() => {
+        this.innerHTML = originalText;
+        this.disabled = false;
+      }, 2000);
+    });
+  });
+}
+
+function setupCustomAnalysis() {
+  document.getElementById('runCustomAnalysis').addEventListener('click', function() {
+    const form = document.getElementById('customAnalysisForm');
+    const formData = new FormData(form);
+    
+    // Show loading state
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running Analysis...';
+    this.disabled = true;
+    
+    // Submit analysis request
+    fetch('<%= dashboard_advanced_analytics_index_path %>', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Close modal and show success
+        bootstrap.Modal.getInstance(document.getElementById('customAnalysisModal')).hide();
+        showNotification('Analysis completed successfully!', 'success');
+        
+        // Optionally redirect to results
+        if (data.result_url) {
+          window.location.href = data.result_url;
+        }
+      } else {
+        showNotification('Analysis failed: ' + data.error, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error running analysis:', error);
+      showNotification('Analysis failed. Please try again.', 'error');
+    })
+    .finally(() => {
+      this.innerHTML = '<i class="fas fa-play me-2"></i>Run Analysis';
+      this.disabled = false;
+    });
+  });
+}
+
+function showNotification(message, type) {
+  // Create and show a notification
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+
+// Refresh dashboard button
+document.getElementById('refreshDashboard').addEventListener('click', function() {
+  location.reload();
+});
+</script>

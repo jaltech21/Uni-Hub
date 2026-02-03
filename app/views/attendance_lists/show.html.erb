@@ -1,0 +1,121 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl mx-auto">
+    <% if current_user.teacher? %>
+      <div class="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 p-4 mb-8" role="alert">
+        <p class="font-bold mb-4">Student Check-In Code (Changes every 2 minutes)</p>
+
+        <div id="current_code">
+            <%= render partial: 'attendance_lists/current_code' %>
+
+            <div class="text-center mt-4">
+              <button id="refresh-code-btn" 
+                      data-url="<%= refresh_code_attendance_list_path(@attendance_list) %>"
+                      class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition inline-block">
+                🔄 Refresh Now
+              </button>
+            </div>
+        </div>
+        
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const refreshBtn = document.getElementById('refresh-code-btn');
+            const codeContainer = document.getElementById('current_code');
+            
+            // Function to refresh the code
+            function refreshCode(showLoading = true) {
+              if (!refreshBtn || !codeContainer) return;
+              
+              const baseUrl = refreshBtn.getAttribute('data-url');
+              // Add timestamp to prevent caching
+              const url = baseUrl + '?t=' + new Date().getTime();
+              
+              // Add loading state only if manual click
+              if (showLoading) {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = '⏳ Refreshing...';
+              }
+              
+              fetch(url, {
+                headers: {
+                  'Accept': 'text/html',
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                },
+                cache: 'no-store'
+              })
+              .then(response => response.text())
+              .then(html => {
+                // Create a temporary div to parse the response
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Extract just the content we need
+                const newContent = temp.querySelector('#current_code');
+                if (newContent) {
+                  codeContainer.innerHTML = newContent.innerHTML;
+                  
+                  // Re-attach event listener to the new button
+                  const newRefreshBtn = document.getElementById('refresh-code-btn');
+                  if (newRefreshBtn) {
+                    newRefreshBtn.addEventListener('click', handleManualRefresh);
+                  }
+                }
+                
+                // Re-enable button
+                if (showLoading && refreshBtn) {
+                  refreshBtn.disabled = false;
+                  refreshBtn.textContent = '🔄 Refresh Now';
+                }
+              })
+              .catch(error => {
+                console.error('Error refreshing code:', error);
+                if (showLoading && refreshBtn) {
+                  refreshBtn.disabled = false;
+                  refreshBtn.textContent = '🔄 Refresh Now';
+                }
+              });
+            }
+            
+            // Manual refresh handler
+            function handleManualRefresh(e) {
+              e.preventDefault();
+              refreshCode(true);
+            }
+            
+            // Attach click event listener
+            if (refreshBtn) {
+              refreshBtn.addEventListener('click', handleManualRefresh);
+            }
+            
+            // Auto-refresh every 2 minutes
+            const autoRefreshInterval = setInterval(() => {
+              refreshCode(false);
+            }, 120000); // 120 seconds = 2 minutes
+            
+            // Clean up interval when page is unloaded
+            window.addEventListener('beforeunload', () => {
+              clearInterval(autoRefreshInterval);
+            });
+            
+            console.log('Auto-refresh enabled: Code will refresh every 2 minutes');
+          });
+        </script>
+
+        <p class="text-sm mt-4 text-center">
+          Code is valid for **<%= AttendanceList::VALID_PERIOD / 60 %> minutes**. 
+          It will refresh automatically every 2 Minutes.
+        </p>
+        <p class="text-xs text-gray-600 text-center mt-2">
+          Logged in as: <strong><%= current_user.email %></strong> (Role: <%= current_user.role %>)
+        </p>
+      </div>
+
+      <div class="flex justify-between items-center border-t pt-6">
+        <%= link_to 'Manage Attendance Records', attendance_list_attendance_records_path(@attendance_list), class: "bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-green-700 hover:text-white transition-duration-300" %>
+        <%= link_to 'Back to Lists', attendance_lists_path, class: "text-gray-600 font-medium transition-duration-200" %>
+      </div>
+    <% end %>
+  </div>
+</div>

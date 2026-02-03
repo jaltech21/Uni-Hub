@@ -1,0 +1,156 @@
+<div class="assignment-progress-widget">
+  <% if data && data[:assignments] %>
+    <div class="progress-overview mb-3">
+      <div class="row text-center">
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-primary h4">
+              <%= data[:completion_rate] %>%
+            </div>
+            <div class="metric-label text-muted small">Completion</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-success h4">
+              <%= data[:completed_count] %>
+            </div>
+            <div class="metric-label text-muted small">Completed</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="metric">
+            <div class="metric-value text-warning h4">
+              <%= data[:pending_count] %>
+            </div>
+            <div class="metric-label text-muted small">Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="progress-bar-container mb-3">
+      <div class="progress" style="height: 8px;">
+        <div class="progress-bar bg-success" 
+             style="width: <%= data[:completion_rate] %>%"></div>
+      </div>
+      <div class="progress-labels d-flex justify-content-between mt-1">
+        <small class="text-muted">0%</small>
+        <small class="text-primary font-weight-bold">
+          <%= data[:completion_rate] %>% Complete
+        </small>
+        <small class="text-muted">100%</small>
+      </div>
+    </div>
+    
+    <div class="recent-assignments">
+      <h6 class="widget-subtitle mb-2">Recent Assignments</h6>
+      <% data[:assignments].first(3).each do |assignment| %>
+        <div class="assignment-item d-flex justify-content-between align-items-center mb-2">
+          <div class="assignment-info">
+            <div class="assignment-title text-truncate">
+              <%= assignment[:title] %>
+            </div>
+            <small class="text-muted">
+              Due: <%= assignment[:due_date].strftime('%m/%d') if assignment[:due_date] %>
+            </small>
+          </div>
+          <div class="assignment-status">
+            <% if assignment[:status] == 'completed' %>
+              <span class="badge bg-success">
+                <%= assignment[:grade] ? "#{assignment[:grade]}%" : 'Done' %>
+              </span>
+            <% elsif assignment[:status] == 'submitted' %>
+              <span class="badge bg-info">Submitted</span>
+            <% elsif assignment[:status] == 'overdue' %>
+              <span class="badge bg-danger">Overdue</span>
+            <% else %>
+              <span class="badge bg-warning">Pending</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      
+      <% if data[:assignments].count > 3 %>
+        <div class="text-center mt-2">
+          <small class="text-muted">
+            <%= pluralize(data[:assignments].count - 3, 'more assignment') %>
+          </small>
+        </div>
+      <% end %>
+    </div>
+    
+    <% if data[:upcoming] && data[:upcoming].any? %>
+      <div class="upcoming-assignments mt-3 pt-3 border-top">
+        <h6 class="widget-subtitle mb-2">
+          <i class="fas fa-clock me-1"></i>
+          Upcoming Deadlines
+        </h6>
+        <% data[:upcoming].first(2).each do |assignment| %>
+          <div class="upcoming-item d-flex justify-content-between align-items-center mb-1">
+            <div class="upcoming-title text-truncate">
+              <%= assignment[:title] %>
+            </div>
+            <small class="text-warning">
+              <%= time_ago_in_words(assignment[:due_date]) %> left
+            </small>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="text-center py-4">
+      <i class="fas fa-tasks fa-2x text-muted mb-2"></i>
+      <p class="text-muted">No assignment data available</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.assignment-progress-widget .metric {
+  padding: 0.5rem 0;
+}
+
+.assignment-progress-widget .metric-value {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.assignment-progress-widget .widget-subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.assignment-progress-widget .assignment-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.assignment-progress-widget .assignment-item:last-child {
+  border-bottom: none;
+}
+
+.assignment-progress-widget .assignment-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  max-width: 150px;
+}
+
+.assignment-progress-widget .upcoming-item {
+  padding: 0.25rem 0;
+}
+
+.assignment-progress-widget .upcoming-title {
+  font-size: 0.85rem;
+  max-width: 120px;
+}
+
+.assignment-progress-widget .progress-labels {
+  font-size: 0.75rem;
+}
+
+.assignment-progress-widget .badge {
+  font-size: 0.7rem;
+}
+</style>

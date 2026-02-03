@@ -1,0 +1,45 @@
+<div>
+  <% if data && data[:assignments] %>
+    <div class="space-y-3">
+      <% data[:assignments].each do |assignment| %>
+        <div class="p-3 border border-gray-200 rounded-lg hover:shadow-md transition">
+          <div class="flex justify-between items-start mb-2">
+            <div class="font-medium text-gray-800">
+              <%= truncate(assignment[:title], length: 40) %>
+            </div>
+            <span class="px-2 py-1 text-xs rounded-full <%= assignment[:status] == 'completed' ? 'bg-green-100 text-green-700' : assignment[:status] == 'in_progress' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700' %>">
+              <%= assignment[:status].humanize %>
+            </span>
+          </div>
+          
+          <div class="text-gray-600 text-sm mb-2">
+            <i class="fas fa-book mr-1"></i>
+            <%= assignment[:course] %>
+          </div>
+          
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div class="h-2 rounded-full <%= assignment[:progress] == 100 ? 'bg-green-500' : assignment[:progress] > 50 ? 'bg-yellow-500' : 'bg-blue-500' %>"
+                 style="width: <%= assignment[:progress] %>%">
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <div class="text-sm text-gray-600">
+              <%= assignment[:progress] %>% complete
+            </div>
+            <div class="text-sm <%= assignment[:days_until_due] <= 3 ? 'text-red-600' : assignment[:days_until_due] <= 7 ? 'text-yellow-600' : 'text-gray-600' %>">
+              <i class="fas fa-calendar mr-1"></i>
+              <%= assignment[:due_date] %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center text-gray-500 py-8">
+      <i class="fas fa-tasks text-4xl mb-3"></i>
+      <p class="mb-1">No assignments found</p>
+      <small>Assignment progress will appear here</small>
+    </div>
+  <% end %>
+</div>

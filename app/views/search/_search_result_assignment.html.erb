@@ -1,0 +1,73 @@
+<div class="flex items-start justify-between">
+  <div class="flex-1">
+    <div class="flex items-center gap-3 mb-2">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-900">
+        <%= link_to item.title, 
+            assignment_path(item), 
+            class: "hover:text-blue-600 transition-colors" %>
+      </h3>
+      
+      <% if item.respond_to?(:due_date) && item.due_date %>
+        <% due_class = item.due_date < Date.current ? "bg-red-100 text-red-800" : 
+                      item.due_date <= 3.days.from_now ? "bg-yellow-100 text-yellow-800" : 
+                      "bg-green-100 text-green-800" %>
+        <span class="px-2 py-1 text-xs font-medium rounded-full <%= due_class %>">
+          Due <%= item.due_date.strftime("%m/%d") %>
+        </span>
+      <% end %>
+    </div>
+    
+    <% if item.description.present? %>
+      <p class="text-gray-700 mb-3 line-clamp-3">
+        <%= highlight(truncate(strip_tags(item.description), length: 200), query, 
+            highlighter: '<mark class="bg-yellow-200 px-1 rounded">\1</mark>') %>
+      </p>
+    <% end %>
+    
+    <div class="flex items-center gap-4 text-sm text-gray-500">
+      <div class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <%= item.user.name if item.respond_to?(:user) && item.user %>
+      </div>
+      
+      <% if item.respond_to?(:subject) && item.subject.present? %>
+        <div class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+          <%= item.subject %>
+        </div>
+      <% end %>
+      
+      <% if item.respond_to?(:submissions) %>
+        <div class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+          </svg>
+          <%= pluralize(item.submissions.count, 'submission') %>
+        </div>
+      <% end %>
+      
+      <div class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <%= time_ago_in_words(item.created_at) %> ago
+      </div>
+    </div>
+  </div>
+  
+  <div class="ml-4 flex-shrink-0">
+    <div class="flex items-center gap-2">
+      <%= link_to assignment_path(item), 
+          class: "text-blue-600 hover:text-blue-800 text-sm font-medium" do %>
+        View →
+      <% end %>
+    </div>
+  </div>
+</div>

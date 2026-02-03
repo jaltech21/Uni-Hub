@@ -1,0 +1,143 @@
+<div class="widget-body">
+  <% config = widget.configuration_with_defaults %>
+  <% show_trends = config['show_trends'] != false %>
+  <% chart_type = config['chart_type'] || 'line' %>
+  
+  <div class="grade-overview">
+    <!-- Overall GPA -->
+    <div class="gpa-display text-center mb-4">
+      <div class="gpa-label text-muted mb-1">Current GPA</div>
+      <div class="gpa-value display-4 fw-bold text-primary">
+        <%= data[:current_gpa] || '0.00' %>
+      </div>
+      <div class="gpa-trend text-sm">
+        <% if show_trends && data[:gpa_trend] %>
+          <% if data[:gpa_trend] > 0 %>
+            <span class="text-success">
+              <i class="fas fa-arrow-up"></i> +<%= data[:gpa_trend] %>
+            </span>
+          <% elsif data[:gpa_trend] < 0 %>
+            <span class="text-danger">
+              <i class="fas fa-arrow-down"></i> <%= data[:gpa_trend] %>
+            </span>
+          <% else %>
+            <span class="text-muted">
+              <i class="fas fa-minus"></i> No change
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Course Grades -->
+    <div class="course-grades">
+      <h6 class="mb-3">Course Grades</h6>
+      <% if data[:course_grades]&.any? %>
+        <div class="grades-list">
+          <% data[:course_grades].each do |course| %>
+            <div class="grade-item mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="course-name fw-semibold"><%= course[:name] %></span>
+                <span class="grade-badge badge <%= grade_badge_class(course[:grade]) %>">
+                  <%= course[:grade] %>
+                </span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar <%= grade_progress_class(course[:percentage]) %>" 
+                     role="progressbar" 
+                     style="width: <%= course[:percentage] %>%"
+                     aria-valuenow="<%= course[:percentage] %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+              <small class="text-muted"><%= course[:percentage] %>%</small>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center">No grades available yet</p>
+      <% end %>
+    </div>
+    
+    <!-- Grade Trend Chart -->
+    <% if show_trends && data[:grade_history]&.any? %>
+      <div class="grade-chart mt-4">
+        <h6 class="mb-3">Grade Trend</h6>
+        <canvas id="gradeTrendChart-<%= widget.id %>" height="150"></canvas>
+      </div>
+      
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const ctx = document.getElementById('gradeTrendChart-<%= widget.id %>').getContext('2d');
+          new Chart(ctx, {
+            type: '<%= chart_type %>',
+            data: {
+              labels: <%= raw data[:grade_history].map { |h| h[:period] }.to_json %>,
+              datasets: [{
+                label: 'GPA',
+                data: <%= raw data[:grade_history].map { |h| h[:gpa] }.to_json %>,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.4,
+                fill: true
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 4.0,
+                  ticks: {
+                    stepSize: 0.5
+                  }
+                }
+              }
+            }
+          });
+        });
+      </script>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .grade-overview .gpa-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin: -1rem -1rem 1rem -1rem;
+  }
+  .grade-overview .gpa-label {
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+  }
+  .grade-overview .gpa-value {
+    color: white;
+  }
+  .grade-overview .grade-item {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+  }
+  .grade-overview .grade-item:hover {
+    background-color: #f8f9fa;
+  }
+  .grade-overview .course-name {
+    font-size: 0.9rem;
+  }
+  .grade-overview .grade-badge {
+    font-size: 0.9rem;
+    padding: 0.35rem 0.65rem;
+  }
+</style>

@@ -1,0 +1,29 @@
+Hi <%= @student.full_name %>,
+
+📅 SCHEDULE UPDATED
+
+Important: Your class schedule has been updated.
+
+Class: <%= @schedule.title %>
+Course: <%= @schedule.course %>
+
+<% if @changes.present? %>
+WHAT CHANGED:
+<% @changes.each do |field, change| %>
+- <%= field.to_s.titleize %>: <%= change[0] %> → <%= change[1] %>
+<% end %>
+<% end %>
+
+CURRENT SCHEDULE:
+Day: <%= @schedule.day_name %>
+Time: <%= @schedule.formatted_time_range %>
+Room: <%= @schedule.room %>
+Instructor: <%= @instructor_name %>
+
+Please make note of these changes and adjust your schedule accordingly.
+
+View full schedule: <%= schedule_url(@schedule) %>
+
+---
+This is an automated notification from Uni-Hub.
+© <%= Time.current.year %> Uni-Hub. All rights reserved.

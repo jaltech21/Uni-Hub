@@ -1,0 +1,8 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+test_university:
+  id: 1
+  name: Test University
+  code: TU
+  created_at: <%= 60.days.ago %>
+  updated_at: <%= 10.days.ago %>

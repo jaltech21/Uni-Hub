@@ -1,0 +1,134 @@
+<div class="widget-body">
+  <% config = widget.configuration_with_defaults %>
+  <% days_ahead = config['days_ahead'] || 3 %>
+  <% show_time = config['show_time'] != false %>
+  <% compact = config['compact_view'] == true %>
+  
+  <div class="calendar-preview">
+    <% if data[:upcoming_events]&.any? %>
+      <div class="events-list">
+        <% data[:upcoming_events].first(days_ahead * 3).group_by { |e| e[:date].to_date }.each do |date, events| %>
+          <div class="day-section mb-3">
+            <div class="day-header d-flex align-items-center mb-2">
+              <div class="day-badge me-2">
+                <div class="day-number"><%= date.day %></div>
+                <div class="day-name"><%= date.strftime('%a') %></div>
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-semibold"><%= date.strftime('%B %d, %Y') %></div>
+                <small class="text-muted"><%= events.count %> <%= 'event'.pluralize(events.count) %></small>
+              </div>
+            </div>
+            
+            <div class="day-events ms-4">
+              <% events.each do |event| %>
+                <div class="event-item <%= 'compact' if compact %> mb-2">
+                  <div class="event-time-indicator" style="background-color: <%= event[:color] || '#0d6efd' %>;"></div>
+                  <div class="event-content">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <div class="event-title fw-semibold">
+                          <i class="<%= event_icon(event[:type]) %> me-1"></i>
+                          <%= event[:title] %>
+                        </div>
+                        <% if !compact && event[:description].present? %>
+                          <div class="event-description text-muted text-sm">
+                            <%= truncate(event[:description], length: 60) %>
+                          </div>
+                        <% end %>
+                      </div>
+                      <% if show_time %>
+                        <small class="event-time text-muted ms-2">
+                          <%= event[:date].strftime('%I:%M %p') %>
+                        </small>
+                      <% end %>
+                    </div>
+                    <% if event[:location].present? %>
+                      <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i><%= event[:location] %>
+                      </small>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-4">
+        <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+        <p class="text-muted mb-0">No upcoming events</p>
+      </div>
+    <% end %>
+    
+    <div class="calendar-footer mt-3 pt-3 border-top">
+      <%= link_to calendar_path, class: 'btn btn-outline-primary btn-sm w-100' do %>
+        <i class="fas fa-calendar me-2"></i>View Full Calendar
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .calendar-preview {
+    font-size: 0.9rem;
+  }
+  .calendar-preview .day-badge {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    min-width: 50px;
+  }
+  .calendar-preview .day-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1;
+  }
+  .calendar-preview .day-name {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+  .calendar-preview .event-item {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    background-color: #f8f9fa;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .calendar-preview .event-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .calendar-preview .event-item.compact {
+    padding: 0.5rem;
+  }
+  .calendar-preview .event-time-indicator {
+    width: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .calendar-preview .event-content {
+    flex-grow: 1;
+  }
+  .calendar-preview .event-title {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .calendar-preview .event-description {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+  .calendar-preview .event-time {
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  .text-sm {
+    font-size: 0.875rem;
+  }
+</style>

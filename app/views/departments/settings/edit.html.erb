@@ -1,0 +1,248 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Edit Department Settings</h1>
+    <p class="mt-1 text-sm text-gray-600"><%= @department.name %> (<%= @department.code %>)</p>
+  </div>
+
+  <%= form_with model: @settings, url: department_settings_path(@department), method: :patch, class: 'space-y-6' do |f| %>
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="border-b border-gray-200">
+        <nav class="flex -mb-px" aria-label="Tabs">
+          <button type="button" data-tab="branding" class="tab-button active whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+            🎨 Branding
+          </button>
+          <button type="button" data-tab="messages" class="tab-button whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+            💬 Messages
+          </button>
+          <button type="button" data-tab="visibility" class="tab-button whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+            👁️ Visibility
+          </button>
+          <button type="button" data-tab="features" class="tab-button whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+            ⚙️ Features
+          </button>
+          <button type="button" data-tab="notifications" class="tab-button whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
+            🔔 Notifications
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        <!-- Branding Tab -->
+        <div id="branding-tab" class="tab-content">
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <%= f.label :primary_color, 'Primary Color', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+                <div class="flex items-center space-x-3">
+                  <%= f.color_field :primary_color, class: 'h-10 w-20 rounded border border-gray-300' %>
+                  <%= f.text_field :primary_color, class: 'flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: '#3B82F6' %>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Choose the primary brand color for your department</p>
+              </div>
+
+              <div>
+                <%= f.label :secondary_color, 'Secondary Color', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+                <div class="flex items-center space-x-3">
+                  <%= f.color_field :secondary_color, class: 'h-10 w-20 rounded border border-gray-300' %>
+                  <%= f.text_field :secondary_color, class: 'flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: '#10B981' %>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Choose the secondary accent color</p>
+              </div>
+            </div>
+
+            <div>
+              <%= f.label :logo_url, 'Logo URL', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.text_field :logo_url, class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: 'https://example.com/logo.png' %>
+              <p class="mt-1 text-xs text-gray-500">URL to your department logo (optional)</p>
+            </div>
+
+            <div>
+              <%= f.label :banner_url, 'Banner URL', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.text_field :banner_url, class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: 'https://example.com/banner.jpg' %>
+              <p class="mt-1 text-xs text-gray-500">URL to your department banner image (optional)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages Tab -->
+        <div id="messages-tab" class="tab-content hidden">
+          <div class="space-y-6">
+            <div>
+              <%= f.label :welcome_message, 'Welcome Message', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.text_area :welcome_message, rows: 6, class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: 'Welcome to the Computer Science department! We are excited to have you here...' %>
+              <p class="mt-1 text-xs text-gray-500">This message will be displayed on the department homepage</p>
+            </div>
+
+            <div>
+              <%= f.label :footer_message, 'Footer Message', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.text_area :footer_message, rows: 4, class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', placeholder: 'Need help? Contact us at cs@university.edu' %>
+              <p class="mt-1 text-xs text-gray-500">This message will appear at the bottom of department pages</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visibility Tab -->
+        <div id="visibility-tab" class="tab-content hidden">
+          <div class="space-y-6">
+            <p class="text-sm text-gray-600">Set the default visibility for new content created in this department.</p>
+            
+            <div>
+              <%= f.label :default_assignment_visibility, 'Default Assignment Visibility', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.select :default_assignment_visibility, 
+                  DepartmentSetting::VISIBILITY_OPTIONS.map { |v| [v.titleize, v] },
+                  {},
+                  class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500' %>
+              <p class="mt-1 text-xs text-gray-500">
+                <span class="font-medium">Department:</span> Visible only to department members<br>
+                <span class="font-medium">Shared:</span> Can be shared with other departments<br>
+                <span class="font-medium">Private:</span> Visible only to creator
+              </p>
+            </div>
+
+            <div>
+              <%= f.label :default_note_visibility, 'Default Note Visibility', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.select :default_note_visibility, 
+                  DepartmentSetting::VISIBILITY_OPTIONS.map { |v| [v.titleize, v] },
+                  {},
+                  class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500' %>
+            </div>
+
+            <div>
+              <%= f.label :default_quiz_visibility, 'Default Quiz Visibility', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+              <%= f.select :default_quiz_visibility, 
+                  DepartmentSetting::VISIBILITY_OPTIONS.map { |v| [v.titleize, v] },
+                  {},
+                  class: 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500' %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Tab -->
+        <div id="features-tab" class="tab-content hidden">
+          <div class="space-y-6">
+            <p class="text-sm text-gray-600">Enable or disable features for this department.</p>
+            
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :enable_announcements, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :enable_announcements, 'Enable Announcements', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Allow department admins to post announcements</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :enable_content_sharing, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :enable_content_sharing, 'Enable Content Sharing', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Allow sharing content with other departments</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :enable_peer_review, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :enable_peer_review, 'Enable Peer Review', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Allow students to review each other's work</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :enable_gamification, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :enable_gamification, 'Enable Gamification', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Enable badges, points, and leaderboards</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="tab-content hidden">
+          <div class="space-y-6">
+            <p class="text-sm text-gray-600">Configure notification preferences for department members.</p>
+            
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :notify_new_members, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :notify_new_members, 'Notify New Members', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Send notifications when new members join the department</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :notify_new_content, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :notify_new_content, 'Notify New Content', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Send notifications when new assignments, notes, or quizzes are added</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <%= f.check_box :notify_submissions, class: 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' %>
+                </div>
+                <div class="ml-3">
+                  <%= f.label :notify_submissions, 'Notify Submissions', class: 'font-medium text-gray-700 text-sm' %>
+                  <p class="text-xs text-gray-500">Send notifications to teachers when students submit assignments</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-end space-x-3">
+      <%= link_to 'Cancel', department_settings_path(@department), class: 'px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50' %>
+      <%= f.submit 'Save Settings', class: 'px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500' %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Simple tab switching
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetTab = this.dataset.tab;
+        
+        // Update button styles
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        });
+        this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        this.classList.add('active', 'border-blue-500', 'text-blue-600');
+        
+        // Show/hide content
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+        });
+        document.getElementById(targetTab + '-tab').classList.remove('hidden');
+      });
+    });
+  });
+</script>

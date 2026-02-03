@@ -1,0 +1,109 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Create New Schedule</h1>
+    <p class="mt-2 text-sm text-gray-600">Create a course schedule and assign an instructor</p>
+  </div>
+
+  <%= form_with model: [:admin, @schedule], local: true, class: "bg-white shadow-sm rounded-lg p-6" do |f| %>
+    <% if @schedule.errors.any? %>
+      <div class="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
+        <div class="flex">
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              <%= pluralize(@schedule.errors.count, "error") %> prohibited this schedule from being saved:
+            </h3>
+            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+              <% @schedule.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Course Code -->
+      <div>
+        <%= f.label :course, "Course Code", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field :course, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "CS-101" %>
+        <p class="mt-1 text-sm text-gray-500">Use format: DEPT-CODE (e.g., CS-101)</p>
+      </div>
+
+      <!-- Title -->
+      <div>
+        <%= f.label :title, "Schedule Title", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field :title, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Intro to Programming" %>
+      </div>
+
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <%= f.label :description, "Description", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_area :description, rows: 3, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <!-- Instructor -->
+      <div>
+        <%= f.label :instructor_id, "Assign Instructor", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.collection_select :instructor_id, @instructors, :id, :email, 
+            { prompt: "Select Instructor" },
+            { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+
+      <!-- Department -->
+      <div>
+        <%= f.label :department_id, "Department", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.collection_select :department_id, @departments, :id, :name, 
+            { prompt: "Select Department" },
+            { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+
+      <!-- Day of Week -->
+      <div>
+        <%= f.label :day_of_week, "Day of Week", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.select :day_of_week, 
+            Date::DAYNAMES.each_with_index.map { |day, i| [day, i] },
+            { prompt: "Select Day" },
+            { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+      </div>
+
+      <!-- Room -->
+      <div>
+        <%= f.label :room, "Room/Location", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field :room, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500", placeholder: "Room 101" %>
+      </div>
+
+      <!-- Start Time -->
+      <div>
+        <%= f.label :start_time, "Start Time", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.time_field :start_time, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <!-- End Time -->
+      <div>
+        <%= f.label :end_time, "End Time", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.time_field :end_time, class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+
+      <!-- Recurring -->
+      <div class="md:col-span-2">
+        <div class="flex items-center">
+          <%= f.check_box :recurring, checked: true, class: "rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+          <%= f.label :recurring, "This schedule repeats weekly", class: "ml-2 text-sm text-gray-700" %>
+        </div>
+      </div>
+
+      <!-- Color -->
+      <div>
+        <%= f.label :color, "Calendar Color", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.color_field :color, value: "#3B82F6", class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+      </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="mt-6 flex items-center justify-end gap-4">
+      <%= link_to "Cancel", admin_schedules_path, class: "px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" %>
+      <%= f.submit "Create Schedule", class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer" %>
+    </div>
+  <% end %>
+</div>

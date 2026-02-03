@@ -1,0 +1,367 @@
+<% content_for :title, "Compliance & Reporting Dashboard" %>
+
+<div class="compliance-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Compliance & Reporting Dashboard</h1>
+        <p class="text-lg text-gray-600 mt-2">Monitor institutional compliance and regulatory requirements</p>
+      </div>
+      <div class="flex space-x-3">
+        <%= link_to "New Framework", new_compliance_framework_path, 
+            class: "btn btn-primary" %>
+        <%= link_to "Generate Report", "#", 
+            class: "btn btn-secondary", 
+            data: { toggle: "modal", target: "#generateReportModal" } %>
+        <%= link_to "Export Dashboard", compliance_frameworks_path(format: :csv), 
+            class: "btn btn-outline" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="metric-card bg-white rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Frameworks</h3>
+          <p class="text-3xl font-bold text-gray-900 mt-2"><%= @dashboard_data[:total_frameworks] %></p>
+        </div>
+        <div class="p-3 bg-blue-100 rounded-full">
+          <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card bg-white rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Compliant Frameworks</h3>
+          <p class="text-3xl font-bold text-green-600 mt-2"><%= @dashboard_data[:compliant_frameworks] %></p>
+        </div>
+        <div class="p-3 bg-green-100 rounded-full">
+          <i class="fas fa-check-circle text-green-600 text-xl"></i>
+        </div>
+      </div>
+      <div class="mt-3">
+        <span class="text-sm text-gray-500">
+          <%= number_to_percentage((@dashboard_data[:compliant_frameworks].to_f / [@dashboard_data[:total_frameworks], 1].max * 100), precision: 1) %>
+          compliance rate
+        </span>
+      </div>
+    </div>
+
+    <div class="metric-card bg-white rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Overdue Assessments</h3>
+          <p class="text-3xl font-bold text-red-600 mt-2"><%= @dashboard_data[:overdue_assessments] %></p>
+        </div>
+        <div class="p-3 bg-red-100 rounded-full">
+          <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card bg-white rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Recent Reports</h3>
+          <p class="text-3xl font-bold text-gray-900 mt-2"><%= @dashboard_data[:recent_reports].count %></p>
+        </div>
+        <div class="p-3 bg-purple-100 rounded-full">
+          <i class="fas fa-file-alt text-purple-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column: Compliance Trend & Frameworks -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Compliance Trend Chart -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold text-gray-900">Compliance Trend</h2>
+          <div class="flex space-x-2">
+            <select class="form-select text-sm" id="trendPeriod">
+              <option value="12">Last 12 months</option>
+              <option value="6">Last 6 months</option>
+              <option value="3">Last 3 months</option>
+            </select>
+          </div>
+        </div>
+        <div class="h-64" id="complianceTrendChart">
+          <!-- Chart will be rendered here with Chart.js -->
+          <canvas id="trendCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Compliance Frameworks List -->
+      <div class="bg-white rounded-lg shadow-md">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-900">Compliance Frameworks</h2>
+            <%= link_to "View All", compliance_frameworks_path, 
+                class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <% @frameworks.limit(5).each do |framework| %>
+              <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                      <span class="inline-flex items-center justify-center h-8 w-8 rounded-full
+                        <%= framework.compliant? ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' %>">
+                        <i class="fas <%= framework.compliant? ? 'fa-check' : 'fa-times' %> text-sm"></i>
+                      </span>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">
+                        <%= link_to framework.name, framework, class: "hover:text-blue-600" %>
+                      </p>
+                      <p class="text-sm text-gray-500"><%= framework.regulatory_body %></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">
+                      <%= number_to_percentage(framework.current_compliance_score, precision: 1) %>
+                    </p>
+                    <p class="text-xs text-gray-500">Compliance Score</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm text-gray-500">
+                      <% if framework.days_since_last_assessment %>
+                        <%= pluralize(framework.days_since_last_assessment, 'day') %> ago
+                      <% else %>
+                        Never assessed
+                      <% end %>
+                    </p>
+                    <p class="text-xs text-gray-400">Last Assessment</p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Recent Activity & Top Risks -->
+    <div class="space-y-8">
+      <!-- Recent Reports -->
+      <div class="bg-white rounded-lg shadow-md">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-900">Recent Reports</h2>
+            <%= link_to "View All", compliance_reports_dashboard_path, 
+                class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="space-y-3">
+            <% @dashboard_data[:recent_reports].each do |report| %>
+              <div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+                <div class="flex-shrink-0">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <%= case report.status
+                        when 'published' then 'bg-green-100 text-green-800'
+                        when 'completed' then 'bg-blue-100 text-blue-800'
+                        when 'draft' then 'bg-gray-100 text-gray-800'
+                        else 'bg-yellow-100 text-yellow-800'
+                        end %>">
+                    <%= report.status.humanize %>
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    <%= link_to "#{report.report_type.humanize} Report", 
+                        [report.compliance_framework, report], 
+                        class: "hover:text-blue-600" %>
+                  </p>
+                  <p class="text-sm text-gray-500"><%= report.period_description %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Compliance Risks -->
+      <div class="bg-white rounded-lg shadow-md">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Top Compliance Risks</h2>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <% @dashboard_data[:top_risks].each do |risk| %>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-2">
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                        <%= case risk[:risk_level]
+                            when 'critical' then 'bg-red-100 text-red-800'
+                            when 'high' then 'bg-orange-100 text-orange-800'
+                            when 'medium' then 'bg-yellow-100 text-yellow-800'
+                            else 'bg-green-100 text-green-800'
+                            end %>">
+                        <%= risk[:risk_level].upcase %>
+                      </span>
+                    </div>
+                    <p class="text-sm font-medium text-gray-900 mb-1">
+                      <%= link_to risk[:framework].name, risk[:framework], class: "hover:text-blue-600" %>
+                    </p>
+                    <p class="text-xs text-gray-500 mb-2"><%= risk[:framework].regulatory_body %></p>
+                    <div class="text-xs text-gray-600">
+                      <% risk[:issues].each do |issue| %>
+                        <span class="inline-block bg-gray-100 rounded px-2 py-1 mr-1 mb-1"><%= issue %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="text-right ml-4">
+                    <p class="text-sm font-medium text-red-600">
+                      <%= number_to_percentage(risk[:framework].current_compliance_score, precision: 1) %>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-lg shadow-md">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
+        </div>
+        <div class="p-6">
+          <div class="space-y-3">
+            <%= link_to new_compliance_framework_path, 
+                class: "flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50" do %>
+              <i class="fas fa-plus text-blue-600 mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">Create New Framework</span>
+            <% end %>
+            
+            <%= link_to compliance_assessments_dashboard_path, 
+                class: "flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50" do %>
+              <i class="fas fa-clipboard-check text-green-600 mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">Schedule Assessment</span>
+            <% end %>
+            
+            <%= link_to compliance_reports_dashboard_path, 
+                class: "flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50" do %>
+              <i class="fas fa-file-alt text-purple-600 mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">Generate Report</span>
+            <% end %>
+            
+            <%= link_to compliance_frameworks_path(format: :csv), 
+                class: "flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50" do %>
+              <i class="fas fa-download text-indigo-600 mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">Export Data</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generateReportModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <%= form_with url: generate_automated_compliance_reports_path, method: :post, local: true do |form| %>
+        <div class="modal-header">
+          <h5 class="modal-title">Generate Automated Report</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <%= form.label :compliance_framework_id, "Compliance Framework" %>
+            <%= form.select :compliance_framework_id, 
+                options_from_collection_for_select(@frameworks, :id, :name), 
+                { prompt: "Select a framework" }, 
+                { class: "form-control" } %>
+          </div>
+          <div class="form-group">
+            <%= form.label :report_type, "Report Type" %>
+            <%= form.select :report_type, 
+                options_for_select([
+                  ['Monthly Report', 'monthly'],
+                  ['Quarterly Report', 'quarterly'],
+                  ['Annual Report', 'annual'],
+                  ['Assessment Summary', 'assessment_summary'],
+                  ['Compliance Status', 'compliance_status']
+                ], 'quarterly'), 
+                {}, 
+                { class: "form-control" } %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <%= form.submit "Generate Report", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+// Initialize compliance trend chart
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('trendCanvas').getContext('2d');
+  const trendData = <%= @dashboard_data[:compliance_trend].to_json.html_safe %>;
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: trendData.map(d => d.month),
+      datasets: [{
+        label: 'Average Compliance Score',
+        data: trendData.map(d => d.average_score),
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return 'Compliance: ' + context.parsed.y.toFixed(1) + '%';
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>

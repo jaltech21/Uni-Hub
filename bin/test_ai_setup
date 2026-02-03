@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Quick test script to verify AI provider setup
+require_relative '../config/environment'
+
+puts "=" * 60
+puts "AI PROVIDER SETUP VERIFICATION"
+puts "=" * 60
+puts
+
+# Check environment variables
+puts "📋 Environment Configuration:"
+puts "  AI_PROVIDER: #{ENV['AI_PROVIDER'] || 'not set (will default to gemini)'}"
+puts "  GEMINI_API_KEY: #{ENV['GEMINI_API_KEY'] ? '✅ Set' : '❌ Not set'}"
+puts "  OPENAI_API_KEY: #{ENV['OPENAI_API_KEY'] ? '✅ Set (inactive)' : '❌ Not set'}"
+puts "  AI_MOCK_MODE: #{ENV['AI_MOCK_MODE']}"
+puts
+
+# Initialize provider
+puts "🔧 Initializing AI Provider..."
+begin
+  provider = AiServiceFactory.provider
+  provider_class = provider.class.name
+  provider_name = provider.send(:provider_name)
+  
+  puts "  ✅ Provider initialized: #{provider_class}"
+  puts "  📦 Provider name: #{provider_name}"
+  puts "  🎯 Rate limit: #{provider.max_requests_per_hour} requests/hour"
+  puts
+rescue StandardError => e
+  puts "  ❌ Failed to initialize provider: #{e.message}"
+  puts
+  exit 1
+end
+
+# Test rate limiting
+puts "📊 Testing Rate Limiter..."
+test_user_id = 1
+can_make_request = provider.can_make_request?(test_user_id)
+remaining = provider.remaining_requests(test_user_id)
+puts "  User #{test_user_id} can make request: #{can_make_request}"
+puts "  Remaining requests: #{remaining}/#{provider.max_requests_per_hour}"
+puts
+
+# Check available providers
+puts "🔍 Available Providers:"
+AiServiceFactory::PROVIDERS.each do |name, class_name|
+  status = if name == ENV['AI_PROVIDER']&.downcase || (name == 'gemini' && !ENV['AI_PROVIDER'])
+             "✅ ACTIVE"
+           else
+             "  inactive"
+           end
+  puts "  #{status} #{name} (#{class_name})"
+end
+puts
+
+# Provider-specific checks
+puts "🧪 Provider-Specific Checks:"
+case provider_name
+when 'gemini'
+  puts "  ✅ Gemini provider active"
+  puts "  📝 Model: #{AiProviders::GeminiProvider::GEMINI_MODEL}"
+  puts "  🆓 Free tier: 60 req/min, 1,500 req/day"
+when 'openai'
+  puts "  ⚠️  OpenAI provider active (no credits available)"
+  puts "  📝 Model: #{AiProviders::OpenaiProvider::OPENAI_MODEL}"
+when 'mock'
+  puts "  🎭 Mock provider active (simulated responses)"
+end
+puts
+
+# Database check
+puts "📊 Database Status:"
+log_count = AiUsageLog.count
+puts "  Total AI usage logs: #{log_count}"
+if log_count > 0
+  puts "  Recent actions:"
+  AiUsageLog.recent.limit(3).each do |log|
+    status_emoji = case log.status
+                   when 'success' then '✅'
+                   when 'failure' then '❌'
+                   when 'rate_limited' then '⚠️'
+                   else '❓'
+                   end
+    puts "    #{status_emoji} #{log.action} (#{log.provider || 'unknown'}) - #{log.created_at.strftime('%Y-%m-%d %H:%M')}"
+  end
+end
+puts
+
+puts "=" * 60
+puts "✨ SETUP VERIFICATION COMPLETE"
+puts "=" * 60
+puts
+puts "Next steps:"
+puts "  1. Restart your Rails server (bin/dev)"
+puts "  2. Visit /quizzes/generate to test quiz generation"
+puts "  3. Visit /summarizations/new to test text summarization"
+puts "  4. Check /admin/ai_analytics for usage statistics"
+puts

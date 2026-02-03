@@ -1,0 +1,11 @@
+<div id="current_code">
+  <%= render partial: 'attendance_lists/current_code' %>
+
+  <div class="text-center mt-4">
+    <button id="refresh-code-btn" 
+            data-url="<%= refresh_code_attendance_list_path(@attendance_list) %>"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition inline-block">
+      🔄 Refresh Now
+    </button>
+  </div>
+</div>

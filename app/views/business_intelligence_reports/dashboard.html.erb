@@ -1,0 +1,651 @@
+<% content_for :title, "Business Intelligence Dashboard" %>
+<% content_for :description, "Executive insights and strategic business intelligence reporting" %>
+
+<div class="bi-reports-dashboard">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="row align-items-center mb-4">
+      <div class="col-md-8">
+        <h1 class="dashboard-title">
+          <i class="fas fa-chart-pie me-2"></i>
+          Business Intelligence Dashboard
+        </h1>
+        <p class="dashboard-subtitle text-muted">
+          Strategic insights, executive reporting, and data-driven decision support
+        </p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+          <%= link_to new_business_intelligence_report_path, class: "btn btn-primary" do %>
+            <i class="fas fa-plus me-1"></i> New Report
+          <% end %>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fas fa-magic me-1"></i> Generate
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <%= link_to generate_automated_business_intelligence_reports_path(report_type: 'executive_dashboard'), 
+                           method: :post, class: "dropdown-item" do %>
+                  <i class="fas fa-crown me-2"></i>Executive Dashboard
+                <% end %>
+              </li>
+              <li>
+                <%= link_to generate_automated_business_intelligence_reports_path(report_type: 'institutional_overview'), 
+                           method: :post, class: "dropdown-item" do %>
+                  <i class="fas fa-university me-2"></i>Institutional Overview
+                <% end %>
+              </li>
+              <li>
+                <%= link_to generate_automated_business_intelligence_reports_path(report_type: 'department_performance'), 
+                           method: :post, class: "dropdown-item" do %>
+                  <i class="fas fa-users me-2"></i>Department Performance
+                <% end %>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="metric-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Total Reports</h5>
+              <h3 class="card-text text-primary mb-0">
+                <%= number_with_delimiter(@report_summary[:total_reports]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-file-chart-line fa-2x text-primary opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-success">
+            <i class="fas fa-arrow-up me-1"></i>
+            <%= @report_summary[:reports_this_month] %> this month
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="metric-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Published Reports</h5>
+              <h3 class="card-text text-success mb-0">
+                <%= number_with_delimiter(@report_summary[:published_reports]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-check-circle fa-2x text-success opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-info">
+            <i class="fas fa-eye me-1"></i>
+            Available for stakeholders
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="metric-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">In Progress</h5>
+              <h3 class="card-text text-warning mb-0">
+                <%= number_with_delimiter(@report_summary[:generating_reports]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-hourglass-half fa-2x text-warning opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-muted">
+            <i class="fas fa-clock me-1"></i>
+            Currently generating
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="metric-card card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title text-muted mb-1">Recent Completions</h5>
+              <h3 class="card-text text-info mb-0">
+                <%= number_with_delimiter(@report_summary[:recent_completions]) %>
+              </h3>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-calendar-check fa-2x text-info opacity-75"></i>
+            </div>
+          </div>
+          <small class="text-primary">
+            <i class="fas fa-calendar me-1"></i>
+            Last 7 days
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="row">
+    <!-- Left Column - Reports and Analytics -->
+    <div class="col-lg-8">
+      <!-- Executive Summary Section -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-primary text-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-crown me-2"></i>
+            Executive Summary
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="executive-summary">
+            <%= @executive_summary %>
+          </div>
+          
+          <!-- Key Performance Indicators -->
+          <div class="row mt-4">
+            <div class="col-md-4 text-center">
+              <div class="kpi-item">
+                <h4 class="text-success mb-1">
+                  <%= number_to_percentage(@dashboard_metrics[:overall_performance] * 100, precision: 1) %>
+                </h4>
+                <p class="text-muted mb-0">Overall Performance</p>
+              </div>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="kpi-item">
+                <h4 class="text-info mb-1">
+                  <%= number_with_precision(@dashboard_metrics[:efficiency_score], precision: 1) %>/10
+                </h4>
+                <p class="text-muted mb-0">Efficiency Score</p>
+              </div>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="kpi-item">
+                <h4 class="text-warning mb-1">
+                  <%= @dashboard_metrics[:strategic_alignment] %>%
+                </h4>
+                <p class="text-muted mb-0">Strategic Alignment</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Reports -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-clock me-2"></i>
+                Recent Reports
+              </h5>
+            </div>
+            <div class="col-auto">
+              <%= link_to business_intelligence_reports_path, class: "btn btn-sm btn-outline-primary" do %>
+                View All <i class="fas fa-arrow-right ms-1"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <% @reports.limit(5).each do |report| %>
+            <div class="report-item d-flex align-items-center mb-3">
+              <div class="report-icon me-3">
+                <div class="icon-circle bg-<%= report.status == 'completed' ? 'success' : report.status == 'generating' ? 'warning' : 'secondary' %>">
+                  <i class="fas fa-<%= report.report_type == 'executive_dashboard' ? 'crown' : report.report_type == 'institutional_overview' ? 'university' : 'users' %> text-white"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="report-title mb-1">
+                  <%= link_to report.report_name, report, class: "text-decoration-none" %>
+                </h6>
+                <div class="report-meta">
+                  <span class="badge bg-<%= report.status == 'completed' ? 'success' : report.status == 'generating' ? 'warning' : 'secondary' %> me-2">
+                    <%= report.status.humanize %>
+                  </span>
+                  <small class="text-muted">
+                    <%= report.report_type.humanize %> • 
+                    <% if report.generated_at %>
+                      <%= time_ago_in_words(report.generated_at) %> ago
+                    <% else %>
+                      In progress
+                    <% end %>
+                  </small>
+                </div>
+              </div>
+              <div class="report-actions">
+                <div class="btn-group btn-group-sm">
+                  <%= link_to report, class: "btn btn-outline-primary btn-sm" do %>
+                    <i class="fas fa-eye"></i>
+                  <% end %>
+                  <% if report.status == 'completed' %>
+                    <div class="btn-group btn-group-sm">
+                      <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <%= link_to export_business_intelligence_report_path(report, format: 'pdf'), class: "dropdown-item" do %>
+                            <i class="far fa-file-pdf me-2"></i>PDF
+                          <% end %>
+                        </li>
+                        <li>
+                          <%= link_to export_business_intelligence_report_path(report, format: 'excel'), class: "dropdown-item" do %>
+                            <i class="far fa-file-excel me-2"></i>Excel
+                          <% end %>
+                        </li>
+                      </ul>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+            <% unless report == @reports.limit(5).last %>
+              <hr class="my-3">
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Trending Insights -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-trending-up me-2"></i>
+            Trending Insights
+          </h5>
+        </div>
+        <div class="card-body">
+          <% @trending_insights.each do |insight| %>
+            <div class="insight-item mb-3">
+              <div class="d-flex align-items-start">
+                <div class="insight-priority me-3">
+                  <span class="badge bg-<%= insight[:priority] == 'high' ? 'danger' : insight[:priority] == 'medium' ? 'warning' : 'secondary' %>">
+                    <%= insight[:priority].upcase %>
+                  </span>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="insight-title mb-2"><%= insight[:title] %></h6>
+                  <p class="insight-description text-muted mb-2"><%= insight[:description] %></p>
+                  <div class="insight-tags">
+                    <% insight[:categories].each do |category| %>
+                      <span class="badge bg-light text-dark me-1"><%= category %></span>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="insight-trend">
+                  <div class="text-center">
+                    <i class="fas fa-arrow-<%= insight[:trend] == 'up' ? 'up text-success' : insight[:trend] == 'down' ? 'down text-danger' : 'right text-muted' %> fa-lg"></i>
+                    <div class="small text-muted mt-1">
+                      <%= insight[:impact_score] %>% impact
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% unless insight == @trending_insights.last %>
+              <hr class="my-3">
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Actions and Quick Access -->
+    <div class="col-lg-4">
+      <!-- Quick Actions -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Quick Actions
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <%= link_to strategic_planning_business_intelligence_reports_path, class: "btn btn-outline-primary" do %>
+              <i class="fas fa-chess me-2"></i>
+              Strategic Planning
+            <% end %>
+            <%= link_to performance_benchmarks_business_intelligence_reports_path, class: "btn btn-outline-success" do %>
+              <i class="fas fa-chart-bar me-2"></i>
+              Performance Benchmarks
+            <% end %>
+            <%= link_to insights_analysis_business_intelligence_reports_path, class: "btn btn-outline-info" do %>
+              <i class="fas fa-lightbulb me-2"></i>
+              Insights Analysis
+            <% end %>
+            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#scheduleReportModal">
+              <i class="fas fa-calendar-alt me-2"></i>
+              Schedule Report
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Types -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-layer-group me-2"></i>
+            Report Types
+          </h5>
+        </div>
+        <div class="card-body">
+          <% @report_types.each do |type| %>
+            <div class="report-type-item d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="mb-1"><%= type.humanize %></h6>
+                <small class="text-muted">
+                  <%= BusinessIntelligenceReport.where(report_type: type).count %> reports
+                </small>
+              </div>
+              <div>
+                <%= link_to new_business_intelligence_report_path(report_type: type), 
+                           class: "btn btn-sm btn-outline-primary" do %>
+                  <i class="fas fa-plus"></i>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i>
+            Recent Activity
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="activity-feed">
+            <% @recent_activity.each do |activity| %>
+              <div class="activity-item d-flex mb-3">
+                <div class="activity-icon me-3">
+                  <i class="fas fa-<%= activity[:icon] %> text-<%= activity[:color] %>"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="activity-content">
+                    <strong><%= activity[:user] %></strong> <%= activity[:action] %>
+                    <strong><%= activity[:target] %></strong>
+                  </div>
+                  <small class="text-muted">
+                    <%= time_ago_in_words(activity[:timestamp]) %> ago
+                  </small>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Report Modal -->
+<div class="modal fade" id="scheduleReportModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-alt me-2"></i>
+          Schedule Automated Report
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <%= form_with url: schedule_report_business_intelligence_reports_path, method: :post, local: false, id: "scheduleReportForm" do |form| %>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= form.label :report_type, class: "form-label" %>
+              <%= form.select :report_type, 
+                    options_for_select([
+                      ['Executive Dashboard', 'executive_dashboard'],
+                      ['Institutional Overview', 'institutional_overview'],
+                      ['Department Performance', 'department_performance'],
+                      ['Student Analytics', 'student_analytics'],
+                      ['Resource Optimization', 'resource_optimization']
+                    ]), 
+                    { prompt: 'Select report type...' }, 
+                    { class: "form-select" } %>
+            </div>
+            <div class="col-md-6 mb-3">
+              <%= form.label :frequency, class: "form-label" %>
+              <%= form.select :frequency,
+                    options_for_select([
+                      ['Daily', 'daily'],
+                      ['Weekly', 'weekly'],
+                      ['Monthly', 'monthly'],
+                      ['Quarterly', 'quarterly']
+                    ]), 
+                    {}, 
+                    { class: "form-select" } %>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= form.label :campus_id, class: "form-label" %>
+              <%= form.select :campus_id,
+                    options_from_collection_for_select(Campus.all, :id, :name),
+                    { prompt: 'All campuses' },
+                    { class: "form-select" } %>
+            </div>
+            <div class="col-md-6 mb-3">
+              <%= form.label :period, class: "form-label" %>
+              <%= form.select :period,
+                    options_for_select([
+                      ['Last 7 days', 'weekly'],
+                      ['Last 30 days', 'monthly'],
+                      ['Last quarter', 'quarterly'],
+                      ['Last year', 'yearly']
+                    ]), 
+                    {}, 
+                    { class: "form-select" } %>
+            </div>
+          </div>
+          <div class="mb-3">
+            <%= form.label :recipients, class: "form-label" %>
+            <%= form.text_area :recipients, 
+                  placeholder: "Enter email addresses separated by commas...",
+                  class: "form-control" %>
+            <div class="form-text">Email addresses of stakeholders who should receive the report</div>
+          </div>
+          <div class="form-check">
+            <%= form.check_box :auto_publish, class: "form-check-input" %>
+            <%= form.label :auto_publish, "Automatically publish reports", class: "form-check-label" %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <%= form.submit "Schedule Report", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+.bi-reports-dashboard .metric-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.bi-reports-dashboard .metric-card:hover {
+  transform: translateY(-2px);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.kpi-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 123, 255, 0.05);
+  border-left: 4px solid #007bff;
+}
+
+.report-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.report-item:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insight-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+  border-left: 4px solid #28a745;
+}
+
+.report-type-item {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+}
+
+.activity-feed .activity-item {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.activity-feed .activity-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.activity-icon {
+  width: 30px;
+  text-align: center;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Setup form submission
+  setupFormSubmission();
+  
+  // Setup real-time updates
+  setupRealTimeUpdates();
+});
+
+function setupFormSubmission() {
+  const form = document.getElementById('scheduleReportForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const submitBtn = form.querySelector('input[type="submit"]');
+      const originalText = submitBtn.value;
+      
+      submitBtn.value = 'Scheduling...';
+      submitBtn.disabled = true;
+      
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        },
+        body: new FormData(form)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          bootstrap.Modal.getInstance(document.getElementById('scheduleReportModal')).hide();
+          showNotification('Report scheduled successfully!', 'success');
+          form.reset();
+        } else {
+          showNotification('Failed to schedule report: ' + data.error, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while scheduling the report.', 'error');
+      })
+      .finally(() => {
+        submitBtn.value = originalText;
+        submitBtn.disabled = false;
+      });
+    });
+  }
+}
+
+function setupRealTimeUpdates() {
+  // Refresh report status every 30 seconds
+  setInterval(() => {
+    updateReportStatuses();
+  }, 30000);
+}
+
+function updateReportStatuses() {
+  fetch('<%= dashboard_business_intelligence_reports_path %>', {
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Update metrics if they've changed
+    if (data.report_summary) {
+      // Update metric cards with new data
+      console.log('Updated report metrics:', data.report_summary);
+    }
+  })
+  .catch(error => {
+    console.error('Error updating report statuses:', error);
+  });
+}
+
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+</script>

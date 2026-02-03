@@ -1,0 +1,18 @@
+<div class="flex items-center space-x-3">
+  <% if user_signed_in? && current_department %>
+    <div class="hidden sm:flex items-center space-x-2">
+      <span class="px-2 py-1 bg-gray-100 text-xs font-mono rounded"> <%= current_department.code %> </span>
+      <span class="text-sm text-gray-700"><%= current_department.name %></span>
+      <%= link_to "📊", dashboard_department_path(current_department), class: "text-blue-600 hover:text-blue-800", title: "Department Dashboard" %>
+    </div>
+  <% end %>
+
+  <% if user_signed_in? && (current_user.tutor? || current_user.teacher? || current_user.admin? || current_user.super_admin?) %>
+    <div>
+      <%= form_with url: switch_department_path, method: :post, local: true do |f| %>
+        <%= select_tag :department_id, options_for_select(Department.active.ordered.map { |d| ["#{d.name} (#{d.code})", d.id] }, session[:department_id]), 
+            onchange: 'this.form.submit();', class: 'px-2 py-1 border rounded' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

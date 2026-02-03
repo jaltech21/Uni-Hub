@@ -1,0 +1,271 @@
+<% content_for :title, campus_name = @campus.name %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-0"><%= @campus.name %></h1>
+          <p class="text-muted mb-0">
+            <%= @campus.university.name %> • <%= @campus.city %>, <%= @campus.state %>
+          </p>
+        </div>
+        <div>
+          <%= link_to "Edit Campus", edit_admin_campus_path(@campus), 
+              class: "btn btn-primary me-2" %>
+          <%= link_to "Manage Programs", admin_campus_campus_programs_path(@campus), 
+              class: "btn btn-success" %>
+        </div>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <h4 class="mb-0"><%= @campus.campus_programs.count %></h4>
+              <p class="mb-0">Academic Programs</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <h4 class="mb-0"><%= number_with_delimiter(@statistics[:total_enrollment]) %></h4>
+              <p class="mb-0">Total Enrollment</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <h4 class="mb-0"><%= @campus.departments.count %></h4>
+              <p class="mb-0">Departments</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">
+              <h4 class="mb-0"><%= @statistics[:active_collaborations] %></h4>
+              <p class="mb-0">Active Collaborations</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Campus Information -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0">Campus Information</h5>
+            </div>
+            <div class="card-body">
+              <dl class="row">
+                <dt class="col-sm-4">Code:</dt>
+                <dd class="col-sm-8"><%= @campus.code %></dd>
+                
+                <dt class="col-sm-4">Type:</dt>
+                <dd class="col-sm-8">
+                  <span class="badge bg-secondary">
+                    <%= @campus.campus_type&.humanize || 'Main Campus' %>
+                  </span>
+                </dd>
+                
+                <dt class="col-sm-4">Established:</dt>
+                <dd class="col-sm-8">
+                  <%= @campus.established_date&.year || 'N/A' %>
+                </dd>
+                
+                <dt class="col-sm-4">Campus Area:</dt>
+                <dd class="col-sm-8">
+                  <%= number_with_delimiter(@campus.total_area_sqft) %> sq ft
+                </dd>
+                
+                <dt class="col-sm-4">Capacity:</dt>
+                <dd class="col-sm-8">
+                  <%= number_with_delimiter(@campus.student_capacity) %> students
+                </dd>
+                
+                <dt class="col-sm-4">Utilization:</dt>
+                <dd class="col-sm-8">
+                  <%= number_to_percentage(@statistics[:capacity_utilization], precision: 1) %>
+                </dd>
+              </dl>
+
+              <% if @campus.description.present? %>
+                <hr>
+                <h6>Description</h6>
+                <p class="text-muted"><%= @campus.description %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact & Hours -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0">Contact & Hours</h5>
+            </div>
+            <div class="card-body">
+              <h6>Contact Information</h6>
+              <address>
+                <%= @campus.address %><br>
+                <%= @campus.city %>, <%= @campus.state %> <%= @campus.postal_code %><br>
+                <%= @campus.country %>
+              </address>
+              
+              <% if @campus.phone.present? %>
+                <p><i class="fas fa-phone"></i> <%= @campus.phone %></p>
+              <% end %>
+              
+              <% if @campus.email.present? %>
+                <p><i class="fas fa-envelope"></i> 
+                   <%= mail_to @campus.email, @campus.email %></p>
+              <% end %>
+              
+              <% if @campus.website.present? %>
+                <p><i class="fas fa-globe"></i> 
+                   <%= link_to @campus.website, @campus.website, target: '_blank' %></p>
+              <% end %>
+
+              <% if @operating_hours_today %>
+                <hr>
+                <h6>Today's Hours</h6>
+                <p class="mb-0">
+                  <% if @campus.open_today? %>
+                    <span class="badge bg-success">Open</span>
+                    <%= @operating_hours_today[:open] %> - <%= @operating_hours_today[:close] %>
+                  <% else %>
+                    <span class="badge bg-danger">Closed</span>
+                  <% end %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Programs -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+              <h5 class="mb-0">Academic Programs</h5>
+              <%= link_to "View All", admin_campus_campus_programs_path(@campus), 
+                  class: "btn btn-sm btn-outline-primary" %>
+            </div>
+            <div class="card-body">
+              <% if @campus_programs.any? %>
+                <% @campus_programs.limit(5).each do |program| %>
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <h6 class="mb-0"><%= program.name %></h6>
+                      <small class="text-muted">
+                        <%= program.degree_level.humanize %> • 
+                        <%= program.department.name %>
+                      </small>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge bg-info">
+                        <%= program.current_enrollment %> enrolled
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @campus_programs.count > 5 %>
+                  <div class="text-center mt-3">
+                    <small class="text-muted">
+                      And <%= @campus_programs.count - 5 %> more...
+                    </small>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted text-center">No programs available</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Collaborations -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+              <h5 class="mb-0">Recent Collaborations</h5>
+              <%= link_to "View All", admin_cross_campus_collaborations_path(campus_id: @campus.id), 
+                  class: "btn btn-sm btn-outline-primary" %>
+            </div>
+            <div class="card-body">
+              <% if @collaborations.any? %>
+                <% @collaborations.each do |collab| %>
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <h6 class="mb-0">
+                        <%= link_to collab.title, 
+                            admin_cross_campus_collaboration_path(collab) %>
+                      </h6>
+                      <small class="text-muted">
+                        with <%= collab.lead_campus_id == @campus.id ? 
+                               collab.partner_campus.name : collab.lead_campus.name %>
+                      </small>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge bg-<%= collab.status == 'active' ? 'success' : 
+                                              collab.status == 'completed' ? 'primary' : 'warning' %>">
+                        <%= collab.status.humanize %>
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted text-center">No recent collaborations</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Metrics -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3 text-center">
+                  <h4 class="text-primary">
+                    <%= number_to_percentage(@statistics[:research_activity_score], precision: 0) %>
+                  </h4>
+                  <p class="mb-0">Research Activity</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <h4 class="text-success">
+                    <%= number_to_percentage(@statistics[:collaboration_index], precision: 0) %>
+                  </h4>
+                  <p class="mb-0">Collaboration Index</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <h4 class="text-info">
+                    <%= number_to_percentage(@statistics[:resource_utilization], precision: 0) %>
+                  </h4>
+                  <p class="mb-0">Resource Utilization</p>
+                </div>
+                <div class="col-md-3 text-center">
+                  <h4 class="text-warning">
+                    <%= number_to_percentage(@statistics[:student_satisfaction], precision: 0) %>
+                  </h4>
+                  <p class="mb-0">Student Satisfaction</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

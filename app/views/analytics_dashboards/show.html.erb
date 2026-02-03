@@ -1,0 +1,895 @@
+<% content_for :title, @analytics_dashboard.name %>
+<% content_for :page_header, @analytics_dashboard.name %>
+
+<div class="analytics-dashboard-show" data-dashboard-id="<%= @analytics_dashboard.id %>">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header mb-4">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="h3 mb-1"><%= @analytics_dashboard.name %></h1>
+        <% if @analytics_dashboard.description.present? %>
+          <p class="text-muted mb-2"><%= @analytics_dashboard.description %></p>
+        <% end %>
+        
+        <div class="dashboard-meta">
+          <span class="badge bg-<%= @analytics_dashboard.dashboard_type == 'student' ? 'info' : 
+                                      @analytics_dashboard.dashboard_type == 'teacher' ? 'success' : 
+                                      'primary' %>">
+            <%= @analytics_dashboard.dashboard_type.humanize %>
+          </span>
+          
+          <% if @analytics_dashboard.department %>
+            <span class="badge bg-secondary ms-2">
+              <%= @analytics_dashboard.department.name %>
+            </span>
+          <% end %>
+          
+          <span class="text-muted ms-3">
+            <i class="fas fa-clock"></i>
+            Last updated <%= time_ago_in_words(@analytics_dashboard.updated_at) %> ago
+          </span>
+        </div>
+      </div>
+      
+      <div class="dashboard-actions">
+        <div class="btn-group" role="group">
+          <% if can?(:edit, @analytics_dashboard) %>
+            <button class="btn btn-outline-secondary" id="editModeToggle">
+              <i class="fas fa-edit"></i> Edit Layout
+            </button>
+          <% end %>
+          
+          <div class="btn-group" role="group">
+            <button class="btn btn-outline-primary dropdown-toggle" 
+                    data-bs-toggle="dropdown">
+              <i class="fas fa-plus"></i> Add Widget
+            </button>
+            <ul class="dropdown-menu">
+              <% @available_widgets.each do |widget_type| %>
+                <li>
+                  <a class="dropdown-item add-widget-btn" 
+                     href="#" 
+                     data-widget-type="<%= widget_type[:id] %>">
+                    <i class="<%= widget_type[:icon] %> me-2"></i>
+                    <%= widget_type[:name] %>
+                  </a>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+          
+          <div class="btn-group" role="group">
+            <button class="btn btn-outline-secondary dropdown-toggle" 
+                    data-bs-toggle="dropdown">
+              <i class="fas fa-cog"></i>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <%= link_to "Dashboard Settings", edit_analytics_dashboard_path(@analytics_dashboard), 
+                            class: "dropdown-item" %>
+              </li>
+              <li>
+                <%= link_to "Export Dashboard", export_dashboard_analytics_dashboard_path(@analytics_dashboard), 
+                            class: "dropdown-item" %>
+              </li>
+              <li>
+                <%= link_to "View Insights", insights_analytics_dashboard_path(@analytics_dashboard), 
+                            class: "dropdown-item" %>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <%= link_to "Duplicate Dashboard", duplicate_analytics_dashboard_path(@analytics_dashboard), 
+                            method: :post, class: "dropdown-item" %>
+              </li>
+            </ul>
+          </div>
+          
+          <button class="btn btn-primary" id="refreshDashboard">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Filters -->
+  <div class="dashboard-filters mb-4" style="display: none;">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-lg-3 col-md-6 mb-3">
+            <label class="form-label">Time Range</label>
+            <select class="form-select dashboard-filter" data-filter="time_range">
+              <option value="7_days">Last 7 days</option>
+              <option value="30_days" selected>Last 30 days</option>
+              <option value="90_days">Last 90 days</option>
+              <option value="180_days">Last 6 months</option>
+              <option value="1_year">Last year</option>
+            </select>
+          </div>
+          
+          <div class="col-lg-3 col-md-6 mb-3">
+            <label class="form-label">Department</label>
+            <select class="form-select dashboard-filter" data-filter="department">
+              <option value="">All Departments</option>
+              <% @available_departments.each do |dept| %>
+                <option value="<%= dept.id %>"><%= dept.name %></option>
+              <% end %>
+            </select>
+          </div>
+          
+          <div class="col-lg-3 col-md-6 mb-3">
+            <label class="form-label">Performance Level</label>
+            <select class="form-select dashboard-filter" data-filter="performance">
+              <option value="">All Levels</option>
+              <option value="high">High Performers (90%+)</option>
+              <option value="medium">Average Performers (70-89%)</option>
+              <option value="low">At-Risk (< 70%)</option>
+            </select>
+          </div>
+          
+          <div class="col-lg-3 col-md-6 mb-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" id="applyFilters">Apply</button>
+              <button class="btn btn-outline-secondary" id="resetFilters">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid" id="dashboardGrid">
+    <% if @dashboard_data[:widgets].any? %>
+      <% @dashboard_data[:widgets].each do |widget_data| %>
+        <div class="dashboard-widget" 
+             data-widget-id="<%= widget_data[:id] %>"
+             data-widget-type="<%= widget_data[:widget_type] %>"
+             style="grid-column: span <%= widget_data[:width] || 1 %>; grid-row: span <%= widget_data[:height] || 1 %>;">
+          
+          <div class="widget-container">
+            <div class="widget-header">
+              <h5 class="widget-title">
+                <i class="<%= widget_data[:icon] %> me-2"></i>
+                <%= widget_data[:title] %>
+              </h5>
+              
+              <div class="widget-actions">
+                <button class="btn btn-sm btn-outline-secondary widget-refresh" 
+                        data-widget-id="<%= widget_data[:id] %>">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                          data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item widget-fullscreen" 
+                         data-widget-id="<%= widget_data[:id] %>">
+                        <i class="fas fa-expand me-2"></i>Fullscreen
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item widget-export" 
+                         data-widget-id="<%= widget_data[:id] %>">
+                        <i class="fas fa-download me-2"></i>Export
+                      </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <a class="dropdown-item widget-settings" 
+                         data-widget-id="<%= widget_data[:id] %>">
+                        <i class="fas fa-cog me-2"></i>Settings
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item text-danger widget-remove" 
+                         data-widget-id="<%= widget_data[:id] %>">
+                        <i class="fas fa-times me-2"></i>Remove
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div class="widget-content" id="widget-<%= widget_data[:id] %>">
+              <%= render partial: "widgets/#{widget_data[:widget_type]}", 
+                         locals: { widget: widget_data, data: widget_data[:data] } %>
+            </div>
+            
+            <% if widget_data[:loading] %>
+              <div class="widget-loading">
+                <div class="spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading...</span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="empty-dashboard">
+        <div class="text-center py-5">
+          <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+          <h4>No Widgets Yet</h4>
+          <p class="text-muted">Add widgets to start building your analytics dashboard.</p>
+          <button class="btn btn-primary" data-bs-toggle="dropdown">
+            <i class="fas fa-plus"></i> Add Your First Widget
+          </button>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="dashboard-loading" id="dashboardLoading" style="display: none;">
+    <div class="loading-content">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3">Updating dashboard...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Widget Fullscreen Modal -->
+<div class="modal fade" id="widgetFullscreenModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fullscreenWidgetTitle">Widget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="fullscreenWidgetContent">
+        <!-- Widget content will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Widget Modal -->
+<div class="modal fade" id="addWidgetModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Widget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addWidgetForm">
+          <input type="hidden" id="widgetType" name="widget_type">
+          
+          <div class="mb-3">
+            <label class="form-label">Widget Title</label>
+            <input type="text" class="form-control" name="title" required>
+          </div>
+          
+          <div class="row">
+            <div class="col-6">
+              <label class="form-label">Width</label>
+              <select class="form-select" name="width">
+                <option value="1">1 Column</option>
+                <option value="2" selected>2 Columns</option>
+                <option value="3">3 Columns</option>
+                <option value="4">4 Columns</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Height</label>
+              <select class="form-select" name="height">
+                <option value="1" selected>1 Row</option>
+                <option value="2">2 Rows</option>
+                <option value="3">3 Rows</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="widget-specific-options mt-3">
+            <!-- Widget-specific options will be loaded here -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveWidget">Add Widget</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-gap: 1.5rem;
+  grid-auto-rows: 250px;
+}
+
+.dashboard-widget {
+  position: relative;
+}
+
+.widget-container {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease;
+}
+
+.widget-container:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.widget-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-grow: 1;
+}
+
+.widget-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.widget-content {
+  flex-grow: 1;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.widget-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+}
+
+.dashboard-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.empty-dashboard {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.dashboard-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 100;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 300px;
+  }
+  
+  .dashboard-header .d-flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .dashboard-actions .btn-group {
+    width: 100%;
+  }
+  
+  .widget-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+/* Edit mode styles */
+.edit-mode .widget-container {
+  cursor: move;
+  border: 2px dashed #007bff;
+}
+
+.edit-mode .widget-container:hover {
+  border-color: #0056b3;
+}
+
+.sortable-ghost {
+  opacity: 0.5;
+}
+
+.sortable-chosen {
+  transform: scale(1.05);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dashboardId = document.querySelector('.analytics-dashboard-show').dataset.dashboardId;
+  let editMode = false;
+  let sortable = null;
+  
+  // Initialize dashboard
+  initializeDashboard();
+  
+  function initializeDashboard() {
+    // Refresh button
+    document.getElementById('refreshDashboard').addEventListener('click', refreshDashboard);
+    
+    // Edit mode toggle
+    const editModeToggle = document.getElementById('editModeToggle');
+    if (editModeToggle) {
+      editModeToggle.addEventListener('click', toggleEditMode);
+    }
+    
+    // Add widget buttons
+    document.querySelectorAll('.add-widget-btn').forEach(btn => {
+      btn.addEventListener('click', handleAddWidget);
+    });
+    
+    // Widget actions
+    initializeWidgetActions();
+    
+    // Filters
+    initializeFilters();
+    
+    // Auto-refresh every 5 minutes
+    setInterval(refreshDashboard, 5 * 60 * 1000);
+  }
+  
+  function refreshDashboard() {
+    showLoading();
+    
+    fetch(`/analytics_dashboards/${dashboardId}/widget_data`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      updateDashboardWidgets(data.widgets);
+      hideLoading();
+    })
+    .catch(error => {
+      console.error('Error refreshing dashboard:', error);
+      hideLoading();
+      showNotification('Failed to refresh dashboard', 'error');
+    });
+  }
+  
+  function toggleEditMode() {
+    editMode = !editMode;
+    const dashboard = document.querySelector('.analytics-dashboard-show');
+    const editButton = document.getElementById('editModeToggle');
+    
+    if (editMode) {
+      dashboard.classList.add('edit-mode');
+      editButton.innerHTML = '<i class="fas fa-save"></i> Save Layout';
+      enableSortable();
+    } else {
+      dashboard.classList.remove('edit-mode');
+      editButton.innerHTML = '<i class="fas fa-edit"></i> Edit Layout';
+      disableSortable();
+      saveLayout();
+    }
+  }
+  
+  function enableSortable() {
+    const grid = document.getElementById('dashboardGrid');
+    sortable = Sortable.create(grid, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onEnd: function(evt) {
+        // Handle widget reordering
+        updateWidgetPositions();
+      }
+    });
+  }
+  
+  function disableSortable() {
+    if (sortable) {
+      sortable.destroy();
+      sortable = null;
+    }
+  }
+  
+  function saveLayout() {
+    const widgets = Array.from(document.querySelectorAll('.dashboard-widget')).map((widget, index) => ({
+      id: widget.dataset.widgetId,
+      position: index
+    }));
+    
+    fetch(`/analytics_dashboards/${dashboardId}/update_layout`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ widgets: widgets })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showNotification('Layout saved successfully', 'success');
+      } else {
+        showNotification('Failed to save layout', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving layout:', error);
+      showNotification('Failed to save layout', 'error');
+    });
+  }
+  
+  function handleAddWidget(event) {
+    event.preventDefault();
+    const widgetType = event.target.dataset.widgetType;
+    showAddWidgetModal(widgetType);
+  }
+  
+  function showAddWidgetModal(widgetType) {
+    const modal = new bootstrap.Modal(document.getElementById('addWidgetModal'));
+    document.getElementById('widgetType').value = widgetType;
+    
+    // Load widget-specific options
+    loadWidgetOptions(widgetType);
+    
+    modal.show();
+  }
+  
+  function loadWidgetOptions(widgetType) {
+    const container = document.querySelector('.widget-specific-options');
+    
+    // Clear existing options
+    container.innerHTML = '';
+    
+    // Add widget-specific configuration options
+    switch(widgetType) {
+      case 'grade_overview':
+        container.innerHTML = `
+          <div class="mb-3">
+            <label class="form-label">Grade Type</label>
+            <select class="form-select" name="config[grade_type]">
+              <option value="overall">Overall Grades</option>
+              <option value="recent">Recent Assignments</option>
+              <option value="trending">Grade Trends</option>
+            </select>
+          </div>
+        `;
+        break;
+      case 'attendance_summary':
+        container.innerHTML = `
+          <div class="mb-3">
+            <label class="form-label">Time Period</label>
+            <select class="form-select" name="config[time_period]">
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="semester">This Semester</option>
+            </select>
+          </div>
+        `;
+        break;
+      // Add more widget-specific options as needed
+    }
+  }
+  
+  function initializeWidgetActions() {
+    // Widget refresh buttons
+    document.querySelectorAll('.widget-refresh').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const widgetId = this.dataset.widgetId;
+        refreshWidget(widgetId);
+      });
+    });
+    
+    // Widget fullscreen buttons
+    document.querySelectorAll('.widget-fullscreen').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const widgetId = this.dataset.widgetId;
+        showWidgetFullscreen(widgetId);
+      });
+    });
+    
+    // Widget export buttons
+    document.querySelectorAll('.widget-export').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const widgetId = this.dataset.widgetId;
+        exportWidget(widgetId);
+      });
+    });
+    
+    // Widget remove buttons
+    document.querySelectorAll('.widget-remove').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const widgetId = this.dataset.widgetId;
+        removeWidget(widgetId);
+      });
+    });
+  }
+  
+  function refreshWidget(widgetId) {
+    const widget = document.querySelector(`[data-widget-id="${widgetId}"]`);
+    const content = widget.querySelector('.widget-content');
+    
+    // Show loading state
+    widget.classList.add('loading');
+    
+    fetch(`/analytics_dashboards/${dashboardId}/widget_data?widget_id=${widgetId}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      content.innerHTML = data.html;
+      widget.classList.remove('loading');
+    })
+    .catch(error => {
+      console.error('Error refreshing widget:', error);
+      widget.classList.remove('loading');
+      showNotification('Failed to refresh widget', 'error');
+    });
+  }
+  
+  function showWidgetFullscreen(widgetId) {
+    const widget = document.querySelector(`[data-widget-id="${widgetId}"]`);
+    const title = widget.querySelector('.widget-title').textContent;
+    const content = widget.querySelector('.widget-content').cloneNode(true);
+    
+    document.getElementById('fullscreenWidgetTitle').textContent = title;
+    document.getElementById('fullscreenWidgetContent').innerHTML = '';
+    document.getElementById('fullscreenWidgetContent').appendChild(content);
+    
+    const modal = new bootstrap.Modal(document.getElementById('widgetFullscreenModal'));
+    modal.show();
+  }
+  
+  function exportWidget(widgetId) {
+    const widget = document.querySelector(`[data-widget-id="${widgetId}"]`);
+    const title = widget.querySelector('.widget-title').textContent;
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = `/analytics_dashboards/${dashboardId}/widget_data?widget_id=${widgetId}&export=csv`;
+    link.download = `${title.replace(/\s+/g, '_').toLowerCase()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  
+  function removeWidget(widgetId) {
+    if (!confirm('Are you sure you want to remove this widget?')) {
+      return;
+    }
+    
+    fetch(`/analytics_dashboards/${dashboardId}/remove_widget`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ widget_id: widgetId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const widget = document.querySelector(`[data-widget-id="${widgetId}"]`);
+        widget.remove();
+        showNotification('Widget removed successfully', 'success');
+      } else {
+        showNotification('Failed to remove widget', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error removing widget:', error);
+      showNotification('Failed to remove widget', 'error');
+    });
+  }
+  
+  function initializeFilters() {
+    const filterToggle = document.querySelector('[data-bs-target="#filtersCollapse"]');
+    const applyButton = document.getElementById('applyFilters');
+    const resetButton = document.getElementById('resetFilters');
+    
+    if (applyButton) {
+      applyButton.addEventListener('click', applyFilters);
+    }
+    
+    if (resetButton) {
+      resetButton.addEventListener('click', resetFilters);
+    }
+  }
+  
+  function applyFilters() {
+    const filters = {};
+    document.querySelectorAll('.dashboard-filter').forEach(filter => {
+      if (filter.value) {
+        filters[filter.dataset.filter] = filter.value;
+      }
+    });
+    
+    showLoading();
+    
+    fetch(`/analytics_dashboards/${dashboardId}/widget_data`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ filters: filters })
+    })
+    .then(response => response.json())
+    .then(data => {
+      updateDashboardWidgets(data.widgets);
+      hideLoading();
+    })
+    .catch(error => {
+      console.error('Error applying filters:', error);
+      hideLoading();
+      showNotification('Failed to apply filters', 'error');
+    });
+  }
+  
+  function resetFilters() {
+    document.querySelectorAll('.dashboard-filter').forEach(filter => {
+      filter.selectedIndex = 0;
+    });
+    applyFilters();
+  }
+  
+  function updateDashboardWidgets(widgets) {
+    widgets.forEach(widgetData => {
+      const widget = document.querySelector(`[data-widget-id="${widgetData.id}"]`);
+      if (widget) {
+        const content = widget.querySelector('.widget-content');
+        content.innerHTML = widgetData.html;
+      }
+    });
+  }
+  
+  function showLoading() {
+    document.getElementById('dashboardLoading').style.display = 'flex';
+  }
+  
+  function hideLoading() {
+    document.getElementById('dashboardLoading').style.display = 'none';
+  }
+  
+  function showNotification(message, type = 'info') {
+    // Create and show toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    
+    // Add to toast container or create one
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container position-fixed top-0 end-0 p-3';
+      document.body.appendChild(container);
+    }
+    
+    container.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+      toast.remove();
+    });
+  }
+  
+  // Save widget form submission
+  document.getElementById('saveWidget').addEventListener('click', function() {
+    const form = document.getElementById('addWidgetForm');
+    const formData = new FormData(form);
+    
+    // Convert FormData to JSON
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+      if (key.includes('[') && key.includes(']')) {
+        // Handle nested objects like config[grade_type]
+        const matches = key.match(/(\w+)\[(\w+)\]/);
+        if (matches) {
+          if (!data[matches[1]]) data[matches[1]] = {};
+          data[matches[1]][matches[2]] = value;
+        }
+      } else {
+        data[key] = value;
+      }
+    }
+    
+    fetch(`/analytics_dashboards/${dashboardId}/add_widget`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Add new widget to dashboard
+        const grid = document.getElementById('dashboardGrid');
+        grid.insertAdjacentHTML('beforeend', data.html);
+        
+        // Hide modal
+        bootstrap.Modal.getInstance(document.getElementById('addWidgetModal')).hide();
+        
+        // Reinitialize widget actions for new widget
+        initializeWidgetActions();
+        
+        showNotification('Widget added successfully', 'success');
+      } else {
+        showNotification('Failed to add widget', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error adding widget:', error);
+      showNotification('Failed to add widget', 'error');
+    });
+  });
+});
+</script>

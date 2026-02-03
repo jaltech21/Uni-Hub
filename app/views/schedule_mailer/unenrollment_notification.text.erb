@@ -1,0 +1,20 @@
+Hi <%= @student.full_name %>,
+
+📤 UNENROLLED FROM CLASS
+
+You have been unenrolled from the following class:
+
+Class: <%= @schedule.title %>
+Course: <%= @schedule.course %>
+Day: <%= @schedule.day_name %>
+Time: <%= @schedule.formatted_time_range %>
+Room: <%= @schedule.room %>
+Instructor: <%= @instructor_name %>
+
+This class has been removed from your schedule. If you believe this was done in error, please contact your instructor or administrator.
+
+View my schedule: <%= schedules_url %>
+
+---
+This is an automated notification from Uni-Hub.
+© <%= Time.current.year %> Uni-Hub. All rights reserved.

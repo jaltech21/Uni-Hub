@@ -1,0 +1,175 @@
+<nav class="<%= navbar_theme_class %> shadow-sm sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center">
+        <% if user_signed_in? %>
+          <%= link_to "Uni-Hub", authenticated_root_path, class: "text-2xl font-bold text-blue-600" %>
+        <% else %>
+          <%= link_to "Uni-Hub", root_path, class: "text-2xl font-bold text-blue-600" %>
+        <% end %>
+      </div>
+      
+      <% if user_signed_in? %>
+        <!-- Authenticated User Navigation -->
+        <div class="flex items-center space-x-4">
+          <!-- Search Bar -->
+          <div class="hidden md:block relative">
+            <%= form_with url: search_results_path, method: :get, local: true, class: "flex items-center" do |form| %>
+              <div class="relative">
+                <%= form.text_field :q, 
+                    placeholder: "Search...", 
+                    class: "w-64 pl-8 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                    autocomplete: "off" %>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          
+          <!-- Navigation Links -->
+          <div class="flex items-center space-x-1">
+            <%= link_to authenticated_root_path, 
+                class: "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors #{current_page?(authenticated_root_path) ? 'text-blue-600 bg-blue-50' : ''}" do %>
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+              </svg>
+              Dashboard
+            <% end %>
+            
+            <%= link_to search_path, 
+                class: "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors #{current_page?(search_path) ? 'text-blue-600 bg-blue-50' : ''}" do %>
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              Search
+            <% end %>
+            
+            <%= link_to notes_path, 
+                class: "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors #{current_page?(notes_path) ? 'text-blue-600 bg-blue-50' : ''}" do %>
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Notes
+            <% end %>
+            
+            <%= link_to assignments_path, 
+                class: "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors #{current_page?(assignments_path) ? 'text-blue-600 bg-blue-50' : ''}" do %>
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+              </svg>
+              Assignments
+            <% end %>
+            
+            <%= link_to conversations_path, 
+                class: "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors #{current_page?(conversations_path) ? 'text-blue-600 bg-blue-50' : ''}" do %>
+              <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              Messages
+            <% end %>
+          </div>
+          
+          <!-- User Menu -->
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+              <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                <%= current_user.full_name.first.upcase %>
+              </div>
+              <span class="hidden lg:block"><%= current_user.full_name %></span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+              <%= link_to "Profile", edit_user_registration_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+              <%= link_to "Personalization", personalization_preferences_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+              <%= link_to "Settings", edit_user_registration_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+              <div class="border-t border-gray-100"></div>
+              <%= link_to "Sign Out", destroy_user_session_path, method: :delete, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <!-- Unauthenticated User Navigation -->
+        <div class="hidden md:block">
+          <div class="ml-10 flex items-baseline space-x-4">
+            <%= link_to "Features", pages_features_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_features_path) ? 'text-blue-600 font-semibold' : ''}" %>
+            <%= link_to "Pricing", pages_pricing_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_pricing_path) ? 'text-blue-600 font-semibold' : ''}" %>
+            <%= link_to "About", pages_about_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_about_path) ? 'text-blue-600 font-semibold' : ''}" %>
+            <%= link_to "Sign In", new_user_session_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium transition duration-150" %>
+            <%= link_to "Sign Up", new_user_registration_path, class: "bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300" %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden">
+        <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition duration-150">
+          <span class="sr-only">Open main menu</span>
+          <!-- Hamburger icon -->
+          <svg class="block h-6 w-6" id="menu-icon-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <!-- Close icon (hidden by default) -->
+          <svg class="hidden h-6 w-6" id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="hidden md:hidden" id="mobile-menu">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
+      <% if user_signed_in? %>
+        <!-- Mobile Search -->
+        <%= form_with url: search_results_path, method: :get, local: true, class: "px-3 py-2" do |form| %>
+          <%= form.text_field :q, 
+              placeholder: "Search...", 
+              class: "w-full pl-8 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" %>
+        <% end %>
+        
+        <%= link_to "Dashboard", authenticated_root_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(authenticated_root_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Search", search_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(search_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Notes", notes_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(notes_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Assignments", assignments_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(assignments_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Messages", conversations_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(conversations_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        
+        <div class="border-t border-gray-200 pt-2 mt-2">
+          <%= link_to "Profile", edit_user_registration_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150" %>
+          <%= link_to "Personalization", personalization_preferences_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150" %>
+          <%= link_to "Sign Out", destroy_user_session_path, method: :delete, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150" %>
+        </div>
+      <% else %>
+        <%= link_to "Features", pages_features_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_features_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Pricing", pages_pricing_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_pricing_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "About", pages_about_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150 #{current_page?(pages_about_path) ? 'text-blue-600 bg-blue-50 font-semibold' : ''}" %>
+        <%= link_to "Sign In", new_user_session_path, class: "block text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-md font-medium transition duration-150" %>
+        <%= link_to "Sign Up", new_user_registration_path, class: "block bg-blue-600 text-white font-bold py-2 px-3 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-center" %>
+      <% end %>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Mobile menu toggle
+  document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIconClosed = document.getElementById('menu-icon-closed');
+    const menuIconOpen = document.getElementById('menu-icon-open');
+
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+        menuIconClosed.classList.toggle('hidden');
+        menuIconOpen.classList.toggle('hidden');
+      });
+    }
+  });
+</script>

@@ -1,0 +1,363 @@
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-4xl font-bold text-gray-900 flex items-center gap-3">
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+            </div>
+            AI Quiz Generator
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-semibold rounded-full">BETA</span>
+          </h1>
+          <p class="text-gray-600 mt-2 text-lg">Select a note and let AI create custom quiz questions for you</p>
+        </div>
+        <%= link_to quizzes_path, class: "inline-flex items-center px-5 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all shadow-sm hover:shadow-md font-medium" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Quizzes
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Rate Limit Status Indicator -->
+    <div class="mb-6">
+      <div class="bg-white rounded-xl shadow-sm border-2 <%= @rate_limit_remaining > 10 ? 'border-green-200' : @rate_limit_remaining > 5 ? 'border-yellow-200' : 'border-red-200' %> p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="<%= @rate_limit_remaining > 10 ? 'bg-green-100' : @rate_limit_remaining > 5 ? 'bg-yellow-100' : 'bg-red-100' %> p-2 rounded-lg">
+              <svg class="w-5 h-5 <%= @rate_limit_remaining > 10 ? 'text-green-600' : @rate_limit_remaining > 5 ? 'text-yellow-600' : 'text-red-600' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-900">AI Request Quota</h3>
+              <p class="text-xs text-gray-600">
+                <span class="font-bold <%= @rate_limit_remaining > 10 ? 'text-green-600' : @rate_limit_remaining > 5 ? 'text-yellow-600' : 'text-red-600' %>"><%= @rate_limit_remaining %></span> 
+                of <%= @rate_limit_max %> requests remaining this minute
+              </p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold <%= @rate_limit_remaining > 10 ? 'text-green-600' : @rate_limit_remaining > 5 ? 'text-yellow-600' : 'text-red-600' %>">
+              <%= (@rate_limit_remaining.to_f / @rate_limit_max * 100).round %>%
+            </div>
+            <div class="text-xs text-gray-500">Available</div>
+          </div>
+        </div>
+        <% if @rate_limit_remaining == 0 %>
+          <div class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+            <p class="text-sm text-red-800">
+              <strong>⚠️ Quota exhausted.</strong> Please wait a minute before making more AI requests.
+            </p>
+          </div>
+        <% elsif @rate_limit_remaining <= 5 %>
+          <div class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p class="text-sm text-yellow-800">
+              <strong>⚠️ Low quota.</strong> You're running low on AI requests for this minute.
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if @notes.empty? %>
+      <!-- Empty State -->
+      <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-3">No Notes Available</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+          You need notes with at least 200 characters to generate quizzes. 
+          Create some detailed notes first!
+        </p>
+        <%= link_to new_note_path, class: "inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Create Your First Note
+        <% end %>
+      </div>
+    <% else %>
+      <%= form_with url: generate_from_note_quizzes_path, method: :post, id: "quiz-generator-form", class: "space-y-6" do |f| %>
+        <!-- Note Selection -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Step 1: Select a Note
+            </h2>
+            <p class="text-purple-100 text-sm mt-1">Choose which note to generate quiz questions from</p>
+          </div>
+
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="notes-grid">
+              <% @notes.each do |note| %>
+                <label class="note-card relative cursor-pointer group">
+                  <%= radio_button_tag :note_id, note.id, false, class: "hidden note-radio" %>
+                  <div class="p-5 border-2 border-gray-200 rounded-xl hover:border-purple-500 transition-all duration-200 group-hover:shadow-lg h-full flex flex-col">
+                    <div class="flex items-start justify-between mb-3">
+                      <h3 class="font-semibold text-gray-900 text-lg flex-1 line-clamp-2"><%= note.title %></h3>
+                      <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center ml-2 flex-shrink-0 group-hover:border-purple-500 transition-colors">
+                        <svg class="w-4 h-4 text-white hidden check-icon" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600 mb-3 flex-1">
+                      <div class="line-clamp-3"><%= note.content.to_s.truncate(150) %></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                      <span class="flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <%= note.content.to_s.length %> chars
+                      </span>
+                      <% if note.content.to_s.length >= 500 %>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">Great for quiz!</span>
+                      <% elsif note.content.to_s.length >= 200 %>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">Good</span>
+                      <% else %>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">Too short</span>
+                      <% end %>
+                    </div>
+                  </div>
+                </label>
+              <% end %>
+            </div>
+
+            <div id="note-selection-error" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r">
+              <p class="text-red-800 text-sm font-medium">Please select a note to continue</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Configuration -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+              Step 2: Configure Quiz Settings
+            </h2>
+            <p class="text-indigo-100 text-sm mt-1">Customize your quiz generation parameters</p>
+          </div>
+
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Number of Questions -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                  </svg>
+                  Number of Questions
+                </label>
+                <%= select_tag :question_count, 
+                    options_for_select([
+                      ['3 Questions', 3],
+                      ['5 Questions', 5],
+                      ['10 Questions', 10],
+                      ['15 Questions', 15],
+                      ['20 Questions', 20]
+                    ], 5),
+                    class: "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white font-medium text-gray-900" %>
+                <p class="text-xs text-gray-500 mt-2">More questions = longer generation time</p>
+              </div>
+
+              <!-- Question Type -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                  </svg>
+                  Question Type
+                </label>
+                <%= select_tag :question_type,
+                    options_for_select([
+                      ['Mixed (Recommended)', 'mixed'],
+                      ['Multiple Choice', 'multiple_choice'],
+                      ['True/False', 'true_false'],
+                      ['Short Answer', 'short_answer']
+                    ], 'mixed'),
+                    class: "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white font-medium text-gray-900" %>
+                <p class="text-xs text-gray-500 mt-2">Mixed provides variety</p>
+              </div>
+
+              <!-- Difficulty Level -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  Difficulty Level
+                </label>
+                <%= select_tag :difficulty,
+                    options_for_select([
+                      ['Easy', 'easy'],
+                      ['Medium', 'medium'],
+                      ['Hard', 'hard']
+                    ], 'medium'),
+                    class: "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white font-medium text-gray-900" %>
+                <p class="text-xs text-gray-500 mt-2">Affects question complexity</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-gray-900 mb-1">Ready to Generate?</h3>
+                <p class="text-sm text-gray-600">
+                  AI will analyze your note and create custom quiz questions. This typically takes 10-30 seconds.
+                </p>
+              </div>
+            </div>
+            
+            <button type="submit" id="generate-btn" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg class="w-6 h-6 mr-2" id="generate-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span id="generate-text">Generate Quiz</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="hidden bg-white rounded-2xl shadow-xl p-8">
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4 animate-pulse">
+              <svg class="w-8 h-8 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Generating Your Quiz...</h3>
+            <p class="text-gray-600 mb-4">AI is analyzing your note and creating questions. Please wait...</p>
+            <div class="w-full bg-gray-200 rounded-full h-2 max-w-md mx-auto">
+              <div class="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full animate-pulse" style="width: 70%"></div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Tips Section -->
+      <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-r-2xl p-6 shadow-lg">
+        <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          Pro Tips for Better Quizzes
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-blue-900"><strong>Longer notes work best:</strong> Notes with 500+ characters produce higher quality questions</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-blue-900"><strong>Well-structured content:</strong> Clear sections and key points generate better questions</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-blue-900"><strong>Review before publishing:</strong> You can edit questions after generation</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-blue-900"><strong>Start with 5 questions:</strong> Good balance between variety and generation time</span>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('quiz-generator-form');
+    const noteRadios = document.querySelectorAll('.note-radio');
+    const noteCards = document.querySelectorAll('.note-card');
+    const generateBtn = document.getElementById('generate-btn');
+    const loadingState = document.getElementById('loading-state');
+    const errorDiv = document.getElementById('note-selection-error');
+
+    // Handle note selection styling
+    noteRadios.forEach((radio, index) => {
+      radio.addEventListener('change', function() {
+        // Remove selection from all cards
+        noteCards.forEach(card => {
+          card.querySelector('div').classList.remove('border-purple-500', 'bg-purple-50');
+          card.querySelector('div').classList.add('border-gray-200');
+          card.querySelector('.check-icon').classList.add('hidden');
+          const radioCircle = card.querySelector('.group-hover\\:border-purple-500').parentElement;
+          radioCircle.classList.remove('bg-purple-600', 'border-purple-600');
+          radioCircle.classList.add('border-gray-300');
+        });
+
+        // Add selection to clicked card
+        if (this.checked) {
+          const selectedCard = noteCards[index];
+          selectedCard.querySelector('div').classList.add('border-purple-500', 'bg-purple-50');
+          selectedCard.querySelector('div').classList.remove('border-gray-200');
+          selectedCard.querySelector('.check-icon').classList.remove('hidden');
+          const radioCircle = selectedCard.querySelector('.group-hover\\:border-purple-500').parentElement;
+          radioCircle.classList.add('bg-purple-600', 'border-purple-600');
+          radioCircle.classList.remove('border-gray-300');
+          
+          // Hide error if shown
+          errorDiv.classList.add('hidden');
+        }
+      });
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+      const selectedNote = document.querySelector('.note-radio:checked');
+      
+      if (!selectedNote) {
+        e.preventDefault();
+        errorDiv.classList.remove('hidden');
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      // Show loading state
+      generateBtn.disabled = true;
+      document.getElementById('generate-text').textContent = 'Generating...';
+      document.getElementById('generate-icon').classList.add('animate-spin');
+      
+      if (loadingState) {
+        loadingState.classList.remove('hidden');
+        loadingState.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  });
+</script>

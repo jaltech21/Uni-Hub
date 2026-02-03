@@ -1,0 +1,18 @@
+Hi <%= @student.full_name %>,
+
+❌ CLASS CANCELLED
+
+Important Notice: The following class has been cancelled.
+
+Class: <%= @schedule_title %>
+Course: <%= @schedule_course %>
+Day: <%= @schedule_day %>
+Time: <%= @schedule_time %>
+
+This class has been removed from your schedule. Please check with your instructor for more information or to see if there will be a makeup session.
+
+View my schedule: <%= schedules_url %>
+
+---
+This is an automated notification from Uni-Hub.
+© <%= Time.current.year %> Uni-Hub. All rights reserved.

@@ -1,0 +1,153 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+      <%= link_to "Departments", departments_path, class: "hover:text-blue-600" %> /
+      <%= link_to @department.name, department_path(@department), class: "hover:text-blue-600" %> /
+      <%= link_to "Members", department_members_path(@department), class: "hover:text-blue-600" %> /
+      <span class="text-gray-900"><%= @member.new_record? ? 'Add Member' : 'Edit Member' %></span>
+    </div>
+
+    <h1 class="text-3xl font-bold text-gray-900">
+      <%= @member.new_record? ? 'Add New Member' : 'Edit Member' %>
+    </h1>
+    <p class="text-gray-600 mt-2">
+      <%= @member.new_record? ? 'Add a new member to this department' : 'Update member information and role' %>
+    </p>
+  </div>
+
+  <%= form_with model: [@department, @member], url: @member.new_record? ? department_members_path(@department) : department_member_path(@department, @member), method: @member.new_record? ? :post : :patch, local: true, class: "bg-white rounded-lg shadow-sm border border-gray-200 p-6" do |f| %>
+    <% if @member.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <h3 class="text-red-800 font-semibold mb-2">
+          <%= pluralize(@member.errors.count, "error") %> prohibited this member from being saved:
+        </h3>
+        <ul class="list-disc list-inside text-sm text-red-700">
+          <% @member.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- User Selection (only for new records) -->
+    <% if @member.new_record? %>
+      <div class="mb-6">
+        <%= f.label :user_id, "User", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= f.collection_select :user_id, 
+            User.where(role: ['teacher', 'admin']).order(:first_name), 
+            :id, 
+            :full_name, 
+            { prompt: "Select a user..." },
+            { class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        <p class="mt-1 text-sm text-gray-500">
+          Select a teacher or admin to add to this department. Students are managed through their profile.
+        </p>
+      </div>
+    <% else %>
+      <!-- Display user info for existing members -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <span class="text-lg font-bold text-blue-600">
+              <%= @member.user.full_name.split.map(&:first).join.upcase %>
+            </span>
+          </div>
+          <div>
+            <p class="font-medium text-gray-900"><%= @member.user.full_name %></p>
+            <p class="text-sm text-gray-600"><%= @member.user.email %></p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Role -->
+    <div class="mb-6">
+      <%= f.label :role, "Department Role", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="space-y-2">
+        <label class="flex items-start">
+          <%= f.radio_button :role, 'member', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Member</span>
+            <p class="text-sm text-gray-500">Regular member with standard access</p>
+          </div>
+        </label>
+        
+        <label class="flex items-start">
+          <%= f.radio_button :role, 'teacher', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Teacher</span>
+            <p class="text-sm text-gray-500">Can teach courses and manage students</p>
+          </div>
+        </label>
+        
+        <label class="flex items-start">
+          <%= f.radio_button :role, 'admin', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Admin</span>
+            <p class="text-sm text-gray-500">Full department management access</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="mb-6">
+      <%= f.label :status, "Membership Status", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="space-y-2">
+        <label class="flex items-start">
+          <%= f.radio_button :status, 'active', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Active</span>
+            <p class="text-sm text-gray-500">Member is currently active</p>
+          </div>
+        </label>
+        
+        <label class="flex items-start">
+          <%= f.radio_button :status, 'pending', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Pending</span>
+            <p class="text-sm text-gray-500">Awaiting confirmation or approval</p>
+          </div>
+        </label>
+        
+        <label class="flex items-start">
+          <%= f.radio_button :status, 'inactive', class: "mt-1" %>
+          <div class="ml-3">
+            <span class="text-sm font-medium text-gray-900">Inactive</span>
+            <p class="text-sm text-gray-500">Member is no longer active</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Joined At -->
+    <div class="mb-6">
+      <%= f.label :joined_at, "Joined Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= f.datetime_local_field :joined_at, 
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      <p class="mt-1 text-sm text-gray-500">
+        When the member joined this department
+      </p>
+    </div>
+
+    <!-- Notes -->
+    <div class="mb-6">
+      <%= f.label :notes, "Notes", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= f.text_area :notes, 
+          rows: 4,
+          placeholder: "Add any notes about this member...",
+          class: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      <p class="mt-1 text-sm text-gray-500">
+        Optional notes or comments about this member
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3">
+      <%= f.submit @member.new_record? ? 'Add Member' : 'Update Member', 
+          class: "btn btn-primary" %>
+      <%= link_to "Cancel", @member.new_record? ? department_members_path(@department) : department_member_path(@department, @member), 
+          class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>

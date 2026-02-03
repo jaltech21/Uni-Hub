@@ -1,0 +1,351 @@
+<div class="max-w-4xl mx-auto p-6">
+  <div class="bg-white rounded-lg shadow-lg p-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+      <%= @assignment.persisted? ? 'Edit Assignment' : 'Create New Assignment' %>
+    </h2>
+
+    <%= form_with(model: @assignment, local: true, html: { id: 'assignment-form', multipart: true, class: 'space-y-6' }) do |form| %>
+      
+      <!-- Error Messages -->
+      <% if @assignment.errors.any? %>
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                <%= pluralize(@assignment.errors.count, "error") %> prohibited this assignment from being saved:
+              </h3>
+              <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                <% @assignment.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Title -->
+      <div>
+        <%= form.label :title, "Assignment Title", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :title, 
+            placeholder: "e.g., Chapter 5 Review Questions",
+            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            required: true %>
+      </div>
+
+      <!-- Course/Schedule Selection -->
+      <div>
+        <%= form.label :schedule_id, "Course", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.select :schedule_id, 
+            options_from_collection_for_select(@available_schedules, :id, :full_name, @assignment.schedule_id),
+            { include_blank: "Select a course", prompt: "Select a course" },
+            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            required: true,
+            data: { controller: "enrollment-capacity" } %>
+        <p class="mt-1 text-sm text-gray-500">
+          Select the course this assignment is for. Only students enrolled in this course will see it.
+        </p>
+      </div>
+
+      <!-- Course Name (optional legacy field) -->
+      <div class="hidden">
+        <%= form.text_field :course_name, value: @assignment.schedule&.course_code %>
+      </div>
+
+      <!-- Category and Points Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <%= form.label :category, "Category", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.select :category, 
+              [['Homework', 'homework'], ['Project', 'project'], ['Quiz', 'quiz'], ['Exam', 'exam']],
+              { selected: @assignment.category || 'homework' },
+              class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
+        </div>
+
+        <div>
+          <%= form.label :points, "Total Points", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.number_field :points, 
+              value: @assignment.points || 100,
+              min: 0,
+              placeholder: "100",
+              class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+              required: true %>
+        </div>
+      </div>
+
+      <!-- Due Date -->
+      <div>
+        <%= form.label :due_date, "Due Date & Time", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.datetime_local_field :due_date,
+            value: (@assignment.due_date&.strftime('%Y-%m-%dT%H:%M') || 1.week.from_now.strftime('%Y-%m-%dT%H:%M')),
+            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            required: true %>
+        <p class="mt-1 text-sm text-gray-500">Students must submit by this date and time</p>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <%= form.label :description, "Assignment Description", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_area :description,
+            rows: 6,
+            placeholder: "Provide detailed instructions for this assignment...",
+            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            required: true %>
+        <p class="mt-1 text-sm text-gray-500">Include all necessary details, requirements, and instructions</p>
+      </div>
+
+      <!-- Grading Criteria -->
+      <div>
+        <%= form.label :grading_criteria, "Grading Criteria (Optional)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_area :grading_criteria,
+            rows: 4,
+            placeholder: "How will this assignment be graded? List criteria, rubric, or point breakdown...",
+            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
+      </div>
+
+      <!-- File Upload Section -->
+      <div>
+        <%= form.label :files, "Attach Files (Optional)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <div class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-blue-400 transition" id="file-drop-zone">
+          <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="mt-4">
+            <%= form.file_field :files, 
+                multiple: true,
+                direct_upload: true,
+                class: "hidden",
+                id: "file-input",
+                accept: ".pdf,.doc,.docx,.txt,.zip,.jpg,.jpeg,.png" %>
+            <label for="file-input" class="cursor-pointer">
+              <span class="mt-2 block text-sm font-medium text-gray-900">
+                Click to upload or drag and drop
+              </span>
+              <span class="mt-1 block text-xs text-gray-500">
+                PDF, DOC, DOCX, TXT, ZIP, JPG, PNG (up to 10MB each)
+              </span>
+            </label>
+          </div>
+        </div>
+        <div id="file-preview" class="mt-4 space-y-2"></div>
+      </div>
+
+      <!-- Allow Resubmission Checkbox -->
+      <div class="flex items-center">
+        <%= form.check_box :allow_resubmission, 
+            class: "h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" %>
+        <%= form.label :allow_resubmission, 
+            "Allow students to resubmit after grading",
+            class: "ml-2 block text-sm text-gray-700" %>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-4 pt-6 border-t">
+        <%= link_to 'Cancel', 
+            @assignment.persisted? ? assignment_path(@assignment) : assignments_path,
+            class: "px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition" %>
+        <%= form.submit @assignment.persisted? ? 'Update Assignment' : 'Create Assignment',
+            class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition cursor-pointer",
+            id: "submit-button" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Vanilla JavaScript for File Upload Preview and Validation -->
+<script>
+(function() {
+  const fileInput = document.getElementById('file-input');
+  const filePreview = document.getElementById('file-preview');
+  const dropZone = document.getElementById('file-drop-zone');
+  const form = document.getElementById('assignment-form');
+  const submitButton = document.getElementById('submit-button');
+  
+  let selectedFiles = [];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'application/zip',
+    'application/x-zip-compressed',
+    'image/jpeg',
+    'image/jpg',
+    'image/png'
+  ];
+
+  // Prevent default drag behaviors
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Highlight drop zone when item is dragged over it
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    }, false);
+  });
+
+  // Handle dropped files
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+  }, false);
+
+  // Handle selected files
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  function handleFiles(files) {
+    const filesArray = Array.from(files);
+    
+    filesArray.forEach(file => {
+      if (validateFile(file)) {
+        selectedFiles.push(file);
+        displayFilePreview(file);
+      }
+    });
+
+    updateFileInput();
+  }
+
+  function validateFile(file) {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+      return false;
+    }
+
+    // Check file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert(`File "${file.name}" has an unsupported format.`);
+      return false;
+    }
+
+    // Check for duplicates
+    if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+      alert(`File "${file.name}" has already been added.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  function displayFilePreview(file) {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200';
+    fileItem.dataset.fileName = file.name;
+
+    const fileIcon = getFileIcon(file.type);
+    const fileSize = formatFileSize(file.size);
+
+    fileItem.innerHTML = `
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">${fileIcon}</span>
+        <div>
+          <p class="text-sm font-medium text-gray-900">${file.name}</p>
+          <p class="text-xs text-gray-500">${fileSize}</p>
+        </div>
+      </div>
+      <button type="button" class="text-red-600 hover:text-red-800 transition" onclick="removeFile('${file.name}')">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    `;
+
+    filePreview.appendChild(fileItem);
+  }
+
+  function getFileIcon(type) {
+    if (type.includes('pdf')) return '📄';
+    if (type.includes('word') || type.includes('document')) return '📝';
+    if (type.includes('zip')) return '🗜️';
+    if (type.includes('image')) return '🖼️';
+    if (type.includes('text')) return '📃';
+    return '📎';
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  window.removeFile = function(fileName) {
+    selectedFiles = selectedFiles.filter(f => f.name !== fileName);
+    const fileItem = filePreview.querySelector(`[data-file-name="${fileName}"]`);
+    if (fileItem) {
+      fileItem.remove();
+    }
+    updateFileInput();
+  };
+
+  function updateFileInput() {
+    const dataTransfer = new DataTransfer();
+    selectedFiles.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    fileInput.files = dataTransfer.files;
+  }
+
+  // Form validation before submit
+  form.addEventListener('submit', (e) => {
+    const title = form.querySelector('#assignment_title').value.trim();
+    const description = form.querySelector('#assignment_description').value.trim();
+    const dueDate = form.querySelector('#assignment_due_date').value;
+    const points = form.querySelector('#assignment_points').value;
+
+    if (!title || title.length < 3) {
+      e.preventDefault();
+      alert('Please enter a title (at least 3 characters).');
+      return false;
+    }
+
+    if (!description) {
+      e.preventDefault();
+      alert('Please provide an assignment description.');
+      return false;
+    }
+
+    if (!dueDate) {
+      e.preventDefault();
+      alert('Please select a due date and time.');
+      return false;
+    }
+
+    if (!points || points < 0) {
+      e.preventDefault();
+      alert('Please enter valid points (0 or greater).');
+      return false;
+    }
+
+    // Disable submit button to prevent double submission
+    submitButton.disabled = true;
+    submitButton.textContent = 'Creating...';
+    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+  });
+})();
+</script>
