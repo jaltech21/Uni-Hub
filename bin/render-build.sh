@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -o errexit
 
-bundle install
+echo "Installing dependencies..."
+bundle install --deployment
+
+echo "Precompiling assets..."
 bundle exec rails assets:precompile
-bundle exec rails assets:clean
+
+echo "Running database migrations..."
 bundle exec rails db:migrate
+
+echo "Build completed successfully!"
