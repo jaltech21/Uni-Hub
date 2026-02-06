@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -o errexit
 
-echo "Installing dependencies..."
+echo "Installing Ruby dependencies..."
 bundle install --deployment
 
-echo "Precompiling assets..."
-bundle exec rails assets:precompile
+echo "Installing Node dependencies..."
+npm install
+
+echo "Building Tailwind CSS..."
+npm run build:css
 
 echo "Running database migrations..."
 bundle exec rails db:migrate

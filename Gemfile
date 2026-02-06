@@ -59,7 +59,8 @@ gem 'caxlsx_rails', '~> 0.6'
 # Add Bootstrap for styling
 #gem "bootstrap", "~> 5.0"
 # Add sassc-rails for Sass engine support
-gem 'sassc-rails', '~> 2.1'
+# Disabled for Tailwind v4 CSS bundler compatibility
+# gem 'sassc-rails', '~> 2.1'
 
 gem "tailwindcss-rails"
 
