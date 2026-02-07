@@ -10,7 +10,7 @@ services:
     env: ruby
     plan: free
     runtime: ruby-3.2.0
-    buildCommand: "bundle install && npm install && npm run build:css && bundle exec rails db:migrate"
+    buildCommand: "bundle install && npm install && npm run build:css"
     startCommand: "bundle exec puma -C config/puma.rb"
     envVars:
       - key: DATABASE_URL
