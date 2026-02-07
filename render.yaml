@@ -23,5 +23,7 @@ services:
         value: production
       - key: RAILS_LOG_TO_STDOUT
         value: true
+      - key: RAILS_MAX_THREADS
+        value: "2"
       - key: WEB_CONCURRENCY
         value: "1"

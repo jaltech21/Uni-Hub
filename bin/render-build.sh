@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -o errexit
 
+echo "Setting up directories..."
+mkdir -p tmp/pids
+mkdir -p tmp/cache
+mkdir -p log
+
 echo "Installing Ruby dependencies..."
 bundle install
 
@@ -9,5 +14,8 @@ npm install
 
 echo "Building Tailwind CSS..."
 npm run build:css
+
+echo "Running database migrations..."
+bundle exec rails db:migrate || true
 
 echo "Build completed successfully!"
