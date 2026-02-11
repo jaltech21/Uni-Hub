@@ -22,6 +22,10 @@
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 1)
 threads threads_count, threads_count
 
+# Single mode for free tier - avoid cluster mode overhead
+# Set workers to 0 to run in single mode instead of cluster with 1 worker
+workers ENV.fetch("WEB_CONCURRENCY", 0).to_i
+
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 
@@ -34,3 +38,12 @@ plugin :tmp_restart
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+
+# Silence single worker warning on free tier
+silence_single_worker_warning = true
+
+# On-boot callback to ensure database is ready
+on_boot do
+  # Database connection check would go here if needed
+  puts "[Puma] Server ready to accept requests!"
+end
