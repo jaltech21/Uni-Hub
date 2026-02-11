@@ -18,8 +18,8 @@
 # Global VM Lock (GVL) it has diminishing returns and will degrade the
 # response time (latency) of the application.
 #
-# For free tier hosting with limited resources, use 2 threads
-threads_count = ENV.fetch("RAILS_MAX_THREADS", 2)
+# For free tier hosting with limited resources, use 1 thread
+threads_count = ENV.fetch("RAILS_MAX_THREADS", 1)
 threads threads_count, threads_count
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
