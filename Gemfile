@@ -54,7 +54,7 @@ gem 'rotp'
 gem 'redcarpet'  # Markdown rendering
 gem 'prawn', '~> 2.5'
 gem 'prawn-table', '~> 0.2'
-gem 'caxlsx', '~> 4.1'
+gem 'caxlsx', '~> 4.4'
 gem 'caxlsx_rails', '~> 0.6'
 # Add Bootstrap for styling
 #gem "bootstrap", "~> 5.0"
