@@ -62,7 +62,10 @@ gem 'caxlsx_rails', '~> 0.6'
 # Disabled for Tailwind v4 CSS bundler compatibility
 # gem 'sassc-rails', '~> 2.1'
 
-gem "tailwindcss-rails"
+# Tailwind CSS v4 uses npm bundler, not Rails asset pipeline
+# tailwindcss-rails gem conflicts with npm-based CSS compilation
+# CSS is compiled via: npm run build:css (in build phase)
+# gem "tailwindcss-rails"
 
 # Admin Dashboard
 gem 'activeadmin'
