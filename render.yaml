@@ -9,7 +9,7 @@ services:
     name: uni-hub
     env: ruby
     plan: free
-    buildCommand: "bundle install && npm install && npm run build:css && bundle exec rails db:migrate"
+    buildCommand: "./bin/render-build.sh"
     startCommand: "bundle exec puma -C config/puma.rb"
     healthCheckPath: /up
     envVars:
