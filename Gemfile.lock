@@ -99,7 +99,7 @@ GEM
     benchmark (0.4.1)
     bigdecimal (3.2.3)
     bindex (0.8.1)
-    bootsnap (1.18.6)
+    bootsnap (1.22.0)
       msgpack (~> 1.2)
     brakeman (7.1.0)
       racc
@@ -148,8 +148,6 @@ GEM
     ed25519 (1.4.0)
     erb (5.0.2)
     erubi (1.13.1)
-    et-orbi (1.4.0)
-      tzinfo
     ethon (0.15.0)
       ffi (>= 1.15.0)
     event_stream_parser (1.0.0)
@@ -171,9 +169,6 @@ GEM
     formtastic (5.0.0)
       actionpack (>= 6.0.0)
     formtastic_i18n (0.7.0)
-    fugit (1.11.2)
-      et-orbi (~> 1, >= 1.2.11)
-      raabro (~> 1.4)
     gemini-ai (4.3.0)
       event_stream_parser (~> 1.0)
       faraday (~> 2.13, >= 2.13.2)
@@ -341,7 +336,6 @@ GEM
       nio4r (~> 2.0)
     pundit (2.5.2)
       activesupport (>= 3.0.0)
-    raabro (1.4.0)
     racc (1.8.1)
     rack (3.2.1)
     rack-attack (6.7.0)
@@ -475,22 +469,6 @@ GEM
       faraday (>= 0.17.5, < 3.a)
       jwt (>= 1.5, < 4.0)
       multi_json (~> 1.10)
-    solid_cable (3.0.12)
-      actioncable (>= 7.2)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
-    solid_cache (1.0.7)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
-    solid_queue (1.2.1)
-      activejob (>= 7.1)
-      activerecord (>= 7.1)
-      concurrent-ruby (>= 1.3.1)
-      fugit (~> 1.11.0)
-      railties (>= 7.1)
-      thor (>= 1.3.1)
     sshkit (1.24.0)
       base64
       logger
@@ -585,9 +563,6 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver
   sidekiq
-  solid_cable
-  solid_cache
-  solid_queue
   stimulus-rails
   thruster
   turbo-rails
