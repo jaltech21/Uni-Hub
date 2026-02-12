@@ -12,6 +12,8 @@ bundle install
 
 echo "Installing Node dependencies..."
 npm install
+# Remove bundler's tailwindcss wrapper to let npm use its own
+rm -f .gems/bin/tailwindcss
 
 echo "Building Tailwind CSS..."
 npm run build:css
