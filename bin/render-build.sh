@@ -20,8 +20,8 @@ npm install
 echo "Building Tailwind CSS..."
 # Remove .gems/bin from PATH to prevent bundler from hijacking tailwindcss command
 export PATH=$(echo $PATH | tr ':' '\n' | grep -v '.gems/bin' | paste -sd: -)
-# Use direct path to tailwindcss in node_modules to bypass bundler completely
-./node_modules/.bin/tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
+# Use npm script which correctly resolves to node_modules
+npm run build:css
 
 echo "Running database migrations..."
 bundle exec rails db:migrate
