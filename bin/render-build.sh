@@ -5,23 +5,29 @@ echo "Setting up directories..."
 mkdir -p tmp/pids
 mkdir -p tmp/cache
 mkdir -p log
-# Clean up old tailwindcss binstub
-rm -f .gems/bin/tailwindcss
+
+# Clear ALL bundler artifacts to remove cached binstubs
+echo "Cleaning all bundler cache and artifacts..."
+rm -rf .bundle vendor/bundle .gems
+export BUNDLE_PATH=""
+export BUNDLE_BIN=""
 
 echo "Installing Ruby dependencies..."
-export BUNDLE_SKIP_DEFAULT_INSTALL=true
 bundle config set without 'development test'
-# Don't create binstubs to avoid conflicts with npm executables
-bundle install --no-binstubs
+bundle install
+
+# CRITICAL: Destroy ALL binstubs before npm runs - use multiple strategies
+echo "Nuclear option: destroying ALL bundler binstubs..."
+find . -path "*/bin/tailwindcss" -type f -delete 2>/dev/null || true
+find . -name ".gems" -type d -exec rm -rf {} + 2>/dev/null || true
+rm -f ~/.bundle/config 2>/dev/null || true
 
 echo "Installing Node dependencies..."
-npm install
+npm install --no-optional
 
-echo "Building Tailwind CSS..."
-# Remove .gems/bin from PATH to prevent bundler from hijacking tailwindcss command
-export PATH=$(echo $PATH | tr ':' '\n' | grep -v '.gems/bin' | paste -sd: -)
-# Use npm script which correctly resolves to node_modules
-npm run build:css
+# Run npm with completely isolated environment
+echo "Building Tailwind CSS with isolated environment..."
+BUNDLE_IGNORE_CONFIG=1 npm run build:css
 
 echo "Running database migrations..."
 bundle exec rails db:migrate
