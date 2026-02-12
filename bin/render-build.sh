@@ -7,10 +7,11 @@ mkdir -p tmp/cache
 mkdir -p log
 
 echo "Installing Ruby dependencies..."
-bundle install --without development test
+bundle config set without 'development test'
+bundle install
 
 echo "Installing Node dependencies..."
-npm ci
+npm install
 
 echo "Building Tailwind CSS..."
 npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
