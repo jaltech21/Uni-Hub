@@ -14,7 +14,7 @@ echo "Installing Node dependencies..."
 npm install
 
 echo "Building Tailwind CSS..."
-npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
+npm run build:css
 
 echo "Running database migrations..."
 bundle exec rails db:migrate
