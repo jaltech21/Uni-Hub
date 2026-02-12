@@ -13,7 +13,7 @@ export BUNDLE_PATH=""
 export BUNDLE_BIN=""
 
 echo "Installing Ruby dependencies..."
-bundle install --deployment --without development test
+bundle install --path vendor/bundle
 
 # CRITICAL: Destroy ALL binstubs before npm runs - use multiple strategies
 echo "Nuclear option: destroying ALL bundler binstubs..."
