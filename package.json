@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify"
+    "build:css": "npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify"
   },
   "keywords": [],
   "author": "",
