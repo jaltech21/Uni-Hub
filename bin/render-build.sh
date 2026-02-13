@@ -27,7 +27,7 @@ npm install --no-optional
 
 # Run npm with completely isolated environment - remove project bin directory from PATH
 echo "Building Tailwind CSS with isolated environment..."
-PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin BUNDLE_IGNORE_CONFIG=1 npm run build:css
+BUNDLE_IGNORE_CONFIG=1 npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
 
 echo "Running database migrations..."
 bundle exec rails db:migrate
