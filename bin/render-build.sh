@@ -15,19 +15,16 @@ export BUNDLE_BIN=""
 echo "Installing Ruby dependencies..."
 bundle install --path vendor/bundle
 
-# CRITICAL: Destroy ALL binstubs before npm runs - use multiple strategies
-echo "Nuclear option: destroying ALL bundler binstubs..."
-find . -path "*/bin/tailwindcss" -type f -delete 2>/dev/null || true
-find . -name ".gems" -type d -exec rm -rf {} + 2>/dev/null || true
-rm -f ~/.bundle/config 2>/dev/null || true
-rm -f ./bin/bundle ./bin/bundle.bak 2>/dev/null || true
+# CRITICAL: Destroy ALL binstubs before npm runs
+echo "Removing bundler binstubs..."
+rm -rf vendor/bundle/bin
+find . -path "*/.gems/bin" -type d -exec rm -rf {} + 2>/dev/null || true
 
 echo "Installing Node dependencies..."
-npm install --no-optional
+npm install
 
-# Run npm with completely isolated environment - remove project bin directory from PATH
-echo "Building Tailwind CSS with isolated environment..."
-BUNDLE_IGNORE_CONFIG=1 npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
+echo "Building Tailwind CSS..."
+npm run build:css
 
 echo "Running database migrations..."
 bundle exec rails db:migrate
