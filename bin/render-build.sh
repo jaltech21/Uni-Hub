@@ -9,8 +9,6 @@ mkdir -p log
 # Clear ALL bundler artifacts to remove cached binstubs
 echo "Cleaning all bundler cache and artifacts..."
 rm -rf .bundle vendor/bundle .gems
-export BUNDLE_PATH=""
-export BUNDLE_BIN=""
 
 echo "Installing Ruby dependencies..."
 bundle install --path vendor/bundle
