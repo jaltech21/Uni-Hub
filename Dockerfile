@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 # check=error=true
+# Force rebuild: 2026-02-13
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
 # docker build -t uni_hub .
