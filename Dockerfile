@@ -42,7 +42,7 @@ RUN bundle install && \
     bundle exec bootsnap precompile --gemfile
 
 # Copy config/master.key early so Rails can load it
-COPY config/master.key config/
+COPY config/master.key config/master.key
 
 # Copy application code
 COPY . .

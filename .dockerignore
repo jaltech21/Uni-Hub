@@ -11,7 +11,8 @@
 /.env*
 
 # Ignore all default key files.
-/config/master.key
+# For production Docker deployments, master.key must be included
+# /config/master.key
 /config/credentials/*.key
 
 # Ignore all logfiles and tempfiles.
