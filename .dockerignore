@@ -36,6 +36,9 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+# Allow compiled Tailwind CSS for production
+!/public/assets/builds
+!/public/assets/builds/application.css
 
 # Ignore CI service files.
 /.github
