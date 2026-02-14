@@ -29,6 +29,9 @@
 !/tmp/storage/.keep
 
 /public/assets
+# Exception: allow compiled Tailwind CSS to be tracked for Docker deployment
+!/public/assets/builds
+!/public/assets/builds/application.css
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
