@@ -44,10 +44,6 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
-# Install Node dependencies and build Tailwind CSS
-RUN npm install
-RUN ./node_modules/.bin/tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/builds/application.css --minify
-
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
