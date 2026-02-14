@@ -6,6 +6,15 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
+# Set up Rails credentials from environment variable
+if [ -n "$RAILS_MASTER_KEY" ]; then
+  echo "[entrypoint] Setting up Rails credentials from RAILS_MASTER_KEY..."
+  mkdir -p config
+  echo "$RAILS_MASTER_KEY" > config/master.key
+  chmod 600 config/master.key
+  echo "[entrypoint] ✓ config/master.key created successfully"
+fi
+
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
