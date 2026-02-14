@@ -42,8 +42,8 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 # Silence single worker warning on free tier
 silence_single_worker_warning = true
 
-# On-boot callback to ensure database is ready
-on_boot do
+# On-booted callback to ensure server is ready
+on_booted do
   # Database connection check would go here if needed
   puts "[Puma] Server ready to accept requests!"
 end
