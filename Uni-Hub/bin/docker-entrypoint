@@ -15,8 +15,8 @@ if [ -n "$RAILS_MASTER_KEY" ]; then
   echo "[entrypoint] ✓ config/master.key created successfully"
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# If running the rails server (via puma or rails server) then create or migrate existing database
+if [[ "$*" == *"puma"* ]] || ([ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]); then
   ./bin/rails db:prepare
 fi
 
