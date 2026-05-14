@@ -1,0 +1,46 @@
+# Expo
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+.pnp
+.pnp.js
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.*.test
+eas.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.history/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build
+build/
+*.log
+
+# OS
+Thumbs.db
