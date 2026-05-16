@@ -3,11 +3,11 @@
 ## Phases Overview
 
 ### ✅ Phase 0: Planning & Setup (Week 1)
-- [ ] 0.0 Branch & Design Governance Setup
-- [ ] 0.1 Backend Architecture Review
-- [ ] 0.2 Design API Schema
-- [ ] 0.3 React Native Project Scaffold
-- [ ] 0.4 Define Testing & Deployment Strategy
+ [x] 0.0 Branch & Design Governance Setup
+ [x] 0.1 Backend Architecture Review
+ [x] 0.2 Design API Schema
+ [x] 0.3 React Native Project Scaffold
+ [x] 0.4 Define Testing & Deployment Strategy
 
 ### ⏳ Phase 1: Backend API Foundation (Weeks 2–3)
 - [ ] 1.1 Set Up API Namespace & Authentication
