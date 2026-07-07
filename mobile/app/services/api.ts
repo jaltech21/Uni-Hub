@@ -7,8 +7,10 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from "axios";
 import * as Keychain from "react-native-keychain";
 import { ApiResponse, ApiError } from "@types";
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+// For Android emulator, use 10.0.2.2 instead of localhost
+const API_BASE_URL = __DEV__
+  ? "http://10.0.2.2:3000/api/v1"
+  : "http://localhost:3000/api/v1";
 
 class ApiClient {
   private client: AxiosInstance;

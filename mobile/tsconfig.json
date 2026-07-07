@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020"],
+    "lib": [
+      "ES2020"
+    ],
     "jsx": "react-native",
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -20,18 +22,46 @@
     "noImplicitReturns": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["app/*"],
-      "@components/*": ["app/components/*"],
-      "@screens/*": ["app/screens/*"],
-      "@services/*": ["app/services/*"],
-      "@context/*": ["app/context/*"],
-      "@utils/*": ["app/utils/*"],
-      "@hooks/*": ["app/hooks/*"],
-      "@types/*": ["app/types/*"],
-      "@theme/*": ["app/theme/*"],
-      "@navigation/*": ["app/navigation/*"]
+      "@app/*": [
+        "app/*"
+      ],
+      "@components/*": [
+        "app/components/*"
+      ],
+      "@screens/*": [
+        "app/screens/*"
+      ],
+      "@services/*": [
+        "app/services/*"
+      ],
+      "@context/*": [
+        "app/context/*"
+      ],
+      "@utils/*": [
+        "app/utils/*"
+      ],
+      "@hooks/*": [
+        "app/hooks/*"
+      ],
+      "@types/*": [
+        "app/types/*"
+      ],
+      "@theme/*": [
+        "app/theme/*"
+      ],
+      "@navigation/*": [
+        "app/navigation/*"
+      ]
     }
   },
-  "include": ["app/**/*"],
-  "exclude": ["node_modules", "dist", ".next"]
+  "include": [
+    "app/**/*",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next"
+  ],
+  "extends": "expo/tsconfig.base"
 }

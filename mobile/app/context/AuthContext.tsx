@@ -5,7 +5,7 @@
 
 import React, { createContext, useReducer, useCallback, useEffect } from "react";
 import { AuthState, User } from "@types";
-import authService from "./auth";
+import authService from "@services/auth";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
