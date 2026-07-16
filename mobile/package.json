@@ -25,6 +25,7 @@
     "expo-image-picker": "~14.7.0",
     "expo-keychain": "1.0.1",
     "expo-notifications": "~0.27.0",
+    "expo-status-bar": "^57.0.1",
     "nativewind": "^4.0.1",
     "react": "18.2.0",
     "react-dom": "^18.2.0",
