@@ -49,6 +49,8 @@ gem "kaminari"
 gem "pg_search"
 gem "active_model_serializers"
 gem "rack-attack"
+gem "jwt"
+gem "rack-cors"
 gem "openai"
 gem "gemini-ai"  # Google Gemini AI
 gem 'rotp'

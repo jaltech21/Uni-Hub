@@ -2,6 +2,19 @@
 Rails.application.routes.draw do
   # ActionCable for real-time communication
   mount ActionCable.server => '/cable'
+
+  # Mobile JSON API
+  namespace :api do
+    namespace :v1 do
+      post   "auth/login",        to: "authentication#login"
+      post   "auth/register",     to: "authentication#register"
+      post   "auth/refresh",      to: "authentication#refresh"
+      get    "auth/current_user", to: "authentication#current_user_profile"
+      delete "auth/logout",       to: "authentication#logout"
+
+      resources :notes, only: [:index, :show, :create, :update, :destroy]
+    end
+  end
   
   # Username and Email availability checks
   get 'check_username', to: 'users#check_username'

@@ -25,7 +25,11 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.unihub.mobile",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -54,9 +58,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "1cb83751-af99-4f0b-bd88-4f1891ff84ec"
       }
     },
-    "scheme": "unihub"
+    "scheme": "unihub",
+    "owner": "osbin"
   }
 }

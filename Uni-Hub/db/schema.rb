@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_22_143955) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_18_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1318,6 +1318,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_22_143955) do
     t.index ["user_id"], name: "index_quizzes_on_user_id"
   end
 
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "revoked_at"
+    t.string "user_agent"
+    t.string "ip_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_refresh_tokens_on_expires_at"
+    t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
   create_table "resource_bookings", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "bookable_type", null: false
@@ -1751,6 +1765,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_22_143955) do
   add_foreign_key "quizzes", "departments"
   add_foreign_key "quizzes", "notes"
   add_foreign_key "quizzes", "users"
+  add_foreign_key "refresh_tokens", "users"
   add_foreign_key "resource_bookings", "users"
   add_foreign_key "resource_bookings", "users", column: "approved_by_id"
   add_foreign_key "resource_conflicts", "resource_bookings", column: "conflicting_booking_id"
