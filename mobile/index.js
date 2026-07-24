@@ -1,3 +1,4 @@
+import "./global.css";
 import { registerRootComponent } from "expo";
 import { AuthProvider } from "./app/context/AuthContext";
 import { RootNavigator } from "./app/navigation/RootNavigator";
