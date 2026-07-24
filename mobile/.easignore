@@ -1,0 +1,10 @@
+# Ignore files to reduce upload size
+.git/
+node_modules/.cache/
+*.log
+.expo/
+.vscode/
+.idea/
+*.map
+coverage/
+.DS_Store
