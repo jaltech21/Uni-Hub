@@ -3,8 +3,14 @@
  * Manages user auth state, token management, and login/logout flows
  */
 
-import React, { createContext, useReducer, useCallback, useEffect } from "react";
-import { AuthState, User } from "@types";
+import React, {
+  createContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import { AuthState, User } from "@app/types";
 import authService from "@services/auth";
 
 interface AuthContextType extends AuthState {
@@ -58,8 +64,10 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const authOperation = useRef(0);
 
   const login = useCallback(async (email: string, password: string) => {
+    authOperation.current += 1;
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const response = await authService.login(email, password);
@@ -78,6 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
+    authOperation.current += 1;
     try {
       await authService.logout();
       dispatch({ type: "CLEAR_USER" });
@@ -90,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const register = useCallback(async (userData: any) => {
+    authOperation.current += 1;
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const response = await authService.register(userData);
@@ -108,9 +118,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const checkAuth = useCallback(async () => {
+    const operation = authOperation.current;
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const response = await authService.getCurrentUser();
+      if (operation !== authOperation.current) {
+        return;
+      }
       if (response) {
         const token = await authService.getStoredToken();
         dispatch({
@@ -122,6 +136,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         dispatch({ type: "CLEAR_USER" });
       }
     } catch (error) {
+      if (operation !== authOperation.current) {
+        return;
+      }
       dispatch({ type: "CLEAR_USER" });
     }
   }, []);

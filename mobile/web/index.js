@@ -1,11 +1,11 @@
 import React from "react";
-import { AppRegistry, View, Text } from "react-native";
+import { AppRegistry } from "react-native";
 import { AuthProvider } from "@context/AuthContext";
-import LoginScreen from "@screens/auth/LoginScreen";
+import { RootNavigator } from "@navigation/RootNavigator";
 
 const App = () => (
   <AuthProvider>
-    <LoginScreen navigation={null} />
+    <RootNavigator />
   </AuthProvider>
 );
 

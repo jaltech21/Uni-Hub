@@ -4,8 +4,7 @@
  */
 
 import apiClient from "@services/api";
-import * as Keychain from "react-native-keychain";
-import { User } from "@types";
+import { User } from "@app/types";
 
 interface LoginResponse {
   user: User;
@@ -23,13 +22,22 @@ interface RegisterPayload {
   department_id: number;
 }
 
+const normalizeAuthResponse = (response: LoginResponse | { data: LoginResponse }) => {
+  const payload: LoginResponse = "data" in response ? response.data : response;
+  if (!payload.token || !payload.user) {
+    throw new Error("Login succeeded but the account data was incomplete. Please try again.");
+  }
+  return payload;
+};
+
 class AuthService {
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
-      const response = await apiClient.post<LoginResponse>("/auth/login", {
+      const rawResponse = await apiClient.post<LoginResponse | { data: LoginResponse }>("/auth/login", {
         email,
         password,
       });
+      const response = normalizeAuthResponse(rawResponse);
 
       // Save tokens
       await apiClient.saveToken(response.token, response.refresh_token);
@@ -54,9 +62,10 @@ class AuthService {
 
   async register(userData: RegisterPayload): Promise<LoginResponse> {
     try {
-      const response = await apiClient.post<LoginResponse>("/auth/register", {
+      const rawResponse = await apiClient.post<LoginResponse | { data: LoginResponse }>("/auth/register", {
         user: userData,
       });
+      const response = normalizeAuthResponse(rawResponse);
 
       // Save tokens
       await apiClient.saveToken(response.token, response.refresh_token);
@@ -94,12 +103,17 @@ class AuthService {
         throw new Error("No refresh token available");
       }
 
-      const response = await apiClient.post<{ token: string }>(
-        "/auth/refresh_token",
-        { refresh_token: refreshToken }
+      const response = await apiClient.post<{ token: string; refresh_token?: string }>(
+        "/auth/refresh",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
+        }
       );
 
-      await apiClient.saveToken(response.token);
+      await apiClient.saveToken(response.token, response.refresh_token);
       return response.token;
     } catch (error: any) {
       await apiClient.clearTokens();

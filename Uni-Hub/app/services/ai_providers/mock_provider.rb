@@ -34,7 +34,7 @@ module AiProviders
         
         {
           success: true,
-          summary: "[MOCK MODE] #{summary}",
+          summary: summary,
           tokens_used: mock_tokens,
           processing_time: processing_time
         }
@@ -137,6 +137,13 @@ module AiProviders
           error: e.message
         }
       end
+    end
+
+    def answer_prompt(prompt, user_id:)
+      hints = get_study_hints(prompt, user_id: user_id)
+      return hints unless hints[:success]
+
+      { success: true, summary: Array(hints[:hints]).join("\n\n"), tokens_used: hints[:tokens_used], processing_time: hints[:processing_time] }
     end
 
     private

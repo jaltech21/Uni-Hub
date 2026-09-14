@@ -16,6 +16,12 @@
 !/log/.keep
 !/tmp/.keep
 
+# Rails application runtime files
+/Uni-Hub/log/*
+/Uni-Hub/tmp/*
+!/Uni-Hub/log/.keep
+!/Uni-Hub/tmp/.keep
+
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
 !/tmp/pids/
@@ -35,6 +41,7 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+/Uni-Hub/config/master.key
 
 /app/assets/builds/*
 !/app/assets/builds/.keep

@@ -22,6 +22,10 @@ module AiProviders
       raise NotImplementedError, "#{self.class} must implement #get_study_hints"
     end
 
+    def answer_prompt(prompt, user_id:)
+      raise NotImplementedError, "#{self.class} must implement #answer_prompt"
+    end
+
     # Shared rate limiting methods
     def can_make_request?(user_id)
       @rate_limiter.can_make_request?(user_id)

@@ -6,10 +6,7 @@ module AiProviders
     
     def initialize(api_key: ENV['OPENAI_API_KEY'])
       super(api_key: api_key)
-      OpenAI.configure do |config|
-        config.access_token = @api_key
-      end
-      @client = OpenAI::Client.new
+      @client = OpenAI::Client.new(api_key: @api_key)
     end
 
     def summarize_text(text, length:, user_id:)
@@ -30,8 +27,8 @@ module AiProviders
         
         prompt = build_summary_prompt(text, length)
         
-        response = @client.chat(
-          parameters: {
+        response = @client.chat.completions.create(
+          {
             model: OPENAI_MODEL,
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.7
@@ -51,21 +48,13 @@ module AiProviders
           tokens_used: tokens_used,
           processing_time: processing_time
         }
-      rescue OpenAI::Error => e
-        processing_time = (Time.current - start_time).round(2)
-        log_failure(user_id, 'summarize_text', e, processing_time)
-        
-        {
-          success: false,
-          error: format_error_message(e)
-        }
       rescue StandardError => e
         processing_time = (Time.current - start_time).round(2)
         log_failure(user_id, 'summarize_text', e, processing_time)
         
         {
           success: false,
-          error: "Unexpected error: #{e.message}"
+          error: format_error_message(e)
         }
       end
     end
@@ -92,8 +81,8 @@ module AiProviders
         
         prompt = build_questions_prompt(text, question_type, count, difficulty)
         
-        response = @client.chat(
-          parameters: {
+        response = @client.chat.completions.create(
+          {
             model: OPENAI_MODEL,
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.8
@@ -114,21 +103,13 @@ module AiProviders
           tokens_used: tokens_used,
           processing_time: processing_time
         }
-      rescue OpenAI::Error => e
-        processing_time = (Time.current - start_time).round(2)
-        log_failure(user_id, 'generate_questions', e, processing_time)
-        
-        {
-          success: false,
-          error: format_error_message(e)
-        }
       rescue StandardError => e
         processing_time = (Time.current - start_time).round(2)
         log_failure(user_id, 'generate_questions', e, processing_time)
         
         {
           success: false,
-          error: "Unexpected error: #{e.message}"
+          error: format_error_message(e)
         }
       end
     end
@@ -151,8 +132,8 @@ module AiProviders
         
         prompt = build_hints_prompt(topic)
         
-        response = @client.chat(
-          parameters: {
+        response = @client.chat.completions.create(
+          {
             model: OPENAI_MODEL,
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.7
@@ -173,7 +154,7 @@ module AiProviders
           tokens_used: tokens_used,
           processing_time: processing_time
         }
-      rescue OpenAI::Error => e
+      rescue StandardError => e
         processing_time = (Time.current - start_time).round(2)
         log_failure(user_id, 'get_study_hints', e, processing_time)
         
@@ -181,14 +162,26 @@ module AiProviders
           success: false,
           error: format_error_message(e)
         }
+      end
+    end
+
+    def answer_prompt(prompt, user_id:)
+      start_time = Time.current
+      return { success: false, error: "Rate limit exceeded. Please wait before making another request.", rate_limited: true } unless can_make_request?(user_id)
+
+      begin
+        request = @client.chat.completions.create(
+          { model: OPENAI_MODEL, messages: [{ role: 'user', content: "You are UniHub AI, an explainable academic assistant. Answer this student request directly and practically:\n\n#{prompt}" }], temperature: 0.7 }
+        )
+        summary = request.dig('choices', 0, 'message', 'content').to_s.strip
+        @rate_limiter.record_request(user_id)
+        processing_time = (Time.current - start_time).round(2)
+        log_success(user_id, 'answer_prompt', processing_time, request.dig('usage', 'total_tokens'))
+        { success: true, summary: summary, processing_time: processing_time }
       rescue StandardError => e
         processing_time = (Time.current - start_time).round(2)
-        log_failure(user_id, 'get_study_hints', e, processing_time)
-        
-        {
-          success: false,
-          error: "Unexpected error: #{e.message}"
-        }
+        log_failure(user_id, 'answer_prompt', e, processing_time)
+        { success: false, error: format_error_message(e) }
       end
     end
 
@@ -311,14 +304,14 @@ module AiProviders
     end
 
     def format_error_message(error)
-      case error
-      when OpenAI::Errors::AuthenticationError
+      case error.message
+      when /authentication|unauthorized|api key/i
         "⚠️ OpenAI API authentication failed. Please check your API key."
-      when OpenAI::Errors::RateLimitError
+      when /rate limit|too many requests/i
         "⚠️ OpenAI API quota exceeded. Your API key has run out of credits. Please add credits at https://platform.openai.com/account/billing"
-      when OpenAI::Errors::QuotaExceededError
+      when /quota|insufficient.*(credit|quota)/i
         "⚠️ OpenAI API quota exceeded. Please check your usage limits."
-      when OpenAI::Errors::APIConnectionError
+      when /connection|timeout|network/i
         "⚠️ Could not connect to OpenAI API. Please check your internet connection."
       else
         "⚠️ OpenAI API error: #{error.message}"

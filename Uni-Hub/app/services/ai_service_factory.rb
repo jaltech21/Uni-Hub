@@ -26,10 +26,7 @@ class AiServiceFactory
   def initialize_provider
     provider_name = ENV['AI_PROVIDER']&.downcase || 'gemini'
     
-    unless PROVIDERS.key?(provider_name)
-      Rails.logger.warn "Unknown AI provider '#{provider_name}', falling back to mock"
-      provider_name = 'mock'
-    end
+    raise "Unknown AI provider '#{provider_name}'. Set AI_PROVIDER to gemini, openai, or mock." unless PROVIDERS.key?(provider_name)
 
     provider_class = PROVIDERS[provider_name].constantize
     
@@ -47,8 +44,7 @@ class AiServiceFactory
     end
   rescue StandardError => e
     Rails.logger.error "Failed to initialize AI provider '#{provider_name}': #{e.message}"
-    Rails.logger.warn "Falling back to mock provider"
-    AiProviders::MockProvider.new
+    raise
   end
 
   def validate_api_key!(env_var_name)

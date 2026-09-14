@@ -17,7 +17,7 @@
 - **Database**: PostgreSQL
 - **Styling**: Tailwind CSS v4.1.13
 - **JavaScript**: Vanilla JS + Hotwire (Turbo & Stimulus)
-- **AI**: OpenAI API (GPT-3.5-turbo)
+- **AI**: Google Gemini API (configurable provider with OpenAI/mock alternatives)
 - **Authentication**: Devise 4.9.4
 
 ## 📋 Prerequisites
@@ -26,7 +26,7 @@
 - Rails 8.0 or higher
 - PostgreSQL
 - Node.js (for JavaScript dependencies)
-- OpenAI API key (for AI features) - [Setup Guide](../OPENAI_SETUP.md)
+- Gemini API key (for AI features); OpenAI remains available as an alternative provider
 
 ## 🔧 Installation
 
@@ -48,16 +48,15 @@
    rails db:seed
    ```
 
-4. **Configure OpenAI API (Required for AI features):**
+4. **Configure the AI provider (Required for AI features):**
    
-   See detailed setup guide: [OPENAI_SETUP.md](../OPENAI_SETUP.md)
-   
-   Quick setup:
+   Gemini is the default provider. Add these values to `.env` and restart Rails:
    ```bash
-   # Add to ~/.zshrc or ~/.bashrc
-   export OPENAI_API_KEY="sk-your-actual-key-here"
-   source ~/.zshrc
+   AI_PROVIDER=gemini
+   GEMINI_API_KEY=your-gemini-key
+   GEMINI_MODEL=gemini-3.6-flash
    ```
+   OpenAI can be selected with `AI_PROVIDER=openai`; use `OPENAI_API_KEY` for that provider.
 
 5. **Start the server:**
    ```bash
@@ -73,15 +72,20 @@
 
 ## ⚙️ Configuration
 
-### OpenAI API Key (Required for AI Features)
+### AI Provider (Required for AI Features)
 
-AI features (summarization, quiz generation, study hints) require an OpenAI API key.
+The API supports summarization, quiz generation, study plans, and study hints through the provider selected by `AI_PROVIDER`.
+The default is Gemini:
 
-**📖 See [OPENAI_SETUP.md](../OPENAI_SETUP.md) for complete setup instructions.**
-
-Quick verification:
 ```bash
-rails runner "puts 'API Key configured: ' + (ENV['OPENAI_API_KEY'].present? ? 'YES' : 'NO')"
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-gemini-key
+GEMINI_MODEL=gemini-3.6-flash
+```
+
+Restart Rails after changing provider settings. Verify the selected configuration with:
+```bash
+rails runner 'puts "AI provider: #{ENV.fetch(%q(AI_PROVIDER), %q(gemini))}"'
 ```
 
 ### Database Configuration
@@ -146,6 +150,8 @@ Uni-Hub/
 - **Summarize**: Get concise summaries of your notes
 - **Generate Quiz**: Create practice questions from content
 - **Study Hints**: Get helpful learning tips
+- **UniHub AI Assistant**: Ask generative questions about study material, schedules, notes, and assignments
+- **Learning Pulse**: Review explainable progress status using critical (red), needs attention (orange), and on track (green)
 
 ### Assignment Management
 1. Navigate to "Assignments"

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require 'gemini-ai'
+require 'timeout'
 
 module AiProviders
   class GeminiProvider < BaseProvider
-    GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20'
+    GEMINI_MODEL = ENV.fetch('GEMINI_MODEL', 'gemini-3.6-flash').freeze
     
     def initialize(api_key: ENV['GEMINI_API_KEY'])
       super(api_key: api_key)
@@ -38,7 +39,7 @@ module AiProviders
         log_request(user_id, 'summarize_text', { length: length, text_length: text.length })
         
         prompt = build_summary_prompt(text, length)
-        response = @client.generate_content({ contents: { role: 'user', parts: { text: prompt } } })
+        response = generate_content(prompt)
         
         summary = extract_text_from_response(response)
         tokens_used = estimate_tokens(prompt, summary)
@@ -85,14 +86,11 @@ module AiProviders
         })
         
         prompt = build_questions_prompt(text, question_type, count, difficulty)
-        response = @client.generate_content({ 
-          contents: { role: 'user', parts: { text: prompt } },
-          generationConfig: {
-            temperature: 0.4,  # Lower temperature for more consistent JSON
-            topP: 0.95,
-            topK: 40,
-            maxOutputTokens: 2048  # Allow longer responses
-          }
+        response = generate_content(prompt, generation_config: {
+          temperature: 0.4,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 2048
         })
         
         response_text = extract_text_from_response(response)
@@ -137,7 +135,7 @@ module AiProviders
         log_request(user_id, 'get_study_hints', { topic: topic })
         
         prompt = build_hints_prompt(topic)
-        response = @client.generate_content({ contents: { role: 'user', parts: { text: prompt } } })
+        response = generate_content(prompt)
         
         response_text = extract_text_from_response(response)
         hints = parse_hints_response(response_text)
@@ -161,6 +159,47 @@ module AiProviders
           success: false,
           error: format_error_message(e)
         }
+      end
+    end
+
+    def answer_prompt(prompt, user_id:)
+      start_time = Time.current
+      unless can_make_request?(user_id)
+        log_rate_limit(user_id, 'answer_prompt')
+        return { success: false, error: "Rate limit exceeded. Please wait before making another request.", rate_limited: true }
+      end
+
+      begin
+        log_request(user_id, 'answer_prompt', { prompt_length: prompt.length })
+        instruction = <<~PROMPT
+          You are UniHub AI, a capable conversational generative AI assistant for a university student.
+          Interpret the student's exact request before answering. Do not turn every request into a
+          generic study-plan paragraph. Respond to the requested task itself:
+          - For a study plan, create a concrete day-by-day or session-by-session plan with realistic durations.
+          - For an explanation, teach the concept step by step with an example and a quick check question.
+          - For an exam request, create useful questions, answers, and explanations from the supplied material.
+          - For a schedule request, use the supplied schedule and clearly identify dates, times, and conflicts.
+          - For progress questions, cite the supplied metrics and distinguish facts from recommendations.
+          - For any other prompt, answer naturally like a general-purpose Gemini-style assistant.
+          Use concise headings, bullets, tables, or numbered steps when they improve clarity. Ask one
+          focused follow-up question only when essential information is missing. Never invent student
+          data, grades, deadlines, or schedule entries.
+
+          Student request and private application context:
+          #{prompt}
+
+          Answer the request now:
+        PROMPT
+        response_text = extract_text_from_response(generate_content(instruction))
+        tokens_used = estimate_tokens(instruction, response_text)
+        @rate_limiter.record_request(user_id)
+        processing_time = (Time.current - start_time).round(2)
+        log_success(user_id, 'answer_prompt', processing_time, tokens_used)
+        { success: true, summary: response_text, tokens_used: tokens_used, processing_time: processing_time }
+      rescue StandardError => e
+        processing_time = (Time.current - start_time).round(2)
+        log_failure(user_id, 'answer_prompt', e, processing_time)
+        { success: false, error: format_error_message(e) }
       end
     end
 
@@ -242,24 +281,34 @@ module AiProviders
       PROMPT
     end
 
+    def generate_content(prompt, generation_config: nil)
+      request = { contents: { role: 'user', parts: { text: prompt } } }
+      request[:generationConfig] = generation_config if generation_config
+
+      Timeout.timeout(12) { @client.generate_content(request) }
+    rescue Timeout::Error
+      raise "Gemini API request timed out. Please try again."
+    end
+
     def extract_text_from_response(response)
-      # Extract text from non-streaming response
-      if response.is_a?(Hash) && response.dig('candidates', 0, 'content', 'parts')
-        candidate = response['candidates'][0]
-        parts = candidate['content']['parts']
-        text = parts.map { |part| part['text'] }.join('')
-        
-        # Log finish reason for debugging
-        finish_reason = candidate['finishReason']
-        if finish_reason && finish_reason != 'STOP'
-          Rails.logger.warn "Gemini generation finished with reason: #{finish_reason}"
-        end
-        
-        text
-      else
-        # Fallback for different response format
-        response.to_s
+      payload = response.respond_to?(:to_h) ? response.to_h : response
+      candidates = payload['candidates'] || payload[:candidates]
+      candidate = candidates.is_a?(Array) ? candidates.first : nil
+      content = candidate && (candidate['content'] || candidate[:content])
+      parts = content && (content['parts'] || content[:parts])
+
+      unless parts.is_a?(Array)
+        raise 'Gemini returned an invalid or empty response.'
       end
+
+      text = parts.map { |part| part['text'] || part[:text] }.compact.join.strip
+      finish_reason = candidate['finishReason'] || candidate[:finishReason] if candidate
+      if finish_reason && finish_reason != 'STOP'
+        Rails.logger.warn "Gemini generation finished with reason: #{finish_reason}"
+      end
+      raise 'Gemini returned an empty response.' if text.empty?
+
+      text
     end
 
     def parse_questions_response(response_text, question_type)

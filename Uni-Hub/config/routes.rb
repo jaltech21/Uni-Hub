@@ -11,6 +11,8 @@ Rails.application.routes.draw do
       post   "auth/refresh",      to: "authentication#refresh"
       get    "auth/current_user", to: "authentication#current_user_profile"
       delete "auth/logout",       to: "authentication#logout"
+      post   "ai/summarize",      to: "ai#summarize"
+      get    "ai/progress",       to: "ai#progress"
 
       resources :notes, only: [:index, :show, :create, :update, :destroy]
     end
