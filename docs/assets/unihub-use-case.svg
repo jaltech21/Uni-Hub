@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f5f7fb"/>
+  <style>
+    .boundary{fill:#fff;stroke:#344054;stroke-width:3}
+    .usecase{fill:#eef2ff;stroke:#3b5bfd;stroke-width:2}
+    .actor{font:700 20px Arial;fill:#172033}
+    .label{font:16px Arial;fill:#344054}
+    .title{font:700 25px Arial;fill:#172033}
+    .line{stroke:#667085;stroke-width:2;fill:none}
+  </style>
+  <text x="600" y="42" text-anchor="middle" class="title">UniHub use-case diagram</text>
+  <rect x="270" y="80" width="660" height="610" class="boundary"/>
+  <text x="600" y="112" text-anchor="middle" class="actor">UniHub academic platform</text>
+
+  <g transform="translate(105 165)">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="#172033" stroke-width="3"/>
+    <path d="M0 18v58 M-30 40h60 M0 76l-25 42 M0 76l25 42" class="line"/>
+    <text x="0" y="150" text-anchor="middle" class="actor">Student</text>
+  </g>
+  <g transform="translate(105 480)">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="#172033" stroke-width="3"/>
+    <path d="M0 18v58 M-30 40h60 M0 76l-25 42 M0 76l25 42" class="line"/>
+    <text x="0" y="150" text-anchor="middle" class="actor">Teacher</text>
+  </g>
+  <g transform="translate(1090 190)">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="#172033" stroke-width="3"/>
+    <path d="M0 18v58 M-30 40h60 M0 76l-25 42 M0 76l25 42" class="line"/>
+    <text x="0" y="150" text-anchor="middle" class="actor">Administrator</text>
+  </g>
+  <g transform="translate(1090 505)">
+    <rect x="-28" y="-20" width="56" height="42" rx="8" fill="none" stroke="#172033" stroke-width="3"/>
+    <circle cx="-12" cy="0" r="4" fill="#172033"/><circle cx="0" cy="0" r="4" fill="#172033"/><circle cx="12" cy="0" r="4" fill="#172033"/>
+    <text x="0" y="150" text-anchor="middle" class="actor">AI provider</text>
+  </g>
+
+  <g class="label">
+    <ellipse cx="430" cy="175" rx="120" ry="32" class="usecase"/><text x="430" y="181" text-anchor="middle">Authenticate</text>
+    <ellipse cx="700" cy="175" rx="120" ry="32" class="usecase"/><text x="700" y="181" text-anchor="middle">Manage notes</text>
+    <ellipse cx="430" cy="275" rx="120" ry="32" class="usecase"/><text x="430" y="281" text-anchor="middle">View assignments</text>
+    <ellipse cx="700" cy="275" rx="120" ry="32" class="usecase"/><text x="700" y="281" text-anchor="middle">Manage assignments</text>
+    <ellipse cx="430" cy="375" rx="120" ry="32" class="usecase"/><text x="430" y="381" text-anchor="middle">View schedules</text>
+    <ellipse cx="700" cy="375" rx="120" ry="32" class="usecase"/><text x="700" y="381" text-anchor="middle">Manage schedules</text>
+    <ellipse cx="430" cy="475" rx="120" ry="32" class="usecase"/><text x="430" y="481" text-anchor="middle">Communicate</text>
+    <ellipse cx="700" cy="475" rx="120" ry="32" class="usecase"/><text x="700" y="481" text-anchor="middle">Manage users</text>
+    <ellipse cx="430" cy="575" rx="120" ry="32" class="usecase"/><text x="430" y="581" text-anchor="middle">Use study assistance</text>
+    <ellipse cx="700" cy="575" rx="120" ry="32" class="usecase"/><text x="700" y="581" text-anchor="middle">View reports</text>
+  </g>
+
+  <path d="M123 165 L310 175 M123 165 L310 275 M123 165 L310 375 M123 165 L310 475 M123 165 L310 575" class="line"/>
+  <path d="M123 480 L310 275 M123 480 L310 375 M123 480 L310 475 M123 480 L310 575" class="line"/>
+  <path d="M1060 190 L820 275 M1060 190 L820 375 M1060 190 L820 475 M1060 190 L820 575" class="line"/>
+  <path d="M1060 505 L820 575" class="line"/>
+</svg>

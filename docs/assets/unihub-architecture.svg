@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <rect width="1200" height="620" fill="#f5f7fb"/>
+  <style>
+    .box{fill:#fff;stroke:#3b5bfd;stroke-width:3;rx:16}
+    .title{font:700 25px Arial;fill:#172033}
+    .text{font:18px Arial;fill:#344054}
+    .arrow{stroke:#667085;stroke-width:4;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#667085"/></marker></defs>
+  <text x="600" y="45" text-anchor="middle" class="title">UniHub system architecture</text>
+  <rect x="55" y="105" width="230" height="145" class="box"/>
+  <text x="170" y="145" text-anchor="middle" class="title">Web client</text><text x="170" y="180" text-anchor="middle" class="text">Rails views</text><text x="170" y="212" text-anchor="middle" class="text">Tailwind + Hotwire</text>
+  <rect x="55" y="370" width="230" height="145" class="box"/>
+  <text x="170" y="410" text-anchor="middle" class="title">Mobile client</text><text x="170" y="445" text-anchor="middle" class="text">Expo + React Native</text><text x="170" y="477" text-anchor="middle" class="text">TypeScript + Axios</text>
+  <rect x="460" y="205" width="280" height="190" class="box"/>
+  <text x="600" y="250" text-anchor="middle" class="title">Rails application</text><text x="600" y="285" text-anchor="middle" class="text">Controllers and policies</text><text x="600" y="317" text-anchor="middle" class="text">Services and background jobs</text><text x="600" y="349" text-anchor="middle" class="text">/api/v1 JSON endpoints</text>
+  <rect x="915" y="105" width="230" height="145" class="box"/>
+  <text x="1030" y="145" text-anchor="middle" class="title">PostgreSQL</text><text x="1030" y="180" text-anchor="middle" class="text">Users and roles</text><text x="1030" y="212" text-anchor="middle" class="text">Academic records</text>
+  <rect x="915" y="370" width="230" height="145" class="box"/>
+  <text x="1030" y="410" text-anchor="middle" class="title">Optional services</text><text x="1030" y="445" text-anchor="middle" class="text">OpenAI provider</text><text x="1030" y="477" text-anchor="middle" class="text">Email and notifications</text>
+  <path d="M285 177 L460 270" class="arrow"/><path d="M285 442 L460 335" class="arrow"/><path d="M740 270 L915 177" class="arrow"/><path d="M740 335 L915 442" class="arrow"/>
+</svg>

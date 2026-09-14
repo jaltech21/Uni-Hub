@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+  <rect width="1200" height="500" fill="#f5f7fb"/>
+  <style>.box{fill:#fff;stroke:#3b5bfd;stroke-width:3;rx:18}.title{font:700 23px Arial;fill:#172033}.text{font:17px Arial;fill:#344054}.arrow{stroke:#667085;stroke-width:4;marker-end:url(#m)}</style>
+  <defs><marker id="m" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#667085"/></marker></defs>
+  <text x="600" y="42" text-anchor="middle" class="title">Mobile login and dashboard activity</text>
+  <rect x="35" y="170" width="175" height="105" class="box"/><text x="122" y="215" text-anchor="middle" class="title">Open app</text><text x="122" y="245" text-anchor="middle" class="text">Start auth check</text>
+  <rect x="260" y="170" width="175" height="105" class="box"/><text x="347" y="215" text-anchor="middle" class="title">Login screen</text><text x="347" y="245" text-anchor="middle" class="text">Enter credentials</text>
+  <rect x="485" y="170" width="175" height="105" class="box"/><text x="572" y="215" text-anchor="middle" class="title">API request</text><text x="572" y="245" text-anchor="middle" class="text">POST /auth/login</text>
+  <rect x="710" y="170" width="175" height="105" class="box"/><text x="797" y="215" text-anchor="middle" class="title">Store token</text><text x="797" y="245" text-anchor="middle" class="text">Set user state</text>
+  <rect x="935" y="170" width="225" height="105" class="box"/><text x="1047" y="215" text-anchor="middle" class="title">Dashboard</text><text x="1047" y="245" text-anchor="middle" class="text">Show tab navigator</text>
+  <path d="M210 222 L260 222" class="arrow"/><path d="M435 222 L485 222" class="arrow"/><path d="M660 222 L710 222" class="arrow"/><path d="M885 222 L935 222" class="arrow"/>
+  <rect x="390" y="350" width="420" height="75" class="box"/><text x="600" y="395" text-anchor="middle" class="text">Invalid input or API failure: show explicit error and remain on login</text>
+  <path d="M572 275 L600 350" class="arrow"/>
+</svg>
