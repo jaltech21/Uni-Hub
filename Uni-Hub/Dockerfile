@@ -33,8 +33,11 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config nodejs npm && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Copy just Gemfile for now
-COPY Gemfile ./
+# Copy Gemfile and Gemfile.lock so bundle install resolves the exact
+# locked gem versions (must be copied together, or bundler will resolve
+# fresh unpinned versions here, then the lockfile from `COPY . .` later
+# will demand different versions than what's actually installed).
+COPY Gemfile Gemfile.lock ./
 
 # Install application gems
 RUN bundle install && \
