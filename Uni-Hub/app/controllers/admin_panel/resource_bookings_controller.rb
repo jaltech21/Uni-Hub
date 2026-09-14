@@ -1,4 +1,4 @@
-class Admin::ResourceBookingsController < ApplicationController
+class AdminPanel::ResourceBookingsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin_access
   before_action :set_booking, only: [:show, :edit, :update, :destroy, :approve, :reject, :check_in, :check_out]

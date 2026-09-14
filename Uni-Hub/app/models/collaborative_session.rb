@@ -14,8 +14,8 @@ class CollaborativeSession < ApplicationRecord
   validates :max_participants, numericality: { greater_than: 0, less_than_or_equal_to: 50 }
   
   # Enums
-  enum status: { active: 0, paused: 1, ended: 2 }
-  enum permission_level: { view_only: 0, comment: 1, edit: 2, admin: 3 }
+  enum :status, { active: 0, paused: 1, ended: 2 }
+  enum :permission_level, { view_only: 0, comment: 1, edit: 2, admin: 3 }
   
   # Scopes
   scope :active_sessions, -> { where(status: 'active') }

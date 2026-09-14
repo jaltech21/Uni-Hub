@@ -1,4 +1,4 @@
-class Admin::CampusesController < ApplicationController
+class AdminPanel::CampusesController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin_access
   before_action :set_campus, only: [:show, :edit, :update, :destroy]

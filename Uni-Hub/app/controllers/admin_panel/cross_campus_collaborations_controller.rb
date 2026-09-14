@@ -1,4 +1,4 @@
-class Admin::CrossCampusCollaborationsController < ApplicationController
+class AdminPanel::CrossCampusCollaborationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin_access
   before_action :set_collaboration, only: [:show, :edit, :update, :destroy, :add_milestone, :add_participant]

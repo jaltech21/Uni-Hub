@@ -8,8 +8,8 @@ class EditOperation < ApplicationRecord
   has_many :collaboration_events, foreign_key: 'related_operation_id'
   
   # Enums
-  enum status: { pending: 0, applied: 1, rejected: 2, conflicted: 3 }
-  enum operation_type: { 
+  enum :status, { pending: 0, applied: 1, rejected: 2, conflicted: 3 }
+  enum :operation_type, { 
     insert: 0, 
     delete: 1, 
     format: 2, 
@@ -17,7 +17,7 @@ class EditOperation < ApplicationRecord
     replace: 4,
     attribute_change: 5,
     structure_change: 6
-  }
+  }, scopes: false
   
   # Validations
   validates :sequence_number, presence: true, uniqueness: { scope: :collaborative_session_id }

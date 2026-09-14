@@ -4,8 +4,8 @@ class SessionParticipant < ApplicationRecord
   belongs_to :invited_by, class_name: 'User', optional: true
   
   # Enums
-  enum permission_level: { view_only: 0, comment: 1, edit: 2, admin: 3 }
-  enum status: { active: 0, away: 1, left: 2, kicked: 3 }
+  enum :permission_level, { view_only: 0, comment: 1, edit: 2, admin: 3 }
+  enum :status, { active: 0, away: 1, left: 2, kicked: 3 }
   
   # Validations
   validates :joined_at, presence: true

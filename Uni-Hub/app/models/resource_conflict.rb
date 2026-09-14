@@ -180,19 +180,19 @@ class ResourceConflict < ApplicationRecord
       primary_booking_id: primary_booking.id,
       primary_booking_ref: primary_booking.booking_reference,
       primary_user: primary_booking.user.email,
-      primary_time: \"#{primary_booking.start_time} - #{primary_booking.end_time}\",
+      primary_time: "#{primary_booking.start_time} - #{primary_booking.end_time}",
       conflicting_booking_id: conflicting_booking.id,
       conflicting_booking_ref: conflicting_booking.booking_reference,
       conflicting_user: conflicting_booking.user.email,
-      conflicting_time: \"#{conflicting_booking.start_time} - #{conflicting_booking.end_time}\",
+      conflicting_time: "#{conflicting_booking.start_time} - #{conflicting_booking.end_time}",
       overlap_minutes: time_overlap_minutes,
-      resource: \"#{primary_booking.bookable_type} ##{primary_booking.bookable_id}\"
+      resource: "#{primary_booking.bookable_type} ##{primary_booking.bookable_id}"
     }
   end
   
   def notify_stakeholders
     # Placeholder for notification logic
-    puts \"Conflict detected: #{conflict_type} (#{severity})\"
+    puts "Conflict detected: #{conflict_type} (#{severity})"
   end
   
   def escalate_severity

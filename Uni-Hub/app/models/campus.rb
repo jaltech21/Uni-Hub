@@ -14,7 +14,7 @@ class Campus < ApplicationRecord
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :website, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]) }, allow_blank: true
   validates :timezone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
-  validates :country, inclusion: { in: ISO3166::Country.all.map(&:alpha2) }
+  validates :country, format: { with: /\A[A-Z]{2}\z/, message: "must be a valid ISO 3166-1 alpha-2 country code" }, allow_blank: true
   validates :latitude, :longitude, numericality: true, allow_blank: true
   validates :student_capacity, :faculty_count, :staff_count, 
             numericality: { greater_than_or_equal_to: 0 }, allow_blank: true

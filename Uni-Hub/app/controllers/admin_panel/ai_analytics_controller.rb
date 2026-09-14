@@ -1,4 +1,4 @@
-module Admin
+module AdminPanel
   class AiAnalyticsController < ApplicationController
     before_action :authenticate_user!
     before_action :require_admin

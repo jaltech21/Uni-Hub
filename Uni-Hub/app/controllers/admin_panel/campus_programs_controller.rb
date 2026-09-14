@@ -1,4 +1,4 @@
-class Admin::CampusProgramsController < ApplicationController
+class AdminPanel::CampusProgramsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_admin_access
   before_action :set_campus

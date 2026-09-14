@@ -288,7 +288,7 @@ class ResourceBooking < ApplicationRecord
   def generate_booking_reference
     return if booking_reference.present?
     
-    self.booking_reference = \"BK#{Time.current.to_i}#{rand(1000..9999)}\"
+    self.booking_reference = "BK#{Time.current.to_i}#{rand(1000..9999)}"
   end
   
   def calculate_total_cost

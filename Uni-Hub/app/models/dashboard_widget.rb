@@ -12,9 +12,9 @@ class DashboardWidget < ApplicationRecord
   validates :position_x, :position_y, :width, :height, presence: true, numericality: { greater_than_or_equal_to: 0 }
   
   # Widget configuration stored as JSON
-  serialize :config, JSON
-  serialize :data_sources, JSON
-  serialize :filter_config, JSON
+  serialize :config, coder: JSON
+  serialize :data_sources, coder: JSON
+  serialize :filter_config, coder: JSON
   
   scope :active, -> { where(active: true) }
   scope :by_type, ->(type) { where(widget_type: type) if type.present? }

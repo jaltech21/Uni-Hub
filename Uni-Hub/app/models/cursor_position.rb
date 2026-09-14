@@ -10,7 +10,7 @@ class CursorPosition < ApplicationRecord
   
   # Scopes
   scope :active_cursors, -> { where('updated_at > ?', 30.seconds.ago) }
-  scope :typing_users, -> { where(is_typing: true, 'last_typing_at > ?', 10.seconds.ago) }
+  scope :typing_users, -> { where(is_typing: true).where('last_typing_at > ?', 10.seconds.ago) }
   scope :by_content_path, ->(path) { where(content_path: path) }
   
   # Callbacks

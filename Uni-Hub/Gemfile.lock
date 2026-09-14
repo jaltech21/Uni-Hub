@@ -198,6 +198,10 @@ GEM
       activesupport (>= 7.0)
     hashery (2.1.2)
     htmlentities (4.4.2)
+    httparty (0.24.2)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
@@ -280,6 +284,8 @@ GEM
       prism (~> 1.5)
     msgpack (1.8.0)
     multi_json (1.21.1)
+    multi_xml (0.9.1)
+      bigdecimal (>= 3.1, < 5)
     net-http (0.9.1)
       uri (>= 0.11.1)
     net-imap (0.6.4)
@@ -561,6 +567,7 @@ DEPENDENCIES
   devise
   dotenv-rails
   gemini-ai
+  httparty
   image_processing (~> 1.2)
   importmap-rails
   jbuilder

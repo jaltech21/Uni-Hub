@@ -1,4 +1,4 @@
-class Admin::DepartmentsController < Admin::BaseController
+class AdminPanel::DepartmentsController < AdminPanel::BaseController
   before_action :set_department, only: [:show, :edit, :update, :destroy, :toggle_active]
 
   def index
@@ -66,6 +66,8 @@ class Admin::DepartmentsController < Admin::BaseController
   def toggle_active
     authorize @department, :toggle_active?
     @department.update(active: !@department.active)
+    redirect_to admin_department_path(@department), notice: "Department status updated."
+  end
 
   private
 

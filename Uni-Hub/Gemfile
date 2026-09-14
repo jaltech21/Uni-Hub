@@ -53,6 +53,7 @@ gem "jwt"
 gem "rack-cors"
 gem "openai"
 gem "gemini-ai"  # Google Gemini AI
+gem "httparty"
 gem 'rotp'
 gem 'redcarpet'  # Markdown rendering
 gem 'prawn', '~> 2.5'

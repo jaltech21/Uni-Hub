@@ -12,10 +12,10 @@ class AnalyticsReport < ApplicationRecord
   validates :status, inclusion: { in: %w[draft generating completed failed scheduled] }
   
   # Report configuration and data stored as JSON
-  serialize :config, JSON
-  serialize :filters, JSON
-  serialize :data, JSON
-  serialize :metadata, JSON
+  serialize :config, coder: JSON
+  serialize :filters, coder: JSON
+  serialize :data, coder: JSON
+  serialize :metadata, coder: JSON
   
   scope :by_type, ->(type) { where(report_type: type) if type.present? }
   scope :by_status, ->(status) { where(status: status) if status.present? }
