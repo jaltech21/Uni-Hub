@@ -42,5 +42,8 @@ coverage/
 build/
 *.log
 
+# Android (machine-specific, must never be committed)
+android/local.properties
+
 # OS
 Thumbs.db
