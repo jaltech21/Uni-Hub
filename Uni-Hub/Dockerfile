@@ -41,8 +41,10 @@ RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Copy config/master.key early so Rails can load it
-COPY config/master.key config/master.key
+# Note: config/master.key is intentionally NOT copied into the image.
+# It is a secret and must never be baked into a Docker layer. Rails decrypts
+# credentials at runtime using the RAILS_MASTER_KEY environment variable,
+# which must be set in Render's environment variables for this service.
 
 # Copy application code
 COPY . .
