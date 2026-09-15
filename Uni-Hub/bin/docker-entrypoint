@@ -15,8 +15,10 @@ if [ -n "$RAILS_MASTER_KEY" ]; then
   echo "[entrypoint] ✓ config/master.key created successfully"
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# If starting the app server (Puma or `rails server`), prepare the database
+# first. Match broadly on "puma" since this Dockerfile's CMD invokes Puma
+# directly (`bundle exec puma -C config/puma.rb`), not `./bin/rails server`.
+if [[ "$*" == *"puma"* ]] || { [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; }; then
   ./bin/rails db:prepare
 fi
 

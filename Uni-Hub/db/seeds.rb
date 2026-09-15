@@ -90,6 +90,7 @@ puts "\n👥 Creating Test Users..."
 admin = User.find_or_create_by!(email: 'osmanjalloh098@gmail.com') do |u|
   u.first_name = 'Osman'
   u.last_name = 'Jalloh'
+  u.username = 'osmanjalloh098'
   u.role = 'admin'
   u.department = departments['GEN']
   u.password = '012198_Oj'
@@ -101,6 +102,7 @@ puts "   ✅ Admin: #{admin.email} (#{admin.role})"
 cs_student1 = User.find_or_create_by!(email: 'alice.smith@unihub.edu') do |u|
   u.first_name = 'Alice'
   u.last_name = 'Smith'
+  u.username = 'alice_smith'
   u.role = 'student'
   u.department = departments['CS']
   u.password = 'password123'
@@ -111,6 +113,7 @@ puts "   ✅ CS Student: #{cs_student1.email}"
 cs_student2 = User.find_or_create_by!(email: 'bob.jones@unihub.edu') do |u|
   u.first_name = 'Bob'
   u.last_name = 'Jones'
+  u.username = 'bob_jones'
   u.role = 'student'
   u.department = departments['CS']
   u.password = 'password123'
@@ -122,6 +125,7 @@ puts "   ✅ CS Student: #{cs_student2.email}"
 bus_student = User.find_or_create_by!(email: 'carol.williams@unihub.edu') do |u|
   u.first_name = 'Carol'
   u.last_name = 'Williams'
+  u.username = 'carol_williams'
   u.role = 'student'
   u.department = departments['BUS']
   u.password = 'password123'
@@ -133,6 +137,7 @@ puts "   ✅ Business Student: #{bus_student.email}"
 math_student = User.find_or_create_by!(email: 'david.brown@unihub.edu') do |u|
   u.first_name = 'David'
   u.last_name = 'Brown'
+  u.username = 'david_brown'
   u.role = 'student'
   u.department = departments['MATH']
   u.password = 'password123'
@@ -144,6 +149,7 @@ puts "   ✅ Math Student: #{math_student.email}"
 cs_tutor = User.find_or_create_by!(email: 'emma.tutor@unihub.edu') do |u|
   u.first_name = 'Emma'
   u.last_name = 'Davis'
+  u.username = 'emma_tutor'
   u.role = 'tutor'
   u.department = departments['CS']
   u.password = 'password123'
@@ -157,6 +163,7 @@ puts "   ✅ Tutor: #{cs_tutor.email} (teaches CS, MATH)"
 bus_teacher = User.find_or_create_by!(email: 'frank.teacher@unihub.edu') do |u|
   u.first_name = 'Frank'
   u.last_name = 'Garcia'
+  u.username = 'frank_teacher'
   u.role = 'teacher'
   u.department = departments['BUS']
   u.password = 'password123'
@@ -169,6 +176,7 @@ puts "   ✅ Teacher: #{bus_teacher.email} (teaches BUS)"
 multi_teacher = User.find_or_create_by!(email: 'grace.multiprof@unihub.edu') do |u|
   u.first_name = 'Grace'
   u.last_name = 'Martinez'
+  u.username = 'grace_multiprof'
   u.role = 'teacher'
   u.department = departments['ENG']
   u.password = 'password123'
