@@ -8,22 +8,40 @@
       "developmentClient": true,
       "distribution": "internal",
       "node": "20.19.4",
+      "cache": {
+        "paths": [
+          "android/.gradle"
+        ]
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1",
+        "EAS_USE_CACHE": "1"
       }
     },
     "preview": {
       "distribution": "internal",
       "node": "20.19.4",
+      "cache": {
+        "paths": [
+          "android/.gradle"
+        ]
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1",
+        "EAS_USE_CACHE": "1"
       }
     },
     "production": {
       "autoIncrement": true,
       "node": "20.19.4",
+      "cache": {
+        "paths": [
+          "android/.gradle"
+        ]
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1",
+        "EAS_USE_CACHE": "1"
       }
     }
   },
