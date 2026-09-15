@@ -7,15 +7,24 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "node": "20.19.4"
+      "node": "20.19.4",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "node": "20.19.4"
+      "node": "20.19.4",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "node": "20.19.4"
+      "node": "20.19.4",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://uni-hub-jaa7.onrender.com/api/v1"
+      }
     }
   },
   "submit": {
