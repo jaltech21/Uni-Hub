@@ -10,7 +10,7 @@ class Submission < ApplicationRecord
   has_many_attached :documents
 
   # Validations
-  validates :documents, presence: true, on: :create
+  validates :documents, presence: true, on: :create, if: -> { content.blank? }
   validates :grade, numericality: { 
     greater_than_or_equal_to: 0,
     less_than_or_equal_to: ->(submission) { submission.assignment.points }

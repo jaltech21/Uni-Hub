@@ -18,6 +18,9 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   checkAuth: () => Promise<void>;
+  isAdmin: boolean;
+  isTeacher: boolean;
+  isStudent: boolean;
 }
 
 const initialState: AuthState = {
@@ -65,6 +68,10 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const authOperation = useRef(0);
+
+  const isAdmin = state.user?.role === "admin";
+  const isTeacher = state.user?.role === "teacher";
+  const isStudent = state.user?.role === "student";
 
   const login = useCallback(async (email: string, password: string) => {
     authOperation.current += 1;
@@ -156,6 +163,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         register,
         checkAuth,
+        isAdmin,
+        isTeacher,
+        isStudent,
       }}
     >
       {children}

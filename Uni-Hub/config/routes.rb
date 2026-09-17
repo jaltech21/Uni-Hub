@@ -6,15 +6,131 @@ Rails.application.routes.draw do
   # Mobile JSON API
   namespace :api do
     namespace :v1 do
-      post   "auth/login",        to: "authentication#login"
-      post   "auth/register",     to: "authentication#register"
-      post   "auth/refresh",      to: "authentication#refresh"
-      get    "auth/current_user", to: "authentication#current_user_profile"
-      delete "auth/logout",       to: "authentication#logout"
-      post   "ai/summarize",      to: "ai#summarize"
-      get    "ai/progress",       to: "ai#progress"
+      # Auth
+      post   "auth/login",          to: "authentication#login"
+      post   "auth/register",       to: "authentication#register"
+      post   "auth/refresh",        to: "authentication#refresh"
+      get    "auth/current_user",   to: "authentication#current_user_profile"
+      delete "auth/logout",         to: "authentication#logout"
+      put    "auth/profile",        to: "authentication#update_profile"
+      post   "auth/change_password", to: "authentication#change_password"
+      post   "auth/forgot_password", to: "authentication#forgot_password"
 
+      # AI
+      post   "ai/summarize",        to: "ai#summarize"
+      get    "ai/progress",         to: "ai#progress"
+
+      # Home
+      get    "home/stats",          to: "home#stats"
+
+      # Notes
       resources :notes, only: [:index, :show, :create, :update, :destroy]
+
+      # Assignments
+      resources :assignments, only: [:index, :show] do
+        collection do
+          get :my_submissions
+        end
+        member do
+          post :submit
+        end
+      end
+
+      # Schedules
+      resources :schedules, only: [:index, :show] do
+        collection do
+          get :browse
+        end
+        member do
+          post :enroll
+          delete :unenroll
+        end
+      end
+
+      # Messages
+      resources :messages, only: [:show, :create] do
+        collection do
+          get :conversations
+          post :mark_as_read
+          get :search_users
+        end
+      end
+
+      # Notifications
+      resources :notifications, only: [:index] do
+        collection do
+          get :unread_count
+          patch :mark_all_as_read
+        end
+        member do
+          patch :mark_as_read
+        end
+      end
+
+      # Folders
+      resources :folders, only: [:index, :create, :update, :destroy]
+
+      # Announcements
+      resources :announcements, only: [:index, :show]
+
+      # Quizzes
+      resources :quizzes, only: [:index, :show] do
+        member do
+          post :submit
+          get :results
+        end
+      end
+
+      # Discussions
+      resources :discussions, only: [:index, :show]
+
+      # Search
+      get "search", to: "search#index"
+
+      # Enrollments
+      resources :enrollments, only: [:index, :create, :destroy] do
+        collection do
+          get :capacity
+        end
+      end
+
+      # Attendance
+      resources :attendance_lists, only: [:index]
+      resources :attendance_records, only: [:index, :create]
+
+      # Admin namespace
+      namespace :admin do
+        get  "dashboard",     to: "dashboard#index"
+        resources :users, only: [:index, :update] do
+          member do
+            patch :change_role
+            patch :blacklist
+            patch :unblacklist
+          end
+        end
+        resources :departments, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            patch :toggle_active
+          end
+        end
+        resources :courses, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            patch :toggle_active
+          end
+        end
+        resources :schedules, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            post :approve
+            post :cancel
+          end
+        end
+        resources :announcements, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            patch :publish
+            patch :unpublish
+          end
+        end
+      end
     end
   end
   

@@ -17,8 +17,6 @@ type Progress = {
 export default function AIAssistantScreen() {
   const [question, setQuestion] = useState("");
   const [summary, setSummary] = useState("");
-  const [sourceLength, setSourceLength] = useState(0);
-  const [summaryLength, setSummaryLength] = useState(0);
   const [sourceWordCount, setSourceWordCount] = useState(0);
   const [sourceName, setSourceName] = useState("");
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
@@ -37,8 +35,6 @@ export default function AIAssistantScreen() {
     }
     setLoading(true);
     setSummary("");
-    setSourceLength(0);
-    setSummaryLength(0);
     setSourceWordCount(0);
     try {
       let result: SummaryResponse;
@@ -78,8 +74,6 @@ export default function AIAssistantScreen() {
       }
       const responseText = result.summary || (result.hints || []).join("\n\n") || "No answer was returned. Please try again.";
       setSummary(responseText);
-      setSourceLength(result.source_length || text.length);
-      setSummaryLength(responseText.length);
       setSourceWordCount(result.source_word_count ?? countWords(text));
     } catch (error: any) {
       Alert.alert("AI request failed", error.message || "Please try again.");

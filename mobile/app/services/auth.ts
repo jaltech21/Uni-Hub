@@ -52,7 +52,9 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await apiClient.post("/auth/logout", {});
+      await apiClient.delete("/auth/logout", {
+        headers: { Authorization: `Bearer ${await this.getStoredToken()}` },
+      });
       await apiClient.clearTokens();
     } catch (error) {
       // Clear tokens even if request fails

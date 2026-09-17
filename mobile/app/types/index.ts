@@ -36,6 +36,9 @@ export interface Assignment {
   description: string;
   due_date: string;
   teacher_id: number;
+  course_id?: number;
+  course_name?: string;
+  status?: "pending" | "submitted" | "graded";
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +47,9 @@ export interface Submission {
   id: number;
   student_id: number;
   assignment_id: number;
-  file_url: string;
+  content?: string;
+  file_url?: string;
+  grade?: number | null;
   submitted_at: string;
 }
 
@@ -55,6 +60,63 @@ export interface Schedule {
   end_time: string;
   day_of_week: string;
   student_id: number;
+  course_id?: number;
+  course_name?: string;
+  location?: string;
+  status?: "pending" | "approved" | "cancelled";
+}
+
+export interface Enrollment {
+  id: number;
+  student_id: number;
+  schedule_id: number;
+  schedule_title?: string;
+  created_at: string;
+}
+
+export interface Message {
+  id: number;
+  sender_id: number;
+  recipient_id: number;
+  content: string;
+  read: boolean;
+  sender_name?: string;
+  recipient_name?: string;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+  };
+  last_message: string;
+  last_message_at: string;
+  unread_count: number;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  body: string;
+  read: boolean;
+  created_at: string;
+}
+
+export interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  priority: "low" | "normal" | "high" | "urgent";
+  pinned: boolean;
+  department_id: number;
+  department_name?: string;
+  author_name?: string;
+  published_at?: string | null;
+  expires_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AttendanceList {
@@ -72,12 +134,41 @@ export interface AttendanceRecord {
   created_at: string;
 }
 
-export interface Message {
+export interface Folder {
   id: number;
-  sender_id: number;
-  recipient_id: number;
-  content: string;
+  name: string;
+  parent_id?: number | null;
   created_at: string;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  code?: string;
+  active?: boolean;
+  created_at: string;
+}
+
+export interface Course {
+  id: number;
+  name: string;
+  code: string;
+  department_id: number;
+  active?: boolean;
+  created_at: string;
+}
+
+export interface AdminUser extends User {
+  department_name?: string;
+  active: boolean;
+}
+
+export interface HomeStats {
+  classes_today: number;
+  assignments_due: number;
+  notes_count: number;
+  today_schedule: Schedule[];
+  upcoming_tasks: Assignment[];
 }
 
 export interface Quiz {

@@ -53,10 +53,59 @@ module Api
         render_message("Logged out successfully")
       end
 
+      def update_profile
+        if current_user.update(profile_params)
+          render_success(user_profile(current_user, full: true))
+        else
+          render_error(
+            "Validation failed",
+            status: :unprocessable_entity,
+            code: "VALIDATION_ERROR",
+            errors: current_user.errors.messages
+          )
+        end
+      end
+
+      def change_password
+        return render_error("Current password is incorrect", status: :unauthorized, code: "PASSWORD_MISMATCH") unless current_user.valid_password?(params[:current_password].to_s)
+
+        if current_user.update(password_params)
+          render_message("Password changed successfully")
+        else
+          render_error(
+            "Validation failed",
+            status: :unprocessable_entity,
+            code: "VALIDATION_ERROR",
+            errors: current_user.errors.messages
+          )
+        end
+      end
+
+      def forgot_password
+        email = params[:email].to_s.downcase.strip
+        return render_error("Email is required", status: :bad_request, code: "BAD_REQUEST") if email.blank?
+
+        if User.exists?(email: email)
+          User.send_reset_password_instructions(email: email)
+        end
+        render_message("If an account exists for that email, reset instructions have been sent.")
+      end
+
       private
 
       def registration_params
         params.permit(:first_name, :last_name, :email, :username, :password, :password_confirmation, :role, :department_id)
+      end
+
+      def profile_params
+        params.expect(user: {}).permit(:first_name, :last_name, :email, :username, :department_id, :profile_picture_url)
+      end
+
+      def password_params
+        params.permit(:new_password, :password, :password_confirmation).tap do |p|
+          p[:password] = params[:new_password] if params[:new_password].present?
+          p[:password_confirmation] ||= p[:password] if p[:password].present?
+        end
       end
 
       def render_token_payload(user, status:, include_user: true)

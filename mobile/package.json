@@ -9,7 +9,39 @@
     "web": "webpack serve --mode development",
     "build": "webpack --mode production",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "setupFiles": [
+      "./jest.setup.js",
+      "react-native-gesture-handler/jestSetup"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/dist/",
+      "/web/",
+      "/android/",
+      "/ios/"
+    ],
+    "moduleNameMapper": {
+      "^@app/(.*)$": "<rootDir>/app/$1",
+      "^@components/(.*)$": "<rootDir>/app/components/$1",
+      "^@screens/(.*)$": "<rootDir>/app/screens/$1",
+      "^@services/(.*)$": "<rootDir>/app/services/$1",
+      "^@context/(.*)$": "<rootDir>/app/context/$1",
+      "^@utils/(.*)$": "<rootDir>/app/utils/$1",
+      "^@hooks/(.*)$": "<rootDir>/app/hooks/$1",
+      "^@types/(.*)$": "<rootDir>/app/types/$1",
+      "^@theme/(.*)$": "<rootDir>/app/theme/$1",
+      "^@navigation/(.*)$": "<rootDir>/app/navigation/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|nativewind|react-native-css-interop|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)/)"
+    ]
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.1.3",
@@ -22,6 +54,7 @@
     "date-fns": "^2.30.0",
     "expo": "~50.0.0",
     "expo-camera": "~14.1.3",
+    "expo-dev-client": "~3.3.12",
     "expo-device": "~5.9.0",
     "expo-document-picker": "~11.10.1",
     "expo-file-system": "~16.0.9",

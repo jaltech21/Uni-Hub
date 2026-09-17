@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_18_100000) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1454,6 +1454,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_18_100000) do
     t.boolean "recurring", default: true
     t.string "color", default: "#3B82F6"
     t.bigint "department_id"
+    t.datetime "approved_at"
+    t.datetime "cancelled_at"
+    t.bigint "approved_by_id"
+    t.bigint "cancelled_by_id"
+    t.string "cancellation_reason"
+    t.index ["approved_by_id"], name: "index_schedules_on_approved_by_id"
+    t.index ["cancelled_by_id"], name: "index_schedules_on_cancelled_by_id"
     t.index ["day_of_week", "start_time"], name: "index_schedules_on_day_of_week_and_start_time"
     t.index ["day_of_week"], name: "index_schedules_on_day_of_week"
     t.index ["department_id", "created_at"], name: "index_schedules_on_department_id_and_created_at"
@@ -1500,6 +1507,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_18_100000) do
     t.datetime "submitted_at"
     t.datetime "graded_at"
     t.bigint "graded_by_id"
+    t.text "content"
     t.index ["assignment_id"], name: "index_submissions_on_assignment_id"
     t.index ["graded_by_id"], name: "index_submissions_on_graded_by_id"
     t.index ["user_id"], name: "index_submissions_on_user_id"

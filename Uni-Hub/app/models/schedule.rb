@@ -119,12 +119,30 @@ class Schedule < ApplicationRecord
     course
   end
 
+  def course_schedule_ids
+    [id]
+  end
+
   def time_display
     "#{day_name} #{formatted_time_range}"
   end
 
   def location
     room
+  end
+
+  def approved?
+    approved_at.present? && cancelled_at.nil?
+  end
+
+  def cancelled?
+    cancelled_at.present?
+  end
+
+  def status
+    return "cancelled" if cancelled?
+    return "approved" if approved?
+    "pending"
   end
 
   private
