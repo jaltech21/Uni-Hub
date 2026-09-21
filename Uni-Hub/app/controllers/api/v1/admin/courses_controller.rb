@@ -19,6 +19,7 @@ module Api
         def create
           course = Course.new(course_params)
           if course.save
+            NotificationService.notify_course_created(course)
             render_success(serialize_course(course), status: :created)
           else
             render_error(
@@ -32,6 +33,7 @@ module Api
 
         def update
           if @course.update(course_params)
+            NotificationService.notify_course_updated(@course)
             render_success(serialize_course(@course))
           else
             render_error(
@@ -49,7 +51,9 @@ module Api
         end
 
         def toggle_active
-          @course.update!(active: !@course.active)
+          was_active = @course.active
+          @course.update!(active: !was_active)
+          NotificationService.notify_course_deactivated(@course) if was_active
           render_success(serialize_course(@course))
         end
 

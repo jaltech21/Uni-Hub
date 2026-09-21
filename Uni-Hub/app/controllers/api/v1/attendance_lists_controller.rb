@@ -1,6 +1,8 @@
 module Api
   module V1
     class AttendanceListsController < BaseController
+      before_action :require_teacher!, only: [:create]
+
       def index
         if current_user.teacher?
           lists = current_user.attendance_lists.order(date: :desc, created_at: :desc)
@@ -15,7 +17,29 @@ module Api
         render_success(lists.map { |l| serialize_list(l) })
       end
 
+      def create
+        list = current_user.attendance_lists.build(attendance_list_params)
+        if list.save
+          render_success(serialize_list(list), status: :created)
+        else
+          render_error(
+            "Validation failed",
+            status: :unprocessable_entity,
+            code: "VALIDATION_ERROR",
+            errors: list.errors.messages
+          )
+        end
+      end
+
       private
+
+      def require_teacher!
+        render_forbidden unless current_user.teacher?
+      end
+
+      def attendance_list_params
+        params.expect(attendance_list: {}).permit(:title, :description, :date)
+      end
 
       def serialize_list(attendance_list)
         {

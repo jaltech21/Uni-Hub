@@ -50,11 +50,13 @@ module Api
 
         def approve
           @schedule.update!(approved_at: Time.current, approved_by_id: current_user.id)
+          NotificationService.notify_schedule_approved(@schedule)
           render_success(serialize_schedule(@schedule))
         end
 
         def cancel
           @schedule.update!(cancelled_at: Time.current, cancelled_by_id: current_user.id, cancellation_reason: params[:reason])
+          NotificationService.notify_schedule_cancelled(@schedule, params[:reason])
           render_success(serialize_schedule(@schedule))
         end
 

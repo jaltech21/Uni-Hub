@@ -16,9 +16,10 @@ Rails.application.routes.draw do
       post   "auth/change_password", to: "authentication#change_password"
       post   "auth/forgot_password", to: "authentication#forgot_password"
 
-      # AI
+# AI
       post   "ai/summarize",        to: "ai#summarize"
       get    "ai/progress",         to: "ai#progress"
+      get    "ai/tutor_report",     to: "ai#tutor_report"
 
       # Home
       get    "home/stats",          to: "home#stats"
@@ -33,6 +34,13 @@ Rails.application.routes.draw do
         end
         member do
           post :submit
+          get :submissions
+        end
+      end
+
+      resources :submissions, only: [] do
+        member do
+          post :grade
         end
       end
 
@@ -94,11 +102,11 @@ Rails.application.routes.draw do
         end
       end
 
-      # Attendance
-      resources :attendance_lists, only: [:index]
+# Attendance
+      resources :attendance_lists, only: [:index, :create]
       resources :attendance_records, only: [:index, :create]
 
-      # Admin namespace
+# Admin namespace
       namespace :admin do
         get  "dashboard",     to: "dashboard#index"
         resources :users, only: [:index, :update] do
@@ -106,6 +114,7 @@ Rails.application.routes.draw do
             patch :change_role
             patch :blacklist
             patch :unblacklist
+            post :reset_password
           end
         end
         resources :departments, only: [:index, :show, :create, :update, :destroy] do

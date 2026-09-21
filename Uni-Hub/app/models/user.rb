@@ -71,6 +71,10 @@ class User < ApplicationRecord
   has_many :analytics_reports, dependent: :destroy
 
   validates :role, presence: true, inclusion: { in: %w[student teacher tutor admin super_admin compliance_manager compliance_assessor department_head] }
+
+  # Email validations
+  EMAIL_REGEX = /\A[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z/
+  validates :email, presence: true, format: { with: EMAIL_REGEX, message: "is not a valid email address" }
   
   # Username validations
   validates :username, 
@@ -84,6 +88,7 @@ class User < ApplicationRecord
   
   # Normalize username before validation
   before_validation :normalize_username
+  before_validation :auto_generate_username, if: -> { username.blank? }
   
   # Blacklist scopes
   scope :blacklisted, -> { where(blacklisted: true) }
@@ -182,18 +187,10 @@ class User < ApplicationRecord
     active_enrollments.first
   end
   
-  def primary_course
+def primary_course
     primary_enrollment&.schedule
   end
-  
-  def tutor?
-    self.role == 'tutor'
-  end
-  
-  def admin?
-    self.role == 'admin'
-  end
-  
+
   def super_admin?
     self.role == 'super_admin'
   end
@@ -357,6 +354,27 @@ class User < ApplicationRecord
   
   def normalize_username
     self.username = username.to_s.downcase.strip if username.present?
+  end
+
+  def auto_generate_username
+    base = if first_name.present? && last_name.present?
+             "#{first_name}.#{last_name}"
+           elsif first_name.present?
+             first_name
+           else
+             email.to_s.split('@').first.to_s
+           end
+    base = base.downcase.gsub(/[^a-z0-9_]/, '_').gsub(/_+/, '_').gsub(/\A_|_\z/, '')
+    base = "user" if base.blank?
+    base = base[0, 16]
+    base = "user#{base}" if base.length < 3
+    candidate = base
+    suffix = 1
+    while User.where.not(id: id).exists?(username: candidate)
+      suffix += 1
+      candidate = "#{base[0, 16]}#{suffix}"[0, 20]
+    end
+    self.username = candidate
   end
   
   def default_notification_preferences

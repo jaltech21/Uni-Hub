@@ -2,7 +2,7 @@ module Api
   module V1
     module Admin
       class UsersController < BaseController
-        before_action :set_user, only: [:update, :change_role, :blacklist, :unblacklist]
+        before_action :set_user, only: [:update, :change_role, :blacklist, :unblacklist, :reset_password]
 
         def index
           users = User.includes(:department, :teaching_departments)
@@ -46,6 +46,23 @@ module Api
         def unblacklist
           @user.unblacklist!(current_user)
           render_success(serialize_user(@user))
+        end
+
+        def reset_password
+          temp_password = SecureRandom.hex(6)
+          @user.reset_password!(temp_password, temp_password)
+
+          if @user.valid?
+            NotificationService.notify_password_reset(@user, temp_password)
+            render_success({ user_id: @user.id, temporary_password: temp_password, message: "Password reset successfully" })
+          else
+            render_error(
+              "Validation failed",
+              status: :unprocessable_entity,
+              code: "VALIDATION_ERROR",
+              errors: @user.errors.messages
+            )
+          end
         end
 
         private

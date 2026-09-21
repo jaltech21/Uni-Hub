@@ -94,7 +94,17 @@ module Api
       private
 
       def registration_params
-        params.permit(:first_name, :last_name, :email, :username, :password, :password_confirmation, :role, :department_id)
+        source = params[:user].presence || params
+        attrs = source.permit(
+          :first_name, :last_name, :email, :username, :password, :password_confirmation,
+          :role, :department_id
+        )
+        # Prevent privilege escalation through self-registration: the API only
+        # accepts student/teacher roles; anything else falls back to student.
+        role = attrs[:role].to_s
+        attrs[:role] = role if %w[student teacher tutor].include?(role)
+        attrs[:role] ||= "student"
+        attrs
       end
 
       def profile_params

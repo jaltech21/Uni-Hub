@@ -16,7 +16,12 @@ module Api
 
         def create
           announcement = Announcement.new(announcement_params.merge(user: current_user))
+          announcement.department_id ||= current_user&.department_id
+          announcement.department_id ||= Department.first&.id
+
           if announcement.save
+            announcement.publish! unless ActiveModel::Type::Boolean.new.cast(request_published_param) == false
+            NotificationService.notify_announcement_published(announcement) if announcement.published?
             render_success(serialize_announcement(announcement), status: :created)
           else
             render_error(
@@ -47,7 +52,8 @@ module Api
         end
 
         def publish
-          @announcement.publish!
+          @announcement.publish! unless @announcement.published?
+          NotificationService.notify_announcement_published(@announcement)
           render_success(serialize_announcement(@announcement))
         end
 
@@ -60,6 +66,12 @@ module Api
 
         def set_announcement
           @announcement = Announcement.find(params[:id])
+        end
+
+        # `published` is an API flag, not a model column (the model uses `published_at`),
+        # so it must be consumed separately and never mass-assigned.
+        def request_published_param
+          params.dig(:announcement, :published)
         end
 
         def announcement_params

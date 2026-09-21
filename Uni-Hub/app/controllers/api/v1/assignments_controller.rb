@@ -1,7 +1,7 @@
 module Api
   module V1
     class AssignmentsController < BaseController
-      before_action :set_assignment, only: [:show, :submit]
+      before_action :set_assignment, only: [:show, :submit, :submissions]
 
       def index
         assignments = if current_user.teacher?
@@ -42,6 +42,17 @@ module Api
             errors: existing.errors.messages
           )
         end
+      end
+
+      def submissions
+        if current_user.teacher? || current_user.tutor?
+          return render_forbidden unless @assignment.user_id == current_user.id
+        else
+          return render_forbidden
+        end
+
+        collection = @assignment.submissions.includes(:user).order(submitted_at: :desc)
+        render_success(collection.map { |s| serialize_submission(s) })
       end
 
       private

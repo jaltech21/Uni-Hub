@@ -15,8 +15,17 @@ class Notification < ApplicationRecord
     schedule_created
     schedule_updated
     schedule_reminder
+    schedule_approved
+    schedule_cancelled
+    course_created
+    course_updated
+    course_deactivated
+    announcement_published
     note_shared
     quiz_shared
+    grading_review
+    plagiarism_alert
+    password_reset
     general
   ].freeze
   

@@ -1,6 +1,16 @@
 module Api
   module V1
     class AiController < BaseController
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_student, only: [:summarize, :progress]
+      before_action :require_teacher, only: [:tutor_report]
+
       def summarize
         prompt = params[:text].to_s.strip
         text = prompt
@@ -99,7 +109,55 @@ module Api
         render_success(student_progress)
       end
 
+      def tutor_report
+        schedules = current_user.taught_schedules.includes(:active_enrollments, :assignments)
+        report = schedules.map do |schedule|
+          {
+            schedule_id: schedule.id,
+            schedule_title: schedule.title,
+            course_code: schedule.course_code,
+            students: schedule.active_students.map { |student| student_tutor_summary(student) }
+          }
+        end
+        render_success(report)
+      end
+
       private
+
+      def require_student
+        return render_forbidden unless current_user.student?
+      end
+
+      def require_teacher
+        return render_forbidden unless current_user.teacher? || current_user.tutor?
+      end
+
+      def student_tutor_summary(student)
+        assignments = student.visible_assignments
+        submissions = student.submissions.includes(:assignment)
+        graded = submissions.where.not(grade: nil)
+        {
+          student_id: student.id,
+          student_name: student.full_name,
+          assignments_count: assignments.count,
+          submitted_count: submissions.where.not(submitted_at: nil).count,
+          graded_count: graded.count,
+          average_grade: graded.any? ? (graded.sum { |s| s.percentage_grade.to_f } / graded.size).round : nil,
+          progress_score: student_progress_for(student)
+        }
+      end
+
+      def student_progress_for(student)
+        assignments = student.visible_assignments
+        submissions = student.submissions
+        overdue = assignments.where("due_date < ?", Time.current).where.not(id: submissions.select(:assignment_id))
+        submitted_ids = submissions.where.not(submitted_at: nil).pluck(:assignment_id)
+        pending = assignments.where.not(id: submitted_ids).where("due_date >= ?", Time.current).count
+        score = 100
+        score -= 35 if overdue.exists?
+        score -= 15 if pending >= 3
+        [[score, 0].max, 100].min
+      end
 
       def with_student_context(text)
         return text if params[:file].present?
