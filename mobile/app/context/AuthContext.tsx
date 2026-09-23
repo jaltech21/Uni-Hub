@@ -18,6 +18,8 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<User>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   isAdmin: boolean;
   isTeacher: boolean;
   isStudent: boolean;
@@ -70,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const authOperation = useRef(0);
 
   const isAdmin = state.user?.role === "admin";
-  const isTeacher = state.user?.role === "teacher";
+  const isTeacher = state.user?.role === "teacher" || state.user?.role === "tutor";
   const isStudent = state.user?.role === "student";
 
   const login = useCallback(async (email: string, password: string) => {
@@ -150,6 +152,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const updateProfile = useCallback(async (data: Partial<User>) => {
+    const updated = await authService.updateProfile(data);
+    dispatch({ type: "SET_USER", payload: updated, token: state.token || "" });
+    return updated;
+  }, [state.token]);
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      await authService.changePassword(currentPassword, newPassword);
+    },
+    []
+  );
+
   // Check auth on app startup
   useEffect(() => {
     checkAuth();
@@ -163,6 +178,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         register,
         checkAuth,
+        updateProfile,
+        changePassword,
         isAdmin,
         isTeacher,
         isStudent,

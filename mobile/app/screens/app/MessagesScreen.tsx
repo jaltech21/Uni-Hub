@@ -1,15 +1,19 @@
 /**
- * MessagesScreen — live, wired to MessageService.
- * Lists all conversations, pulls latest messages, supports compose (user search).
- * Pull-to-refresh, loading, and empty states handled.
+ * MessagesScreen — professional messaging redesign.
+ * - Conversation list with unread badges and tidy metadata.
+ * - Tap a conversation to open the full thread (bubbles, timestamps,
+ *   read receipts) and reply inline.
+ * - Compose new messages to any user via search.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -18,7 +22,8 @@ import {
   View,
 } from "react-native";
 import messageService, { SearchUser } from "@services/messages";
-import { Conversation } from "@app/types";
+import { Conversation, Message } from "@app/types";
+import { useAuth } from "@context/AuthContext";
 
 const palette = {
   ink: "#172033",
@@ -36,44 +41,71 @@ const palette = {
   border: "#e7eaf2",
 };
 
-function ConversationCard({ item }: { item: Conversation }) {
-  const formattedTime = item.last_message_at
-    ? new Date(item.last_message_at).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
+function formatRelative(value: string): string {
+  const date = new Date(value);
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
+function ConversationCard({
+  item,
+  onPress,
+}: {
+  item: Conversation;
+  onPress: () => void;
+}) {
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>{item.user.name.charAt(0).toUpperCase()}</Text>
+        {item.unread_count > 0 ? <View style={styles.avatarDot} /> : null}
       </View>
       <View style={styles.cardBody}>
-        <Text style={styles.cardName}>{item.user.name}</Text>
-        <Text style={styles.cardSnippet} numberOfLines={2}>
-          {item.last_message ?? "No messages yet"}
-        </Text>
+        <View style={styles.cardTop}>
+          <Text style={styles.cardName} numberOfLines={1}>{item.user.name}</Text>
+          {item.last_message_at ? (
+            <Text style={styles.cardTime}>{formatRelative(item.last_message_at)}</Text>
+          ) : null}
+        </View>
+        <View style={styles.cardBottom}>
+          <Text style={styles.cardSnippet} numberOfLines={1}>
+            {item.last_message ?? "No messages yet"}
+          </Text>
+          {item.unread_count > 0 ? (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>
+                {item.unread_count > 99 ? "99+" : item.unread_count}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
-      <View style={styles.cardMeta}>
-        <Text style={styles.cardTime}>{formattedTime}</Text>
-        {item.unread_count > 0 ? (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadText}>{item.unread_count}</Text>
-          </View>
-        ) : null}
-      </View>
-    </View>
+    </Pressable>
   );
 }
 
 export default function MessagesScreen() {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Thread state
+  const [activeUser, setActiveUser] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [thread, setThread] = useState<Message[]>([]);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+  const threadListRef = useRef<FlatList<Message>>(null);
 
   // Compose modal state
   const [composeVisible, setComposeVisible] = useState(false);
@@ -82,7 +114,6 @@ export default function MessagesScreen() {
   const [searching, setSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null);
   const [messageContent, setMessageContent] = useState("");
-  const [sending, setSending] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -105,6 +136,62 @@ export default function MessagesScreen() {
     setRefreshing(true);
     load();
   };
+
+  const openThread = useCallback(async (item: Conversation) => {
+    setActiveUser({ id: item.user.id, name: item.user.name });
+    setThreadLoading(true);
+    setThread([]);
+    try {
+      const messages = await messageService.thread(item.user.id);
+      setThread(messages);
+    } catch (e: any) {
+      Alert.alert("Could not load conversation", e.message || "Please try again.");
+    } finally {
+      setThreadLoading(false);
+    }
+  }, []);
+
+  const sendReply = useCallback(async () => {
+    if (!activeUser || !reply.trim() || sending) return;
+    const content = reply.trim();
+    setReply("");
+    setSending(true);
+    const optimistic: Message = {
+      id: -Date.now(),
+      sender_id: user?.id ?? -1,
+      recipient_id: activeUser.id,
+      content,
+      read: false,
+      sender_name: user ? `${user.first_name} ${user.last_name}` : undefined,
+      created_at: new Date().toISOString(),
+    };
+    setThread((prev) => [...prev, optimistic]);
+    try {
+      const sent = await messageService.send(activeUser.id, content);
+      setThread((prev) => prev.map((m) => (m.id === optimistic.id ? sent : m)));
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.user.id === activeUser.id
+            ? { ...c, last_message: content, last_message_at: new Date().toISOString() }
+            : c
+        )
+      );
+    } catch (e: any) {
+      setThread((prev) => prev.filter((m) => m.id !== optimistic.id));
+      setReply(content);
+      Alert.alert("Message failed to send", e.message || "Please try again.");
+    } finally {
+      setSending(false);
+    }
+  }, [activeUser, reply, sending, user]);
+
+  useEffect(() => {
+    if (threadListRef.current && thread.length > 0) {
+      requestAnimationFrame(() =>
+        threadListRef.current?.scrollToEnd({ animated: true })
+      );
+    }
+  }, [thread, threadLoading]);
 
   const handleCompose = () => {
     setComposeVisible(true);
@@ -158,6 +245,117 @@ export default function MessagesScreen() {
     }
   };
 
+  // ── Thread header ──────────────────────────────────────────────
+  const threadHeader = (
+    <View style={styles.threadHeader}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => setActiveUser(null)}
+        accessibilityLabel="Back to conversations"
+      >
+        <Text style={styles.backBtnText}>‹</Text>
+      </Pressable>
+      <View style={styles.threadAvatar}>
+        <Text style={styles.threadAvatarText}>
+          {activeUser?.name.charAt(0).toUpperCase() ?? "?"}
+        </Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.threadName}>{activeUser?.name}</Text>
+        <Text style={styles.threadStatus}>Conversation</Text>
+      </View>
+      <Pressable style={styles.headerCompose} onPress={handleCompose}>
+        <Text style={styles.headerComposeText}>+</Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderBubble = ({ item }: { item: Message }) => {
+    const mine = item.sender_id === user?.id;
+    return (
+      <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
+        <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+          <Text style={mine ? styles.bubbleTextMine : styles.bubbleTextTheirs}>
+            {item.content}
+          </Text>
+          <View style={styles.bubbleMeta}>
+            <Text style={mine ? styles.bubbleTimeMine : styles.bubbleTimeTheirs}>
+              {item.created_at
+                ? new Date(item.created_at).toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}
+            </Text>
+            {mine ? (
+              <Text style={styles.readReceipt}>{item.read ? "✓✓" : "✓"}</Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // ── Thread view ────────────────────────────────────────────────
+  if (activeUser) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        {threadHeader}
+        {threadLoading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={palette.primary} />
+          </View>
+        ) : (
+          <FlatList
+            ref={threadListRef}
+            style={styles.threadList}
+            contentContainerStyle={styles.threadContent}
+            data={thread}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={renderBubble}
+            ListEmptyComponent={
+              <View style={styles.emptyThread}>
+                <Text style={styles.emptyThreadTitle}>Say hello 👋</Text>
+                <Text style={styles.emptyThreadText}>
+                  Start the conversation with {activeUser.name}.
+                </Text>
+              </View>
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+        <View style={styles.composerBar}>
+          <TextInput
+            style={styles.replyInput}
+            value={reply}
+            onChangeText={setReply}
+            placeholder={`Message ${activeUser.name}...`}
+            placeholderTextColor="#adb5bd"
+            multiline
+            editable={!sending}
+          />
+          <Pressable
+            style={[styles.sendBtn, (!reply.trim() || sending) && styles.sendBtnDisabled]}
+            onPress={sendReply}
+            disabled={!reply.trim() || sending}
+            accessibilityLabel="Send message"
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.sendBtnText}>↑</Text>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ── Conversation list ──────────────────────────────────────────
   const header = (
     <View style={styles.headingRow}>
       <View style={{ flex: 1 }}>
@@ -198,7 +396,9 @@ export default function MessagesScreen() {
         data={conversations}
         keyExtractor={(item) => String(item.id)}
         ListHeaderComponent={header}
-        renderItem={({ item }) => <ConversationCard item={item} />}
+        renderItem={({ item }) => (
+          <ConversationCard item={item} onPress={() => openThread(item)} />
+        )}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -257,7 +457,7 @@ export default function MessagesScreen() {
                         <View style={styles.searchAvatar}>
                           <Text style={styles.searchAvatarText}>{u.name.charAt(0).toUpperCase()}</Text>
                         </View>
-                        <View>
+                        <View style={{ flex: 1 }}>
                           <Text style={styles.searchName}>{u.name}</Text>
                           <Text style={styles.searchSub}>{u.email}</Text>
                         </View>
@@ -351,22 +551,143 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     height: 48,
     justifyContent: "center",
+    position: "relative",
     width: 48,
   },
   avatarText: { color: "#fff", fontSize: 18, fontWeight: "800" },
+  avatarDot: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: palette.accent,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
   cardBody: { flex: 1, marginLeft: 12 },
-  cardName: { fontSize: 15, fontWeight: "700", color: palette.ink },
-  cardSnippet: { fontSize: 13, color: palette.muted, marginTop: 3, lineHeight: 18 },
-  cardMeta: { alignItems: "flex-end", marginLeft: 8 },
+  cardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardName: { fontSize: 15, fontWeight: "700", color: palette.ink, flex: 1, marginRight: 8 },
   cardTime: { fontSize: 11, color: "#adb5bd" },
+  cardBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 3,
+  },
+  cardSnippet: { fontSize: 13, color: palette.muted, lineHeight: 18, flex: 1, marginRight: 8 },
   unreadBadge: {
     backgroundColor: palette.accent,
     borderRadius: 10,
-    paddingHorizontal: 7,
+    minWidth: 20,
+    alignItems: "center",
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    marginTop: 6,
   },
   unreadText: { color: "#fff", fontSize: 11, fontWeight: "800" },
+
+  // Thread
+  threadHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: palette.surface,
+    borderBottomColor: palette.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  backBtn: {
+    alignItems: "center",
+    height: 40,
+    justifyContent: "center",
+    marginRight: 6,
+    width: 40,
+  },
+  backBtnText: { color: palette.primary, fontSize: 34, lineHeight: 34, fontWeight: "700" },
+  threadAvatar: {
+    alignItems: "center",
+    backgroundColor: palette.primary,
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center",
+    marginRight: 12,
+    width: 44,
+  },
+  threadAvatarText: { color: "#fff", fontSize: 17, fontWeight: "800" },
+  threadName: { color: palette.ink, fontSize: 16, fontWeight: "800" },
+  threadStatus: { color: palette.muted, fontSize: 12, marginTop: 2 },
+  headerCompose: {
+    alignItems: "center",
+    backgroundColor: palette.lavender,
+    borderRadius: 12,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  headerComposeText: { color: palette.primary, fontSize: 22, fontWeight: "400" },
+  threadList: { flex: 1 },
+  threadContent: { padding: 16, paddingBottom: 16 },
+  bubbleRow: { flexDirection: "row", marginBottom: 10 },
+  bubbleRowMine: { justifyContent: "flex-end" },
+  bubbleRowTheirs: { justifyContent: "flex-start" },
+  bubble: { maxWidth: "78%", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 9 },
+  bubbleMine: {
+    backgroundColor: palette.primary,
+    borderBottomRightRadius: 4,
+  },
+  bubbleTheirs: {
+    backgroundColor: palette.surface,
+    borderColor: palette.border,
+    borderWidth: 1,
+    borderBottomLeftRadius: 4,
+  },
+  bubbleTextMine: { color: "#fff", fontSize: 14, lineHeight: 20 },
+  bubbleTextTheirs: { color: palette.ink, fontSize: 14, lineHeight: 20 },
+  bubbleMeta: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginTop: 4 },
+  bubbleTimeMine: { color: "rgba(255,255,255,0.7)", fontSize: 10 },
+  bubbleTimeTheirs: { color: palette.muted, fontSize: 10 },
+  readReceipt: { color: "rgba(255,255,255,0.85)", fontSize: 11, marginLeft: 5, fontWeight: "700" },
+  emptyThread: { alignItems: "center", paddingTop: 60 },
+  emptyThreadTitle: { color: palette.ink, fontSize: 16, fontWeight: "800" },
+  emptyThreadText: { color: palette.muted, fontSize: 13, marginTop: 6 },
+  composerBar: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: palette.surface,
+    borderTopColor: palette.border,
+    borderTopWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  replyInput: {
+    flex: 1,
+    backgroundColor: palette.background,
+    borderColor: palette.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    color: palette.ink,
+    fontSize: 14,
+    maxHeight: 110,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  sendBtn: {
+    alignItems: "center",
+    backgroundColor: palette.primary,
+    borderRadius: 21,
+    height: 42,
+    justifyContent: "center",
+    width: 42,
+  },
+  sendBtnDisabled: { opacity: 0.5 },
+  sendBtnText: { color: "#fff", fontSize: 20, fontWeight: "900" },
+
   emptyCard: {
     alignItems: "center",
     backgroundColor: palette.surface,

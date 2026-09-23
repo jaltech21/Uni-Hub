@@ -117,7 +117,9 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 15000,
+      // AI calls retry + throttle server-side (Gemini), so keep the client
+      // window wide enough not to abort them mid-flight.
+      timeout: 90000,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",

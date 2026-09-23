@@ -1,10 +1,11 @@
 /**
  * Assignment Service
- * Lists assignments and handles student submissions.
+ * Lists assignments, handles student submissions, and supports teacher
+ * create/grade workflows.
  */
 
 import apiClient from "@services/api";
-import { Assignment, Submission } from "@app/types";
+import { Assignment, AssignmentCreatePayload, Submission } from "@app/types";
 
 class AssignmentService {
   async list(): Promise<Assignment[]> {
@@ -22,6 +23,20 @@ class AssignmentService {
   async submit(id: number, content: string): Promise<Submission> {
     return apiClient.post<Submission>(`/assignments/${id}/submit`, {
       submission: { content },
+    });
+  }
+
+  async create(payload: AssignmentCreatePayload): Promise<Assignment> {
+    return apiClient.post<Assignment>("/assignments", { assignment: payload });
+  }
+
+  async submissions(id: number): Promise<Submission[]> {
+    return apiClient.get<Submission[]>(`/assignments/${id}/submissions`);
+  }
+
+  async grade(submissionId: number, grade: number, feedback?: string): Promise<Submission> {
+    return apiClient.post<Submission>(`/submissions/${submissionId}/grade`, {
+      submission: { grade, feedback },
     });
   }
 }

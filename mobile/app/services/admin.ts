@@ -130,11 +130,11 @@ class AdminService {
   }
 
   async publishAnnouncement(id: number): Promise<Announcement> {
-    return apiClient.post<Announcement>(`/admin/announcements/${id}/publish`);
+    return apiClient.patch<Announcement>(`/admin/announcements/${id}/publish`);
   }
 
   async unpublishAnnouncement(id: number): Promise<Announcement> {
-    return apiClient.post<Announcement>(`/admin/announcements/${id}/unpublish`);
+    return apiClient.patch<Announcement>(`/admin/announcements/${id}/unpublish`);
   }
 }
 

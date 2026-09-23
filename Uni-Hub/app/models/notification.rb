@@ -21,6 +21,7 @@ class Notification < ApplicationRecord
     course_updated
     course_deactivated
     announcement_published
+    attendance_created
     note_shared
     quiz_shared
     grading_review
@@ -57,6 +58,8 @@ class Notification < ApplicationRecord
       'check-circle'
     when 'schedule_created', 'schedule_updated', 'schedule_reminder'
       'calendar'
+    when 'attendance_created'
+      'check-circle'
     when 'note_shared', 'quiz_shared'
       'share'
     else
@@ -77,6 +80,8 @@ class Notification < ApplicationRecord
       'purple'
     when 'schedule_reminder'
       'yellow'
+    when 'attendance_created'
+      'green'
     when 'note_shared', 'quiz_shared'
       'indigo'
     else
@@ -178,6 +183,18 @@ class Notification < ApplicationRecord
         message: "#{shared_by.full_name} shared '#{note.title}' with you",
         notifiable: note,
         action_url: Rails.application.routes.url_helpers.note_path(note)
+      )
+    end
+
+    def notify_attendance_created(user, attendance_list)
+      title = attendance_list.title.presence || 'Attendance List'
+      create!(
+        user: user,
+        notification_type: 'attendance_created',
+        title: 'Attendance List Created',
+        message: "A new attendance list has been created for #{title}. Please mark your attendance.",
+        notifiable: attendance_list,
+        action_url: Rails.application.routes.url_helpers.attendance_list_path(attendance_list)
       )
     end
   end

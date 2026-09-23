@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,6 +92,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
+  end
+
+  create_table "ai_chat_messages", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "role", default: "user", null: false
+    t.text "content", null: false
+    t.string "mode", default: "assistant"
+    t.string "status", default: "completed"
+    t.integer "processing_time_ms"
+    t.integer "tokens_used"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "created_at"], name: "index_ai_chat_messages_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_ai_chat_messages_on_user_id"
   end
 
   create_table "ai_grading_results", force: :cascade do |t|
@@ -259,6 +274,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "secret_key", limit: 32, null: false
+    t.bigint "schedule_id"
+    t.index ["schedule_id"], name: "index_attendance_lists_on_schedule_id"
     t.index ["user_id"], name: "index_attendance_lists_on_user_id"
   end
 
@@ -1655,6 +1672,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admin_audit_logs", "users", column: "admin_id"
+  add_foreign_key "ai_chat_messages", "users"
   add_foreign_key "ai_grading_results", "grading_rubrics"
   add_foreign_key "ai_grading_results", "submissions"
   add_foreign_key "ai_grading_results", "users", column: "reviewed_by_id"
@@ -1675,6 +1693,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_17_133728) do
   add_foreign_key "assignments", "departments"
   add_foreign_key "assignments", "schedules"
   add_foreign_key "assignments", "users"
+  add_foreign_key "attendance_lists", "schedules"
   add_foreign_key "attendance_lists", "users"
   add_foreign_key "attendance_records", "attendance_lists"
   add_foreign_key "attendance_records", "users"

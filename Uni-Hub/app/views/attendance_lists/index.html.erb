@@ -1,11 +1,13 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">Attendance Lists</h1>
-    <%= link_to 'Create New Attendance List', new_attendance_list_path, class: "bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300" %>
+    <% if current_user.teacher? %>
+      <%= link_to 'Create New Attendance List', new_attendance_list_path, class: "bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300" %>
+    <% end %>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <% if @attendance_list %> 
+    <% if current_user.teacher? && @attendance_list %>
       <div class="special-code">
         <p>Share this special code with your students:</p>
         <h2><%= @attendance_list.secret_key %></h2>
@@ -19,8 +21,10 @@
         </div>
         <div class="bg-gray-50 p-6 border-t border-gray-200 flex justify-between">
           <%= link_to 'View', attendance_list_path(attendance_list), class: "text-blue-600 hover:text-blue-800 font-medium transition duration-200" %>
-          <%= link_to 'Edit', edit_attendance_list_path(attendance_list), class: "text-indigo-600 hover:text-indigo-800 font-medium transition duration-200" %>
-          <%= button_to 'Destroy', attendance_list_path(attendance_list), method: :delete, class: "text-red-600 hover:text-red-800 font-medium transition duration-200" %>
+          <% if current_user.teacher? %>
+            <%= link_to 'Edit', edit_attendance_list_path(attendance_list), class: "text-indigo-600 hover:text-indigo-800 font-medium transition duration-200" %>
+            <%= button_to 'Destroy', attendance_list_path(attendance_list), method: :delete, class: "text-red-600 hover:text-red-800 font-medium transition duration-200" %>
+          <% end %>
         </div>
       </div>
     <% end %>

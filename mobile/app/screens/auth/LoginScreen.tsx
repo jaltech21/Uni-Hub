@@ -107,6 +107,7 @@ function DiscoverScreen({ onNext }: { onNext: () => void }) {
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState<number | null>(null);
   const { login, loading } = useAuth();
@@ -149,7 +150,12 @@ export default function LoginScreen({ navigation }: any) {
           <Text style={styles.label}>University email</Text>
           <TextInput style={styles.input} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" value={email} onChangeText={setEmail} editable={!loading} placeholder="you@unimtech.edu" placeholderTextColor="#AAB2C1" accessibilityLabel="University email" />
           <Text style={styles.label}>Password</Text>
-          <TextInput style={styles.input} secureTextEntry value={password} onChangeText={setPassword} editable={!loading} placeholder="Enter your password" placeholderTextColor="#AAB2C1" accessibilityLabel="Password" />
+          <View style={styles.passwordWrap}>
+            <TextInput style={styles.input} secureTextEntry={!showPassword} value={password} onChangeText={setPassword} editable={!loading} placeholder="Enter your password" placeholderTextColor="#AAB2C1" accessibilityLabel="Password" />
+            <Pressable style={styles.eyeToggle} onPress={() => setShowPassword((v) => !v)} accessibilityLabel={showPassword ? "Hide password" : "Show password"}>
+              <Text style={styles.eyeToggleText}>{showPassword ? "🙈" : "👁"}</Text>
+            </Pressable>
+          </View>
           <Pressable style={styles.forgot}><Text style={styles.forgotText}>Forgot password?</Text></Pressable>
           <Pressable style={[styles.loginButton, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
@@ -207,6 +213,18 @@ const styles = StyleSheet.create({
   errorText: { color: "#B42318", fontSize: 12 },
   label: { color: INK, fontSize: 12, fontWeight: "700", marginBottom: 7, marginTop: 19 },
   input: { backgroundColor: "#F7F8FB", borderColor: "#E5E9F2", borderRadius: 9, borderWidth: 1, color: INK, fontSize: 15, height: 48, paddingHorizontal: 14 },
+  passwordWrap: { position: "relative" },
+  eyeToggle: {
+    alignItems: "center",
+    backgroundColor: "transparent",
+    height: 48,
+    justifyContent: "center",
+    position: "absolute",
+    right: 6,
+    top: 0,
+    width: 42,
+  },
+  eyeToggleText: { fontSize: 18 },
   forgot: { alignSelf: "flex-end", marginTop: 10 },
   forgotText: { color: BLUE, fontSize: 12, fontWeight: "700" },
   loginButton: { alignItems: "center", backgroundColor: BLUE, borderRadius: 10, justifyContent: "center", marginTop: 22, minHeight: 50 },

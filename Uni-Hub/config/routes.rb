@@ -20,6 +20,9 @@ Rails.application.routes.draw do
       post   "ai/summarize",        to: "ai#summarize"
       get    "ai/progress",         to: "ai#progress"
       get    "ai/tutor_report",     to: "ai#tutor_report"
+      get    "ai/chat",             to: "ai#chat_history"
+      post   "ai/chat",             to: "ai#chat"
+      delete "ai/chat",             to: "ai#chat_reset"
 
       # Home
       get    "home/stats",          to: "home#stats"
@@ -28,7 +31,7 @@ Rails.application.routes.draw do
       resources :notes, only: [:index, :show, :create, :update, :destroy]
 
       # Assignments
-      resources :assignments, only: [:index, :show] do
+      resources :assignments, only: [:index, :show, :create] do
         collection do
           get :my_submissions
         end
@@ -45,7 +48,7 @@ Rails.application.routes.draw do
       end
 
       # Schedules
-      resources :schedules, only: [:index, :show] do
+      resources :schedules, only: [:index, :show, :create] do
         collection do
           get :browse
         end

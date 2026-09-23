@@ -17,11 +17,11 @@ class NotificationService {
   }
 
   async markAsRead(id: number): Promise<void> {
-    return apiClient.post(`/notifications/${id}/mark_as_read`);
+    return apiClient.patch(`/notifications/${id}/mark_as_read`);
   }
 
   async markAllAsRead(): Promise<void> {
-    return apiClient.post("/notifications/mark_all_as_read");
+    return apiClient.patch("/notifications/mark_all_as_read");
   }
 }
 

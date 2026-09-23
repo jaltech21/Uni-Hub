@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-bold text-gray-900">Course Enrollments</h1>
     <p class="mt-2 text-sm text-gray-600">
       <% if current_user.student? %>
-        Manage your course enrollment. You can be enrolled in one course at a time.
+        Manage your course enrollment. You can be enrolled in multiple courses at a time.
       <% elsif current_user.teacher? %>
         View students enrolled in your courses.
       <% else %>
@@ -17,42 +17,43 @@
     <div class="mb-8">
       <div class="bg-white shadow rounded-lg p-6">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-900">Your Enrollment</h2>
-          <% if @enrollments.active.empty? %>
-            <%= link_to "Enroll in a Course", new_enrollment_path, class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" %>
-          <% end %>
+          <h2 class="text-xl font-semibold text-gray-900">Your Enrollments</h2>
+          <%= link_to "Enroll in a Course", new_enrollment_path, class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition" %>
         </div>
 
         <% if @enrollments.active.any? %>
-          <% enrollment = @enrollments.active.first %>
-          <div class="border rounded-lg p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <h3 class="text-lg font-medium text-gray-900">
-                  <%= enrollment.schedule.full_name %>
-                </h3>
-                <p class="text-sm text-gray-600 mt-1">
-                  <%= enrollment.schedule.instructor.full_name %>
-                </p>
-                <p class="text-sm text-gray-500 mt-1">
-                  <%= enrollment.schedule.time_display %> | <%= enrollment.schedule.location %>
-                </p>
-                <div class="mt-2">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Enrolled
-                  </span>
-                  <span class="ml-2 text-xs text-gray-500">
-                    <%= enrollment.academic_year %> - <%= enrollment.semester.titleize %>
-                  </span>
+          <div class="space-y-4">
+            <% @enrollments.active.each do |enrollment| %>
+              <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="text-lg font-medium text-gray-900">
+                      <%= enrollment.schedule.full_name %>
+                    </h3>
+                    <p class="text-sm text-gray-600 mt-1">
+                      <%= enrollment.schedule.instructor.full_name %>
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                      <%= enrollment.schedule.time_display %> | <%= enrollment.schedule.location %>
+                    </p>
+                    <div class="mt-2">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Enrolled
+                      </span>
+                      <span class="ml-2 text-xs text-gray-500">
+                        <%= enrollment.academic_year %> - <%= enrollment.semester.titleize %>
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <%= button_to "Drop Course", enrollment_path(enrollment), 
+                        method: :delete, 
+                        data: { confirm: "Are you sure you want to drop this course? You will lose access to all assignments." },
+                        class: "px-3 py-2 text-sm text-red-600 hover:text-red-800 transition" %>
+                  </div>
                 </div>
               </div>
-              <div>
-                <%= button_to "Drop Course", enrollment_path(enrollment), 
-                    method: :delete, 
-                    data: { confirm: "Are you sure you want to drop this course? You will lose access to all assignments." },
-                    class: "px-3 py-2 text-sm text-red-600 hover:text-red-800 transition" %>
-              </div>
-            </div>
+            <% end %>
           </div>
         <% else %>
           <div class="text-center py-12">

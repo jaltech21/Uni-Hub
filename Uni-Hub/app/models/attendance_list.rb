@@ -3,6 +3,7 @@ class AttendanceList < ApplicationRecord
   VALID_PERIOD = 120 # 2 minutes in seconds
 
   belongs_to :user
+  belongs_to :schedule, optional: true
   # FIX CONFIRMED: dependent: :destroy ensures all attendance records are deleted
   # when the list is deleted, preventing foreign key errors.
   has_many :attendance_records, dependent: :destroy
@@ -32,10 +33,10 @@ class AttendanceList < ApplicationRecord
 
   def self.ransackable_attributes(auth_object = nil)
     # FIX CONFIRMED: 'secret_key' replaces 'special_code'
-    %w[id title description date user_id created_at updated_at secret_key].freeze
+    %w[id title description date user_id schedule_id created_at updated_at secret_key].freeze
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[user attendance_records students].freeze
+    %w[user schedule attendance_records students].freeze
   end
 end

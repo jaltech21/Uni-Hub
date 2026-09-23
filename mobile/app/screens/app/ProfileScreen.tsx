@@ -1,15 +1,18 @@
 /**
  * ProfileScreen — user profile with settings and logout.
- * Displays user info and provides actions for editing profile, changing password, and logout.
+ * Edit profile and change password are wired to the API through AuthContext.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useAuth } from "@context/AuthContext";
@@ -40,138 +43,385 @@ const Icon = ({
   size?: number;
 }) => <Text style={{ color, fontSize: size, lineHeight: size + 3 }}>{glyph}</Text>;
 
-export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+type ModalKind = "profile" | "password" | "logout" | null;
+
+export default function ProfileScreen({ navigation }: { navigation: any }) {
+  const { user, logout, updateProfile, changePassword } = useAuth();
+  const [modal, setModal] = useState<ModalKind>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  // Edit profile state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const openProfile = () => {
+    setFirstName(user?.first_name ?? "");
+    setLastName(user?.last_name ?? "");
+    setEmail(user?.email ?? "");
+    setUsername(user?.username ?? "");
+    setModal("profile");
+  };
+
+  const openPassword = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setModal("password");
+  };
+
+  const openLogout = () => {
+    setLogoutError(null);
+    setModal("logout");
+  };
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    // In-app confirmation modal instead of Alert.alert because
+    // react-native-web's Alert is a no-op, which made the previous logout
+    // confirmation (and the logout itself) silently do nothing on the web
+    // build. On success the AuthContext clears the user and this screen
+    // unmounts; the modal only closes on failure.
+    setLoggingOut(true);
+    setLogoutError(null);
+    try {
+      await logout();
+    } catch (e: any) {
+      setLogoutError(e.message || "Please try again.");
+      setLoggingOut(false);
+    }
   };
 
-  const handleEditProfile = () => {
-    Alert.alert("Coming Soon", "Edit profile functionality will be available soon.");
+  const handleSaveProfile = async () => {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      Alert.alert("Validation", "First name, last name and email are required.");
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      await updateProfile({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        username: username.trim() || undefined,
+      });
+      setModal(null);
+      Alert.alert("Profile updated", "Your profile has been saved.");
+    } catch (e: any) {
+      Alert.alert("Update failed", e.message || "Please try again.");
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handleChangePassword = () => {
-    Alert.alert(
-      "Coming Soon",
-      "Change password functionality will be available soon."
-    );
+  const handleSavePassword = async () => {
+    if (!currentPassword) {
+      Alert.alert("Validation", "Enter your current password.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert("Validation", "New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Validation", "New password and confirmation do not match.");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setModal(null);
+      Alert.alert("Password changed", "Your password has been updated.");
+    } catch (e: any) {
+      Alert.alert("Change failed", e.message || "Please try again.");
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const handleNotifications = () => {
-    Alert.alert(
-      "Coming Soon",
-      "Notification settings will be available soon."
-    );
+    navigation?.navigate("Notifications");
   };
 
-  const firstName = user?.first_name ?? "";
-  const lastName = user?.last_name ?? "";
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const firstName0 = user?.first_name ?? "";
+  const lastName0 = user?.last_name ?? "";
+  const initials = `${firstName0.charAt(0)}${lastName0.charAt(0)}`.toUpperCase();
   const roleBadgeColor =
     user?.role === "admin"
       ? palette.accent
-      : user?.role === "teacher"
+      : user?.role === "teacher" || user?.role === "tutor"
       ? palette.orange
       : palette.primary;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <Text style={styles.eyebrow}>YOUR ACCOUNT</Text>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Manage your account and preferences.</Text>
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Text style={styles.eyebrow}>YOUR ACCOUNT</Text>
+        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.subtitle}>Manage your account and preferences.</Text>
 
-      {/* User Info Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatarLarge}>
-          <Text style={styles.avatarText}>{initials || "?"}</Text>
-        </View>
-        <Text style={styles.profileName}>
-          {firstName} {lastName}
-        </Text>
-        <Text style={styles.profileEmail}>{user?.email}</Text>
-        <View style={[styles.roleBadge, { backgroundColor: roleBadgeColor }]}>
-          <Text style={styles.roleBadgeText}>{user?.role?.toUpperCase()}</Text>
-        </View>
-      </View>
-
-      {/* Settings Section */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Settings</Text>
-      </View>
-      <View style={styles.card}>
-        <Pressable style={styles.settingRow} onPress={handleEditProfile}>
-          <View style={styles.settingIconWrap}>
-            <Icon glyph="&#9711;" size={20} />
+        {/* User Info Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarLarge}>
+            <Text style={styles.avatarText}>{initials || "?"}</Text>
           </View>
-          <Text style={styles.settingLabel}>Edit Profile</Text>
-          <Icon glyph="›" color={palette.muted} size={22} />
+          <Text style={styles.profileName}>
+            {firstName0} {lastName0}
+          </Text>
+          <Text style={styles.profileEmail}>{user?.email}</Text>
+          <View style={[styles.roleBadge, { backgroundColor: roleBadgeColor }]}>
+            <Text style={styles.roleBadgeText}>{user?.role?.toUpperCase()}</Text>
+          </View>
+        </View>
+
+        {/* Settings Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+        </View>
+        <View style={styles.card}>
+          <Pressable style={styles.settingRow} onPress={openProfile}>
+            <View style={styles.settingIconWrap}>
+              <Icon glyph="&#9711;" size={20} />
+            </View>
+            <Text style={styles.settingLabel}>Edit Profile</Text>
+            <Icon glyph="›" color={palette.muted} size={22} />
+          </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable style={styles.settingRow} onPress={openPassword}>
+            <View style={styles.settingIconWrap}>
+              <Icon glyph="&#128274;" size={18} />
+            </View>
+            <Text style={styles.settingLabel}>Change Password</Text>
+            <Icon glyph="›" color={palette.muted} size={22} />
+          </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable style={styles.settingRow} onPress={handleNotifications}>
+            <View style={styles.settingIconWrap}>
+              <Icon glyph="&#128276;" size={18} />
+            </View>
+            <Text style={styles.settingLabel}>Notifications</Text>
+            <Icon glyph="›" color={palette.muted} size={22} />
+          </Pressable>
+        </View>
+
+        {/* About Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>About</Text>
+        </View>
+        <View style={styles.card}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Version</Text>
+            <Text style={styles.infoValue}>1.0.0</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Build</Text>
+            <Text style={styles.infoValue}>Preview</Text>
+          </View>
+        </View>
+
+        {/* Logout Button */}
+        <Pressable style={styles.logoutBtn} onPress={openLogout}>
+          <Icon glyph="&#10006;" color="#fff" size={16} />
+          <Text style={styles.logoutBtnText}>Logout</Text>
         </Pressable>
 
-        <View style={styles.divider} />
+        <Text style={styles.footer}>Uni-Hub © 2026</Text>
+      </ScrollView>
 
-        <Pressable style={styles.settingRow} onPress={handleChangePassword}>
-          <View style={styles.settingIconWrap}>
-            <Icon glyph="&#128274;" size={18} />
+      {/* Edit profile modal */}
+      <Modal
+        visible={modal === "profile"}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
+            <Text style={styles.modalHint}>Update your account details below.</Text>
+
+            <Text style={styles.inputLabel}>First name</Text>
+            <TextInput
+              style={styles.input}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="First name"
+              placeholderTextColor="#adb5bd"
+            />
+            <Text style={styles.inputLabel}>Last name</Text>
+            <TextInput
+              style={styles.input}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Last name"
+              placeholderTextColor="#adb5bd"
+            />
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@unihub.edu"
+              placeholderTextColor="#adb5bd"
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <Text style={styles.inputLabel}>Username</Text>
+            <TextInput
+              style={styles.input}
+              value={username}
+              onChangeText={setUsername}
+              placeholder="username"
+              placeholderTextColor="#adb5bd"
+              autoCapitalize="none"
+            />
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalCancel} onPress={() => setModal(null)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalPrimary, savingProfile && styles.modalDisabled]}
+                onPress={handleSaveProfile}
+                disabled={savingProfile}
+              >
+                {savingProfile ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalPrimaryText}>Save</Text>
+                )}
+              </Pressable>
+            </View>
           </View>
-          <Text style={styles.settingLabel}>Change Password</Text>
-          <Icon glyph="›" color={palette.muted} size={22} />
-        </Pressable>
+        </View>
+      </Modal>
 
-        <View style={styles.divider} />
+      {/* Change password modal */}
+      <Modal
+        visible={modal === "password"}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <Text style={styles.modalTitle}>Change Password</Text>
+            <Text style={styles.modalHint}>
+              Use at least 8 characters with a mix of letters, numbers or symbols.
+            </Text>
 
-        <Pressable style={styles.settingRow} onPress={handleNotifications}>
-          <View style={styles.settingIconWrap}>
-            <Icon glyph="&#128276;" size={18} />
+            <Text style={styles.inputLabel}>Current password</Text>
+            <TextInput
+              style={styles.input}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+              placeholder="Current password"
+              placeholderTextColor="#adb5bd"
+            />
+            <Text style={styles.inputLabel}>New password</Text>
+            <TextInput
+              style={styles.input}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              placeholder="New password"
+              placeholderTextColor="#adb5bd"
+            />
+            <Text style={styles.inputLabel}>Confirm new password</Text>
+            <TextInput
+              style={styles.input}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              placeholder="Confirm new password"
+              placeholderTextColor="#adb5bd"
+            />
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalCancel} onPress={() => setModal(null)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalPrimary, savingPassword && styles.modalDisabled]}
+                onPress={handleSavePassword}
+                disabled={savingPassword}
+              >
+                {savingPassword ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalPrimaryText}>Update</Text>
+                )}
+              </Pressable>
+            </View>
           </View>
-          <Text style={styles.settingLabel}>Notifications</Text>
-          <Icon glyph="›" color={palette.muted} size={22} />
-        </Pressable>
-      </View>
-
-      {/* About Section */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>About</Text>
-      </View>
-      <View style={styles.card}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0</Text>
         </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Build</Text>
-          <Text style={styles.infoValue}>Preview</Text>
+      </Modal>
+
+      {/* Logout confirmation modal */}
+      <Modal
+        visible={modal === "logout"}
+        animationType="fade"
+        transparent
+        onRequestClose={() => {
+          if (!loggingOut) setModal(null);
+        }}
+      >
+        <View style={styles.modalOverlayCenter}>
+          <View style={styles.logoutCard}>
+            <View style={styles.logoutIconWrap}>
+              <Text style={styles.logoutIcon}>&#10006;</Text>
+            </View>
+            <Text style={styles.logoutTitle}>Sign out of Uni-Hub?</Text>
+            <Text style={styles.logoutBody}>
+              You will need to sign in again to access your courses, notes and
+              messages.
+            </Text>
+            {logoutError ? (
+              <Text style={styles.logoutError}>{logoutError}</Text>
+            ) : null}
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.modalCancel}
+                onPress={() => setModal(null)}
+                disabled={loggingOut}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.logoutConfirm, loggingOut && styles.modalDisabled]}
+                onPress={handleLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalPrimaryText}>Logout</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
         </View>
-      </View>
-
-      {/* Logout Button */}
-      <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-        <Icon glyph="&#10006;" color="#fff" size={16} />
-        <Text style={styles.logoutBtnText}>Logout</Text>
-      </Pressable>
-
-      <Text style={styles.footer}>Uni-Hub © 2026</Text>
-    </ScrollView>
+      </Modal>
+    </>
   );
 }
 
@@ -219,10 +469,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   roleBadgeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
-  sectionHeader: {
-    marginBottom: 10,
-    marginTop: 2,
-  },
+  sectionHeader: { marginBottom: 10, marginTop: 2 },
   sectionTitle: { color: palette.ink, fontSize: 17, fontWeight: "800" },
   card: {
     backgroundColor: palette.surface,
@@ -277,5 +524,92 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 8,
+  },
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  modalOverlayCenter: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalSheet: {
+    backgroundColor: palette.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalTitle: { fontSize: 19, fontWeight: "800", color: palette.ink },
+  modalHint: { fontSize: 13, color: palette.muted, marginTop: 6, marginBottom: 4, lineHeight: 19 },
+  inputLabel: { fontSize: 12, fontWeight: "700", color: palette.ink, marginTop: 14, marginBottom: 6 },
+  input: {
+    backgroundColor: "#f5f7fb",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.border,
+    padding: 12,
+    fontSize: 14,
+    color: palette.ink,
+  },
+  modalActions: { flexDirection: "row", gap: 10, marginTop: 22 },
+  modalCancel: {
+    flex: 1,
+    backgroundColor: "#f1f3f5",
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  modalCancelText: { color: "#495057", fontWeight: "700" },
+  modalPrimary: {
+    flex: 1,
+    backgroundColor: palette.primary,
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  modalDisabled: { opacity: 0.6 },
+  modalPrimaryText: { color: "#fff", fontWeight: "700" },
+  // Logout confirm card
+  logoutCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 18,
+    padding: 24,
+    width: "100%",
+    maxWidth: 360,
+    alignItems: "center",
+  },
+  logoutIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: palette.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  logoutIcon: { color: palette.accent, fontSize: 24, fontWeight: "800" },
+  logoutTitle: { fontSize: 19, fontWeight: "800", color: palette.ink, textAlign: "center" },
+  logoutBody: {
+    fontSize: 13,
+    color: palette.muted,
+    lineHeight: 20,
+    textAlign: "center",
+    marginTop: 6,
+  },
+  logoutError: {
+    fontSize: 13,
+    color: palette.accent,
+    fontWeight: "600",
+    marginTop: 10,
+    textAlign: "center",
+  },
+  logoutConfirm: {
+    flex: 1,
+    backgroundColor: palette.accent,
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: "center",
   },
 });

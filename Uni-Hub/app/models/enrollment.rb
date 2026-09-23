@@ -7,8 +7,7 @@ class Enrollment < ApplicationRecord
     message: "is already enrolled in this course" 
   }
   
-  # Student can only be enrolled in ONE active course at a time
-  validate :student_single_course_limit, on: :create
+  # Student can be enrolled in multiple active courses at a time
   validate :schedule_has_capacity, on: :create
   
   # Scopes
@@ -30,12 +29,6 @@ class Enrollment < ApplicationRecord
   end
   
   private
-  
-  def student_single_course_limit
-    if user&.student? && user.enrollments.where(status: 'active').where.not(id: id).exists?
-      errors.add(:base, "Students can only be enrolled in one course at a time")
-    end
-  end
   
   def schedule_has_capacity
     if schedule && !schedule.has_capacity?

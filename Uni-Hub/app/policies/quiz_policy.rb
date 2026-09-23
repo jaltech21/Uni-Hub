@@ -59,13 +59,17 @@ class QuizPolicy < ApplicationPolicy
     record.quiz_attempts.exists?(user: user)
   end
 
-  # Only owner can use AI generation features
+  # Any authenticated user can generate a quiz from their own notes.
+  # The record passed to #generate / #generate_from_note is the Quiz class,
+  # so owner? (which reads record.user) is never true for it. Generation is
+  # always scoped to current_user.notes in the controller, so it is safe to
+  # grant to any signed-in user.
   def generate?
-    admin? || owner?
+    true
   end
 
   def generate_from_note?
-    generate?
+    true
   end
 
   # Scope: Filter quizzes based on ownership and department access

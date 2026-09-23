@@ -114,9 +114,14 @@ class SummarizationsController < ApplicationController
   end
 
   def openai_configured?
-    api_key = Rails.application.config.openai_api_key || 
-              Rails.application.credentials.dig(:openai, :api_key) || 
-              ENV['OPENAI_API_KEY']
-    api_key.present?
+    provider = ENV.fetch("AI_PROVIDER", "openai")
+    key = if provider == "gemini"
+            ENV["GEMINI_API_KEY"]
+          else
+            Rails.application.config.openai_api_key ||
+              Rails.application.credentials.dig(:openai, :api_key) ||
+              ENV["OPENAI_API_KEY"]
+          end
+    key.present?
   end
 end

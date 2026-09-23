@@ -8,6 +8,31 @@ module Api
         render_success(schedules.map { |s| serialize_schedule(s) })
       end
 
+      def create
+        schedule = build_personal_schedule
+        if schedule.save
+          # Auto-enroll the creator so the schedule appears on their dashboard.
+          ScheduleParticipant.find_or_create_by(schedule: schedule, user: current_user, role: "student")
+          Enrollment.find_or_create_by(user: current_user, schedule: schedule, status: "active")
+
+          NotificationService.create_notification(
+            user: current_user,
+            title: "Schedule added",
+            message: "#{schedule.title} was added to your schedule.",
+            notification_type: "schedule_created",
+            related_object: schedule
+          )
+          render_success(serialize_schedule(schedule), status: :created)
+        else
+          render_error(
+            "Validation failed",
+            status: :unprocessable_entity,
+            code: "VALIDATION_ERROR",
+            errors: schedule.errors.messages
+          )
+        end
+      end
+
       def browse
         enrolled_ids = current_user.enrolled_schedules.pluck(:id)
         schedules = Schedule.where.not(id: enrolled_ids)
@@ -49,6 +74,48 @@ module Api
       end
 
       private
+
+      def build_personal_schedule
+        day_index = parse_day_of_week(schedule_params[:day_of_week])
+        start_time = parse_time(schedule_params[:start_time])
+        end_time = parse_time(schedule_params[:end_time])
+
+        Schedule.new(
+          user: current_user,
+          instructor: current_user,
+          title: schedule_params[:title].to_s.strip,
+          course: schedule_params[:course].presence || "Personal",
+          day_of_week: day_index,
+          start_time: start_time,
+          end_time: end_time,
+          room: schedule_params[:room].presence || "Study room",
+          description: schedule_params[:description],
+          color: schedule_params[:color].presence || "#3b5bfd",
+          recurring: schedule_params[:recurring].nil? ? true : schedule_params[:recurring]
+        )
+      end
+
+      # Accepts 0..6 integers or English day names ("Monday", "mon").
+      def parse_day_of_week(value)
+        return nil if value.blank?
+        integer = value.to_i
+        return integer if value.to_s == value.to_i.to_s && integer.between?(0, 6)
+
+        index = Date::DAYNAMES.index { |d| d.casecmp?(value.to_s) }
+        return nil if index.nil?
+        index
+      end
+
+      def parse_time(value)
+        return nil if value.blank?
+        Time.zone.parse(value.to_s)
+      rescue ArgumentError
+        nil
+      end
+
+      def schedule_params
+        params.permit(:title, :course, :day_of_week, :start_time, :end_time, :room, :description, :color, :recurring)
+      end
 
       def set_schedule
         @schedule = Schedule.find(params[:id])

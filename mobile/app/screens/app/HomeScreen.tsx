@@ -11,8 +11,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "@context/AuthContext";
 import homeService from "@services/home";
+import notificationService from "@services/notifications";
 import { Assignment, HomeStats, Schedule } from "@app/types";
 
 const palette = {
@@ -124,6 +126,22 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unread, setUnread] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      notificationService
+        .unreadCount()
+        .then((count) => {
+          if (active) setUnread(count);
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const load = useCallback(async () => {
     try {
@@ -173,8 +191,24 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           </Text>
           <Text style={styles.subtitle}>Here is your academic overview.</Text>
         </View>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{firstName.charAt(0).toUpperCase()}</Text>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={styles.bellBtn}
+            onPress={() => navigation.navigate("Notifications")}
+            accessibilityLabel="Notifications"
+          >
+            <Icon glyph="🔔" size={20} />
+            {unread > 0 ? (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {unread > 99 ? "99+" : unread}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{firstName.charAt(0).toUpperCase()}</Text>
+          </View>
         </View>
       </View>
 
@@ -320,6 +354,33 @@ const styles = StyleSheet.create({
   eyebrow: { color: palette.muted, fontSize: 11, fontWeight: "700", letterSpacing: 1 },
   greeting: { color: palette.ink, fontSize: 24, fontWeight: "800", marginTop: 5 },
   subtitle: { color: palette.muted, fontSize: 14, marginTop: 5 },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 10 },
+  bellBtn: {
+    alignItems: "center",
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: palette.border,
+    height: 48,
+    justifyContent: "center",
+    position: "relative",
+    width: 48,
+  },
+  bellBadge: {
+    position: "absolute",
+    right: -4,
+    top: -4,
+    minWidth: 19,
+    height: 19,
+    borderRadius: 10,
+    backgroundColor: "#d92d20",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: palette.background,
+  },
+  bellBadgeText: { color: "#fff", fontSize: 10, fontWeight: "800" },
   avatar: {
     alignItems: "center",
     backgroundColor: palette.primary,

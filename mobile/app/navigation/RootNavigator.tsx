@@ -20,6 +20,8 @@ import RegisterScreen from "@screens/auth/RegisterScreen";
 import HomeScreen from "@screens/app/HomeScreen";
 import NotesScreen from "@screens/app/NotesScreen";
 import AssignmentsScreen from "@screens/app/AssignmentsScreen";
+import NotificationsScreen from "@screens/app/NotificationsScreen";
+import AttendanceScreen from "@screens/app/AttendanceScreen";
 import ScheduleScreen from "@screens/app/ScheduleScreen";
 import MessagesScreen from "@screens/app/MessagesScreen";
 import ProfileScreen from "@screens/app/ProfileScreen";
@@ -63,8 +65,9 @@ const AuthStack = () => (
 );
 
 // ── Standard tabs (student + teacher) ────────────────────────────
-const AppTabs = () => (
-  <Tab.Navigator screenOptions={tabBarScreenOptions}>
+const AppTabs = () => {
+  return (
+    <Tab.Navigator screenOptions={tabBarScreenOptions}>
     <Tab.Screen
       name="Home"
       component={HomeScreen}
@@ -95,6 +98,17 @@ const AppTabs = () => (
         tabBarLabel: "Tasks",
         tabBarIcon: ({ color }: { color: string }) => (
           <Text style={{ color, fontSize: 20 }}>&#10003;</Text>
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="Attendance"
+      component={AttendanceScreen}
+      options={{
+        title: "Attendance",
+        tabBarLabel: "Attend",
+        tabBarIcon: ({ color }: { color: string }) => (
+          <Text style={{ color, fontSize: 19 }}>&#10004;</Text>
         ),
       }}
     />
@@ -142,7 +156,27 @@ const AppTabs = () => (
         ),
       }}
     />
-  </Tab.Navigator>
+    </Tab.Navigator>
+  );
+};
+
+// ── App stack (tabs + pushed screens) ──
+const AppStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="AppTabs" component={AppTabs} />
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{
+        headerShown: true,
+        title: "Notifications",
+        headerStyle: { backgroundColor: "#ffffff" },
+        headerTintColor: "#172033",
+        headerTitleStyle: { fontSize: 18, fontWeight: "800" as const },
+        headerBackTitle: "Back",
+      }}
+    />
+  </Stack.Navigator>
 );
 
 // ── Admin tabs ────────────────────────────────────────────────────
@@ -239,7 +273,7 @@ export const RootNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? isAdmin ? <AdminTabs /> : <AppTabs /> : <AuthStack />}
+      {user ? isAdmin ? <AdminTabs /> : <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };

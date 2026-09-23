@@ -1,1 +1,12 @@
-<%= render "devise/shared/form", url: session_path(resource_name), heading: "Sign In", submit_text: "Log in" %>
+<%= render "devise/shared/form",
+  url: session_path(resource_name),
+  heading: "Sign In",
+  submit_text: "Log in",
+  form_subtitle: "Welcome back! Please sign in to continue",
+  hero_title: "Welcome Back to Uni-Hub",
+  hero_subtitle: "Glad to see you again. Sign in to continue your academic journey.",
+  hero_features: [
+    { title: "Smart Assignment Tracking", description: "Never miss a deadline again" },
+    { title: "AI-Powered Study Tools", description: "Summarization, quiz generation & more" },
+    { title: "Collaborative Workspace", description: "Share notes and work together" }
+  ] %>

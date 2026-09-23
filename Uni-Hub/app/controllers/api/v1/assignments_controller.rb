@@ -24,6 +24,28 @@ module Api
         render_success(serialize_assignment(@assignment, detail: true))
       end
 
+      def create
+        return render_forbidden unless current_user.teacher? || current_user.tutor?
+
+        @assignment = current_user.assignments.build(assignment_params)
+
+        if @assignment.schedule.present? && @assignment.schedule.instructor_id != current_user.id
+          return render_forbidden
+        end
+
+        if @assignment.save
+          notify_enrolled_students_of_assignment(@assignment)
+          render_success(serialize_assignment(@assignment, detail: true), status: :created)
+        else
+          render_error(
+            "Validation failed",
+            status: :unprocessable_entity,
+            code: "VALIDATION_ERROR",
+            errors: @assignment.errors.messages
+          )
+        end
+      end
+
       def submit
         return render_forbidden unless @assignment.visible_to?(current_user)
 
@@ -63,6 +85,20 @@ module Api
 
       def submission_params
         params.expect(submission: {}).permit(:content)
+      end
+
+      def assignment_params
+        params.expect(assignment: {}).permit(
+          :title, :description, :due_date, :points, :category,
+          :grading_criteria, :allow_resubmission, :course_name, :schedule_id
+        )
+      end
+
+      def notify_enrolled_students_of_assignment(assignment)
+        return unless assignment.schedule.present?
+        assignment.schedule.enrolled_students.find_each do |student|
+          Notification.notify_assignment_created(student, assignment)
+        end
       end
 
       def assignment_visible_to?(user, assignment)

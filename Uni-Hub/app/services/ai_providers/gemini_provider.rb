@@ -6,7 +6,17 @@ require 'timeout'
 module AiProviders
   class GeminiProvider < BaseProvider
     GEMINI_MODEL = ENV.fetch('GEMINI_MODEL', 'gemini-3.6-flash').freeze
-    
+
+    # Free-tier Gemini keys are limited to a low number of requests per minute
+    # (RPM). We throttle just below that so bursts of UI actions don't trip the
+    # provider's 429 window, and we retry transparently when the service still
+    # returns 429.
+    MAX_REQUESTS_PER_MINUTE = ENV.fetch('GEMINI_MAX_REQUESTS_PER_MINUTE', 15).to_i
+    MAX_429_RETRIES = ENV.fetch('GEMINI_MAX_429_RETRIES', 3).to_i
+    MAX_THROTTLE_WAIT = ENV.fetch('GEMINI_MAX_THROTTLE_WAIT', 90).to_i
+
+    class RateLimitedError < StandardError; end
+
     def initialize(api_key: ENV['GEMINI_API_KEY'])
       super(api_key: api_key)
       @client = Gemini.new(
@@ -20,6 +30,8 @@ module AiProviders
           server_sent_events: false
         }
       )
+      @throttle_mutex = Mutex.new
+      @request_times = []
     end
 
     def summarize_text(text, length:, user_id:)
@@ -60,7 +72,8 @@ module AiProviders
         
         {
           success: false,
-          error: format_error_message(e)
+          error: format_error_message(e),
+          rate_limited: rate_limited_error?(e)
         }
       end
     end
@@ -113,7 +126,8 @@ module AiProviders
         
         {
           success: false,
-          error: format_error_message(e)
+          error: format_error_message(e),
+          rate_limited: rate_limited_error?(e)
         }
       end
     end
@@ -157,7 +171,8 @@ module AiProviders
         
         {
           success: false,
-          error: format_error_message(e)
+          error: format_error_message(e),
+          rate_limited: rate_limited_error?(e)
         }
       end
     end
@@ -199,7 +214,7 @@ module AiProviders
       rescue StandardError => e
         processing_time = (Time.current - start_time).round(2)
         log_failure(user_id, 'answer_prompt', e, processing_time)
-        { success: false, error: format_error_message(e) }
+        { success: false, error: format_error_message(e), rate_limited: rate_limited_error?(e) }
       end
     end
 
@@ -231,7 +246,8 @@ module AiProviders
     end
 
     def build_questions_prompt(text, question_type, count, difficulty)
-      type_instruction = case question_type.to_sym
+      requested = question_type.to_sym
+      type_instruction = case requested
       when :multiple_choice
         "Generate #{count} multiple choice questions. Each question must have exactly 4 options and 1 correct answer."
       when :true_false
@@ -241,6 +257,13 @@ module AiProviders
       else
         "Generate #{count} mixed-type questions (multiple choice, true/false, and short answer)."
       end
+
+      allowed = %w[multiple_choice true_false short_answer]
+      type_fix = if requested == :mixed
+                   "Each question's \"type\" MUST be one of: #{allowed.join(', ')}."
+                 else
+                   "Each question's \"type\" MUST be exactly \"#{question_type}\"."
+                 end
 
       difficulty_instruction = case difficulty.to_sym
       when :easy then "Questions should test basic recall and understanding."
@@ -256,9 +279,10 @@ module AiProviders
         #{text[0..1500]}
         
         CRITICAL: correct_answer MUST be the EXACT FULL TEXT of one of the options, not a letter code.
+        #{type_fix}
         
         Return ONLY a JSON array with NO markdown formatting:
-        [{"type":"#{question_type}","question":"Question text here?","options":["First option text","Second option text","Third option text","Fourth option text"],"correct_answer":"Second option text","explanation":"Because..."}]
+        [{"type":"multiple_choice","question":"Question text here?","options":["First option text","Second option text","Third option text","Fourth option text"],"correct_answer":"Second option text","explanation":"Because..."}]
         
         Your complete JSON array:
       PROMPT
@@ -282,14 +306,69 @@ module AiProviders
     end
 
     def generate_content(prompt, generation_config: nil)
+      # gemini-3.6-flash reasons by default; disable reasoning-mode "thinking"
+      # so responses return in ~2s instead of ~6s+ unless a caller opts in.
+      config = (generation_config || {}).merge(thinkingConfig: { thinkingBudget: 0 })
       request = { contents: { role: 'user', parts: { text: prompt } } }
-      request[:generationConfig] = generation_config if generation_config
+      request[:generationConfig] = config unless config.empty?
 
-      Timeout.timeout(12) { @client.generate_content(request) }
+      wait_for_rate_slot!
+      attempt = 0
+      begin
+        Timeout.timeout(30) { @client.generate_content(request) }
+      rescue Faraday::TooManyRequestsError => e
+        attempt += 1
+        raise if attempt >= MAX_429_RETRIES
+
+        delay = retry_delay(e, attempt)
+        Rails.logger.warn "Gemini 429 (rate limited). Retrying in #{delay}s (attempt #{attempt + 1}/#{MAX_429_RETRIES})"
+        sleep(delay)
+        retry
+      rescue Faraday::ServerError, Faraday::ConnectionFailed, Faraday::TimeoutError => e
+        attempt += 1
+        raise if attempt >= MAX_429_RETRIES
+
+        delay = (2**attempt) + rand(0..1)
+        Rails.logger.warn "Gemini transport error (#{e.class}). Retrying in #{delay}s (attempt #{attempt + 1}/#{MAX_429_RETRIES})"
+        sleep(delay)
+        retry
+      end
     rescue Timeout::Error
       raise "Gemini API request timed out. Please try again."
     end
 
+    # Holds the request until there is room in this process' sliding 60s window,
+    # so bursts of UI actions stay under the provider's free-tier RPM cap.
+    def wait_for_rate_slot!
+      deadline = Time.current + MAX_THROTTLE_WAIT.seconds
+      loop do
+        delay = @throttle_mutex.synchronize do
+          cutoff = 60.seconds.ago
+          @request_times.reject! { |t| t < cutoff }
+          if @request_times.size < MAX_REQUESTS_PER_MINUTE
+            @request_times << Time.current
+            nil
+          else
+            @request_times.first - cutoff
+          end
+        end
+        return if delay.nil?
+
+        remaining = deadline - Time.current
+        raise RateLimitedError, "Gemini rate limit reached. Please wait a moment before trying again." if remaining <= 0
+        sleep([delay, 5].min)
+      end
+    end
+
+    # Uses the server-provided retry time when available (e.g. "retry in 22.7s"),
+    # otherwise falls back to exponential backoff.
+    def retry_delay(error, attempt)
+      body = error.respond_to?(:response) ? error.response.to_h[:body].to_s : error.to_s
+      match = body.match(/retry in ([\d.]+)s?/i)
+      return (match[1].to_f + 0.5).ceil if match
+
+      (2**attempt) + rand(0..1)
+    end
     def extract_text_from_response(response)
       payload = response.respond_to?(:to_h) ? response.to_h : response
       candidates = payload['candidates'] || payload[:candidates]
@@ -337,29 +416,13 @@ module AiProviders
         end
         
         # Convert to expected format and validate
-        questions_data.map do |q|
-          {
-            type: q['type'],
-            question: q['question'],
-            options: q['options'] || [],
-            correct_answer: q['correct_answer'],
-            explanation: q['explanation'] || 'No explanation provided'
-          }
-        end
+        questions_data.map { |q| normalize_question(q, question_type) }
       else
         # If no JSON markers found, try parsing the whole response as JSON
         begin
           questions_data = JSON.parse(cleaned_text)
           if questions_data.is_a?(Array)
-            return questions_data.map do |q|
-              {
-                type: q['type'],
-                question: q['question'],
-                options: q['options'] || [],
-                correct_answer: q['correct_answer'],
-                explanation: q['explanation'] || 'No explanation provided'
-              }
-            end
+            return questions_data.map { |q| normalize_question(q, question_type) }
           end
         rescue JSON::ParserError
           # Fall through to error handling
@@ -374,6 +437,35 @@ module AiProviders
       Rails.logger.error "JSON string that failed: #{json_string[0..200] rescue 'N/A'}"
       Rails.logger.error "Full response (first 1000 chars): #{cleaned_text[0..1000]}"
       raise "Invalid JSON response from Gemini API: #{e.message}"
+    end
+
+    def normalize_question(q, question_type)
+      allowed = %w[multiple_choice true_false short_answer]
+      raw_type = q['type'].to_s.strip
+      type = if question_type.to_sym == :mixed
+               allowed.include?(raw_type) ? raw_type : infer_question_type(q)
+             else
+               question_type.to_s
+             end
+
+      {
+        type: type,
+        question: q['question'],
+        options: q['options'] || [],
+        correct_answer: q['correct_answer'],
+        explanation: q['explanation'] || 'No explanation provided'
+      }
+    end
+
+    def infer_question_type(q)
+      options = q['options']
+      if options.is_a?(Array) && options.length >= 2
+        'multiple_choice'
+      elsif q['question'].to_s =~ /\b(true|false)\b/i
+        'true_false'
+      else
+        'short_answer'
+      end
     end
 
     def parse_hints_response(response_text)
@@ -397,6 +489,10 @@ module AiProviders
     end
 
     def format_error_message(error)
+      if rate_limited_error?(error)
+        return "⚠️ Gemini is currently rate-limited. Please wait a moment before trying again."
+      end
+
       case error.message
       when /API key/i
         "⚠️ Gemini API key error. Please check your GEMINI_API_KEY environment variable."
@@ -407,6 +503,12 @@ module AiProviders
       else
         "⚠️ Gemini API error: #{error.message}"
       end
+    end
+
+    def rate_limited_error?(error)
+      error.is_a?(Faraday::TooManyRequestsError) ||
+        error.is_a?(RateLimitedError) ||
+        error.message.to_s =~ /status 429|quota exceeded|RESOURCE_EXHAUSTED|rate limit/i
     end
   end
 end

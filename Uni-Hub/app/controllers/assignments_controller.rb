@@ -27,12 +27,12 @@ class AssignmentsController < ApplicationController
   def new
     @assignment = Assignment.new
     # Only show schedules the teacher is teaching
-    @available_schedules = current_user.taught_schedules.order(:course_code)
+    @available_schedules = current_user.taught_schedules.order(:course)
     authorize @assignment
   end
 
   def edit
-    @available_schedules = current_user.taught_schedules.order(:course_code)
+    @available_schedules = current_user.taught_schedules.order(:course)
     authorize @assignment
   end
 
@@ -52,7 +52,7 @@ class AssignmentsController < ApplicationController
       notify_enrolled_students_of_assignment(@assignment)
       redirect_to @assignment, notice: 'Assignment was successfully created.'
     else
-      @available_schedules = current_user.taught_schedules.order(:course_code)
+      @available_schedules = current_user.taught_schedules.order(:course)
       render :new, status: :unprocessable_entity
     end
   end
@@ -72,7 +72,7 @@ class AssignmentsController < ApplicationController
     if @assignment.update(assignment_params)
       redirect_to @assignment, notice: 'Assignment was successfully updated.'
     else
-      @available_schedules = current_user.taught_schedules.order(:course_code)
+      @available_schedules = current_user.taught_schedules.order(:course)
       render :edit, status: :unprocessable_entity
     end
   end

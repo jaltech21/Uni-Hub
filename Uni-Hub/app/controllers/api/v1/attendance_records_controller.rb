@@ -15,6 +15,11 @@ module Api
 
       def create
         attendance_list = AttendanceList.find(params[:attendance_list_id])
+
+        unless student_authorized_for?(attendance_list)
+          return render_error("You are not enrolled in this course, so you cannot check in.", status: :forbidden, code: "NOT_ENROLLED")
+        end
+
         return render_error("Attendance code is required", status: :unprocessable_entity, code: "VALIDATION_ERROR") if params[:code].blank?
 
         unless attendance_list.verify_attendance_code(params[:code])
@@ -38,6 +43,20 @@ module Api
       end
 
       private
+
+      # Students may only check in against lists for their enrolled schedules
+      # (or legacy, scheduler-less lists created by an instructor of a schedule
+      # they are enrolled in) — mirrors AttendanceListsController#index scope.
+      def student_authorized_for?(attendance_list)
+        return true unless current_user.student?
+        return true if attendance_list.schedule_id.in?(current_user.enrolled_schedules.distinct.pluck(:id))
+
+        instructor_ids = Schedule.where(id: current_user.enrolled_schedules.distinct.pluck(:id))
+                                 .distinct.pluck(:user_id, :instructor_id).flatten.compact
+        attendance_list.schedule_id.nil? &&
+          attendance_list.date.to_date >= Date.current &&
+          attendance_list.user_id.in?(instructor_ids)
+      end
 
       def serialize_record(record)
         {
