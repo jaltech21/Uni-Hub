@@ -50,7 +50,9 @@ module Api
 
       def enroll
         return render_forbidden unless current_user.student?
+        return render_forbidden if current_user.department_id.nil?
         return render_error("You are already enrolled in this class", status: :unprocessable_entity, code: "ALREADY_ENROLLED") if @schedule.has_participant?(current_user)
+        return render_error("Your department is not eligible for this course", status: :forbidden, code: "DEPARTMENT_MISMATCH") unless @schedule.department_allows_student?(current_user)
 
         if ScheduleParticipant.create(schedule: @schedule, user: current_user, role: "student")
           # Also keep enrollments table in sync for the primary course

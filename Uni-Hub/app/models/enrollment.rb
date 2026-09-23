@@ -7,7 +7,7 @@ class Enrollment < ApplicationRecord
     message: "is already enrolled in this course" 
   }
   
-  # Student can be enrolled in multiple active courses at a time
+  validate :student_department_matches_schedule, on: :create
   validate :schedule_has_capacity, on: :create
   
   # Scopes
@@ -29,6 +29,16 @@ class Enrollment < ApplicationRecord
   end
   
   private
+  
+  def student_department_matches_schedule
+    return if user.nil? || schedule.nil?
+    return if user.teacher? || user.tutor? || user.admin? || user.super_admin?
+    return if schedule.department_allows_student?(user)
+    
+    dept = schedule.department
+    dept_name = dept ? dept.name : "a different department"
+    errors.add(:schedule, "This course belongs to the #{dept_name}. You can only enroll in courses within your own department.")
+  end
   
   def schedule_has_capacity
     if schedule && !schedule.has_capacity?

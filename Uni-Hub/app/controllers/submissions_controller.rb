@@ -4,6 +4,7 @@ class SubmissionsController < ApplicationController
   before_action :authenticate_user!
   before_action :authorize_teacher!, only: [:index, :edit, :update]
   before_action :authorize_student!, only: [:new, :create]
+  before_action :ensure_enrolled_student!, only: [:new, :create, :show]
 
   # GET /assignments/:assignment_id/submissions
   def index
@@ -142,5 +143,12 @@ class SubmissionsController < ApplicationController
     if current_user.teacher?
       redirect_to root_path, alert: "Teachers cannot submit assignments."
     end
+  end
+
+  def ensure_enrolled_student!
+    return unless current_user.student?
+    return if @assignment.visible_to?(current_user)
+
+    redirect_to @assignment, alert: "You are not enrolled in this course, so you cannot submit or view this assignment."
   end
 end

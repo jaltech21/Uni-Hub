@@ -93,6 +93,16 @@ class Schedule < ApplicationRecord
     schedule_participants.exists?(user: user)
   end
 
+  # Does this schedule's department accept the given student?
+  # A schedule belongs to a department; students can only enroll when their
+  # own department matches (or the schedule has no department restriction).
+  def department_allows_student?(student)
+    return true if department_id.nil?
+    return true if student.can_access_department?(department)
+
+    student.student? && student.can_access_department?(department)
+  end
+
   # Enrollment capacity management
   def has_capacity?
     true  # No capacity limits for now

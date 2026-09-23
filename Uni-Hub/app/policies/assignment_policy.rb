@@ -10,8 +10,11 @@ class AssignmentPolicy < ApplicationPolicy
   def show?
     return true if admin?
     return true if owner?
-    
-    # Check if user can access any of the assignment's departments
+
+    # Students can only view assignments for courses they are actively enrolled in
+    return record.visible_to?(user) if user.student?
+
+    # Teachers/Tutors can access assignments in departments they teach
     record.all_departments.any? { |dept| can_access_department?(dept) }
   end
 
@@ -46,13 +49,10 @@ class AssignmentPolicy < ApplicationPolicy
                     user.id, dept_ids, dept_ids)
              .distinct
       elsif user.student?
-        # Students see assignments in their department (primary or additional)
+        # Students only see assignments for schedules they are enrolled in
         return scope.none if user.department_id.nil?
-        
-        scope.left_joins(:assignment_departments)
-             .where("assignments.department_id = ? OR assignment_departments.department_id = ?",
-                    user.department_id, user.department_id)
-             .distinct
+
+        scope.where(id: Assignment.visible_to_student(user).select(:id)).distinct
       else
         # Default: no assignments
         scope.none
