@@ -1,11 +1,9 @@
 /**
  * NotificationsScreen
  * Inbox for course/schedule/announcement/password-reset notifications.
- * Unread rows get a highlight + dot; tapping a row marks it read; a
- * header "mark all read" clears the whole inbox. Pull-to-refresh.
- *
- * Reached via the bell (HomeScreen) or Profile > Notifications; the screen
- * is pushed on the AppStack rather than rendered as a bottom tab.
+ * Unread rows get a highlight + dot; tapping a row marks it read and expands
+ * the full untruncated details; an "Open details" link opens the associated
+ * full-detail page (action_url) in the system browser.
  */
 
 import React, { useCallback, useEffect, useState } from "react";
@@ -13,6 +11,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -20,6 +20,25 @@ import {
   View,
 } from "react-native";
 import notificationService from "@services/notifications";
+
+// action_url values from the API are relative (e.g. "/assignments/1").
+// Prefix them with the web app origin so Linking can open the full-detail page.
+const apiOrigin = (() => {
+  const configured = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      // fall through to platform defaults
+    }
+  }
+  return Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+})();
+
+const openAction = (url: string) => {
+  const absolute = /^https?:\/\//i.test(url) ? url : `${apiOrigin}${url}`;
+  Linking.openURL(absolute).catch(() => undefined);
+};
 
 const palette = {
   primary: "#3b5bfd",
@@ -66,6 +85,7 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -115,6 +135,10 @@ export default function NotificationsScreen() {
     notificationService.markAsRead(id).catch(() => undefined);
   };
 
+  const toggleExpand = (id: number) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
   const markAllRead = async () => {
     if (unread === 0) return;
     setItems((prev) => prev.map((it) => ({ ...it, read: true })));
@@ -124,8 +148,11 @@ export default function NotificationsScreen() {
 
   const renderItem = ({ item }: { item: InboxItem }) => (
     <Pressable
-      onPress={() => markRead(item.id)}
-      style={[styles.row, !item.read && styles.rowUnread]}
+      onPress={() => {
+        markRead(item.id);
+        toggleExpand(item.id);
+      }}
+      style={[styles.row, !item.read && styles.rowUnread, expandedId === item.id && styles.rowExpanded]}
       accessibilityLabel={`${item.title}, ${item.read ? "read" : "unread"}`}
     >
       <View style={styles.rowIconWrap}>
@@ -134,12 +161,40 @@ export default function NotificationsScreen() {
       <View style={styles.rowBody}>
         <Text style={styles.rowTitle}>{item.title}</Text>
         {item.body ? (
-          <Text style={styles.rowBodyText} numberOfLines={2}>{item.body}</Text>
-        ) : null}
-        {item.created_at ? (
-          <Text style={styles.rowDate}>
-            {new Date(item.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          <Text
+            style={styles.rowBodyText}
+            numberOfLines={expandedId === item.id ? undefined : 2}
+          >
+            {item.body}
           </Text>
+        ) : null}
+        {expandedId === item.id ? (
+          <View style={styles.rowExpandedWrap}>
+            <Text style={styles.rowFullLabel}>COMPLETE DETAILS</Text>
+            {item.created_at ? (
+              <Text style={styles.rowFullText}>
+                {new Date(item.created_at).toLocaleString(undefined, {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </Text>
+            ) : null}
+            {item.action_url ? (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  openAction(item.action_url!);
+                }}
+                style={styles.rowActionLink}
+                accessibilityLabel={`Open details: ${item.action_url}`}
+              >
+                <Text style={styles.rowActionText}>Open complete details →</Text>
+              </Pressable>
+            ) : null}
+          </View>
         ) : null}
       </View>
       {!item.read ? <View style={styles.unreadDot} /> : null}
@@ -149,7 +204,7 @@ export default function NotificationsScreen() {
   const empty = (
     <View style={styles.emptyCard}>
       <View style={styles.emptyIconWrap}><Text style={styles.emptyIcon}>🔔</Text></View>
-      <Text style={styles.emptyTitle}>You&apos;re all caught up</Text>
+      <Text style={styles.emptyTitle}>{"You're all caught up"}</Text>
       <Text style={styles.emptyText}>Values, deadlines and announcements will surface here.</Text>
     </View>
   );
@@ -244,6 +299,7 @@ const styles = StyleSheet.create({
     padding: 13,
   },
   rowUnread: { backgroundColor: palette.unreadBg, borderColor: "#dfe4ff" },
+  rowExpanded: { borderColor: palette.primary, borderWidth: 1.5 },
   rowIconWrap: {
     alignItems: "center",
     backgroundColor: palette.lavender,
@@ -257,7 +313,11 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1 },
   rowTitle: { color: palette.ink, fontSize: 14, fontWeight: "800" },
   rowBodyText: { color: palette.muted, fontSize: 12, lineHeight: 18, marginTop: 3 },
-  rowDate: { color: palette.mutedLight, fontSize: 11, marginTop: 6 },
+  rowExpandedWrap: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: palette.border },
+  rowFullLabel: { color: palette.primary, fontSize: 10, fontWeight: "800", letterSpacing: 1.1, marginBottom: 4 },
+  rowFullText: { color: palette.ink, fontSize: 13, lineHeight: 19, marginTop: 2 },
+  rowActionLink: { marginTop: 10, alignSelf: "flex-start" },
+  rowActionText: { color: palette.primary, fontSize: 13, fontWeight: "800" },
   unreadDot: {
     backgroundColor: palette.primary,
     borderRadius: 4,
